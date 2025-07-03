@@ -63,7 +63,7 @@ namespace Engine::Utils
     using VoidResult = Result<void>;
 
     // =============================================================================
-    // エラー作成用のヘルパー関数
+     //@brief エラー作成用のヘルパー関数
      // =============================================================================
 
     // エラーを作成するヘルパー関数
@@ -75,4 +75,49 @@ namespace Engine::Utils
     {
         return Error{ type, std::string(message),location, hr };
     }
+
+
+    // =============================================================================
+   // HRESULT チェック用マクロ
+   // =============================================================================
+
+
+    //RESULTをチェックして、失敗時にエラーを返すマクロ
+#define CHECK_HR(hr, error_type, message) \
+        do { \
+            HRESULT _hr = (hr); \
+            if (FAILED(_hr)) { \
+                return std::unexpected(Engine::Utils::make_error(error_type, message, _hr)); \
+            } \
+        } while(0)
+
+    /// 条件をチェックして、失敗時にエラーを返すマクロ
+#define CHECK_CONDITION(condition, error_type, message) \
+        do { \
+            if (!(condition)) { \
+                return std::unexpected(Engine::Utils::make_error(error_type, message)); \
+            } \
+        } while(0)
+
+    //ログ出力用のヘルパー関数
+
+    //エラーをデバッグ出力に表示
+    inline void log_error(const Error& error) noexcept
+    {
+        OutputDebugStringA(error.what().c_str());
+    }
+
+    //情報をデバッグ出力に表示
+    inline void log_info(std::string_view message) noexcept
+    {
+        OutputDebugStringA(std::format("[INFO] {}\n", message).c_str());
+    }
+
+    //警告をデバッグに表示
+    inline void log_warning(std::string_view message) noexcept 
+    {
+        OutputDebugStringA(std::format("[WARNING] {}\n", message).c_str());
+    }
+
+
 }
