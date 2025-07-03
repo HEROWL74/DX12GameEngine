@@ -29,14 +29,6 @@ C++ と DirectX12 を使って、エンジン内部の仕組みを一から学�
 
 ---
 
-## 📚 学習・参考資料
-
-- [Braynzar Soft DirectX12 Tutorials](https://www.braynzarsoft.net/viewtutorial/q16390-directx-12-tutorials)
-- [DirectX12 初期化 解説 Zenn](https://zenn.dev/)
-- 書籍『ゲームエンジン・アーキテクチャ 第4版』
-- GitHubでの他のC++ゲームエンジン構成
-
----
 
 ## 🙌 このプロジェクトについて
 
@@ -46,7 +38,7 @@ C++ と DirectX12 を使って、エンジン内部の仕組みを一から学�
 
 ## 📧 作者について
 
-- 名前：hero74（仮）
+- 名前：hero74
 - 開発環境：Visual Studio 2022 / Windows 11 / C++20
 - 興味分野：ゲームエンジン開発
 
