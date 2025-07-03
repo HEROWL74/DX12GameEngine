@@ -1,5 +1,5 @@
 // App.cpp
-#include "Core/App.hpp"
+#include "App.hpp"
 
 namespace Core
 {
