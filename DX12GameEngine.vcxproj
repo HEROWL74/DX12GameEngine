@@ -126,6 +126,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\App.hpp" />
+    <ClInclude Include="src\Core\Window.hpp" />
     <ClInclude Include="src\Utils\Common.hpp" />
   </ItemGroup>
   <ItemGroup>
