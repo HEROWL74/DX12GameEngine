@@ -44,8 +44,9 @@ namespace Engine::Utils
 
             if (FAILED(hr))
             {
-                std::format("HRESULT: 0x{:08x}\n", static_cast<unsigned>(hr));
+                result += std::format("HRESULT: 0x{:08x}\n", static_cast<unsigned>(hr));
             }
+
 
             return result;
         }
@@ -67,6 +68,17 @@ namespace Engine::Utils
      // =============================================================================
 
     // エラーを作成するヘルパー関数
+  // HRESULT あり
+    [[nodiscard]] constexpr Error make_error(
+        ErrorType type,
+        std::string_view message,
+        HRESULT hr,
+        std::source_location location = std::source_location::current()) noexcept
+    {
+        return Error{ type, std::string(message), location, hr };
+    }
+
+    // HRESULT なし（CHECK_CONDITION 用）
     [[nodiscard]] constexpr Error make_error(
         ErrorType type,
         std::string_view message,
@@ -77,6 +89,7 @@ namespace Engine::Utils
 
 
 
+
     // =============================================================================
    // HRESULT チェック用マクロ
    // =============================================================================
@@ -84,12 +97,13 @@ namespace Engine::Utils
 
     //RESULTをチェックして、失敗時にエラーを返すマクロ
 #define CHECK_HR(hr, error_type, message) \
-        do { \
-            HRESULT _hr = (hr); \
-            if (FAILED(_hr)) { \
-                return std::unexpected(Engine::Utils::make_error(error_type, message, _hr)); \
-            } \
-        } while(0)
+    do { \
+        HRESULT _hr = (hr); \
+        if (FAILED(_hr)) { \
+            return std::unexpected(Engine::Utils::make_error(error_type, message, _hr)); \
+        } \
+    } while(0)
+
 
 #undef CHECK_CONDITION
 

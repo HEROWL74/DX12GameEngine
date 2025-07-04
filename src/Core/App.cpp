@@ -1,190 +1,183 @@
 // App.cpp
 #include "App.hpp"
 
-namespace Core
+namespace Engine::Core
 {
-    bool App::initialize(HINSTANCE hInstance, int nCmdShow) noexcept
+    Utils::VoidResult App::initialize(HINSTANCE hInstance, int nCmdShow) noexcept
     {
-        // ウィンドウの初期化
-        if (!initWindow(hInstance, nCmdShow)) {
-            return false;
+        Utils::log_info("Initializing Game Engine...");
+
+        // ---ウィンドウの設定---//
+        WindowSettings windowSettings{
+            .title = L"DX12 Game Engine",
+            .width = 1280,
+            .height = 720,
+            .resizable = true,
+            .fullScreen = false
+        };
+
+        //ウィンドウを作成
+        auto windowResult = m_window.create(hInstance, windowSettings);
+        if (!windowResult)
+        {
+            Utils::log_error(windowResult.error());
+            return std::unexpected(windowResult.error());
         }
 
-        // DirectX 12の初期化
-        if (!initD3D()) {
-            return false;
+        //ウィンドウイベントのコールバックを設定
+        m_window.setResizeCallback([this](int width, int height) {
+            onWindowResize(width, height);
+            });
+
+        m_window.setCloseCallback([this]() {
+            onWindowClose();
+        });
+
+        //ウィンドウを表示
+        m_window.show(nCmdShow);
+            
+        //DirectX12の初期化
+        auto d3dResult = initD3D();
+        if (!d3dResult)
+        {
+            Utils::log_error(d3dResult.error());
+            return std::unexpected(d3dResult.error());
         }
 
-        return true;
+        Utils::log_info("Game Engine initialization completed successfully!");
+        return {};
     }
 
     int App::run() noexcept
     {
-        MSG msg{};
-        while (msg.message != WM_QUIT)
+        Utils::log_info("Starting main loop...");
+
+        //メインループ
+        while (m_window.processMessages())
         {
-            if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-            }
-            else {
-                // メインループ：更新と描画を実行
-                update();
-                render();
-            }
+            update();
+            render();
         }
 
-        // 終了前にGPUの処理完了を待つ
-        waitForPreviousFrame();
+        //クリーンアップ
+        cleanup();
 
-        // フェンスイベントのクリーンアップ
-        if (m_fenceEvent) {
-            CloseHandle(m_fenceEvent);
-        }
-
-        return static_cast<int>(msg.wParam);
+        Utils::log_info("Application terminated successfully");
+        return 0;
     }
 
-    bool App::initWindow(HINSTANCE hInstance, int nCmdShow) noexcept
+   
+
+    Utils::VoidResult App::initD3D()
     {
-        constexpr wchar_t CLASS_NAME[] = L"DX12WindowClass";
+        Utils::log_info("Initializing DirectX 12...");
 
-        const WNDCLASS wc{
-            .lpfnWndProc = DefWindowProc,
-            .hInstance = hInstance,
-            .lpszClassName = CLASS_NAME
-        };
-        RegisterClass(&wc);
-
-        windowHandle = CreateWindowEx(0, CLASS_NAME, L"DX12 Engine",
-            WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-            width, height, nullptr, nullptr, hInstance, nullptr);
-
-        if (!windowHandle) return false;
-
-        ShowWindow(windowHandle, nCmdShow);
-        return true;
-    }
-
-    bool App::initD3D()
-    {
-        // --- デバッグレイヤーの有効化（デバッグビルドのみ） ---
+        //デバッグレイヤーの有効化　（デバッグビルドだけ）
 #ifdef _DEBUG
         ComPtr<ID3D12Debug> debugController;
         if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
         {
             debugController->EnableDebugLayer();
+            Utils::log_info("D3D12 Debug Layer enabled");
         }
 #endif
 
-        // --- DXGIファクトリの作成 ---
-        if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&m_dxgiFactory)))) {
-            return false;
-        }
+        //DXGIファクトリの作成
+        CHECK_HR(CreateDXGIFactory1(IID_PPV_ARGS(&m_dxgiFactory)),
+            Utils::ErrorType::DeviceCreation, "Failed to create DXGI factory");
 
-        // --- D3D12デバイスの作成 ---
-        if (FAILED(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_device)))) {
-            return false;
-        }
+        //D3D12デバイスの作成
+        CHECK_HR(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_device)),
+            Utils::ErrorType::DeviceCreation, "Failed to create D3D12 Device");
 
-        // --- コマンドキューの作成 ---
+        //コマンドキューの作成
         D3D12_COMMAND_QUEUE_DESC queueDesc{};
         queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;  // 直接コマンドリスト用
+        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-        if (FAILED(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)))) {
-            return false;
-        }
+        CHECK_HR(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)),
+            Utils::ErrorType::DeviceCreation, "Failed to create command queue");
 
-        // --- スワップチェーンの作成 ---
+        //スワップチェインの作成
+        const auto [clientWidth, clientHeight] = m_window.getClientSize();
+
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-        swapChainDesc.BufferCount = 2;              // ダブルバッファリング
-        swapChainDesc.Width = width;
-        swapChainDesc.Height = height;
-        swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;  // 32bit RGBA
+        swapChainDesc.BufferCount = 2;
+        swapChainDesc.Width = clientWidth;
+        swapChainDesc.Height = clientHeight;
+        swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        swapChainDesc.SampleDesc.Count = 1;         // マルチサンプリング無し
+        swapChainDesc.SampleDesc.Count = 1;
 
         ComPtr<IDXGISwapChain1> swapChain1;
-        if (FAILED(m_dxgiFactory->CreateSwapChainForHwnd(
-            m_commandQueue.Get(),   // GPU命令を流すキュー
-            windowHandle,           // 対象のウィンドウ
-            &swapChainDesc,         // スワップチェーン設定
-            nullptr, nullptr,       // 全画面設定なし
-            &swapChain1))) {
-            return false;
-        }
+        CHECK_HR(m_dxgiFactory->CreateSwapChainForHwnd(
+            m_commandQueue.Get(),
+            m_window.getHandle(),
+            &swapChainDesc,
+            nullptr, nullptr,
+            &swapChain1),
+            Utils::ErrorType::SwapChainCreation, "Failed to create swap chain");
 
-        // IDXGISwapChain3にキャスト
-        if (FAILED(swapChain1.As(&m_swapChain))) {
-            return false;
-        }
+        CHECK_HR(swapChain1.As(&m_swapChain),
+            Utils::ErrorType::SwapChainCreation, "Failed to cast swap chain to IDXGISwapChain3");
 
         m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-        // --- レンダーターゲットビュー用デスクリプタヒープの作成 ---
+        //レンダーターゲットビュー用ディスクリプタヒープの作成
         D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
-        rtvHeapDesc.NumDescriptors = 2;                         // バックバッファ2個分
-        rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;      // レンダーターゲットビュー用
-        rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;    // GPU側からは参照しない
+        rtvHeapDesc.NumDescriptors = 2;
+        rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-        if (FAILED(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)))) {
-            return false;
-        }
+        CHECK_HR(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)),
+            Utils::ErrorType::ResourceCreation, "Failed to create RTV descriptor heap");
 
-        // デスクリプタのサイズを取得（GPU依存）
         m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-        // --- レンダーターゲットビューの作成 ---
+        //レンダーターゲットビューの作成
         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
 
-        // スワップチェーンの各バックバッファに対してレンダーターゲットビューを作成
-        for (UINT i = 0; i < 2; i++)
-        {
-            if (FAILED(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])))) {
-                return false;
-            }
+        for (UINT i = 0; i < 2; i++) {
+            CHECK_HR(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])),
+                Utils::ErrorType::ResourceCreation,
+                std::format("Failed to get swap chain buffer {}", i));
 
-            // レンダーターゲットビューを作成
             m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
-
-            // 次のデスクリプタへ移動
             rtvHandle.ptr += m_rtvDescriptorSize;
         }
 
-        // --- コマンドアロケータの作成 ---
-        if (FAILED(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)))) {
-            return false;
-        }
+        //コマンドアロケータの作成
+        CHECK_HR(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)),
+            Utils::ErrorType::ResourceCreation, "Failed to create command allocator");
 
-        // --- コマンドリストの作成 ---
-        if (FAILED(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_commandList)))) {
-            return false;
-        }
+        //コマンドリストの作成
+        CHECK_HR(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+            m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_commandList)),
+            Utils::ErrorType::ResourceCreation, "Failed to create fence");
 
-        // コマンドリストは作成時に記録状態になっているので、一度クローズする
+        //コマンドリストは、作成時に記録状態になっているため、一回クローズする。
+
         m_commandList->Close();
 
-        // --- 同期用フェンスの作成 ---
-        if (FAILED(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)))) {
-            return false;
-        }
+        CHECK_HR(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)),
+            Utils::ErrorType::ResourceCreation, "Failed to create fence event");
+
         m_fenceValue = 1;
 
-        // フェンスイベントの作成
+        //フェンスイベントの作成
         m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        if (!m_fenceEvent) {
-            return false;
-        }
+        CHECK_CONDITION(m_fenceEvent != nullptr, Utils::ErrorType::ResourceCreation,
+            "Failed to create fence event");
 
-        return true;
+        Utils::log_info("DirectX 12 initialization completed successfully!");
+        return {};
     }
 
     void App::update()
     {
         // 現在は何もしない
-        // 将来的にはゲームロジックやアニメーションの更新処理を記述
+        // TODO 将来的にはゲームロジックやアニメーションの更新処理を記述
     }
 
     void App::render()
@@ -251,5 +244,32 @@ namespace Core
 
         // 次のフレームインデックスを取得
         m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+    }
+
+    void App::cleanup()
+    {
+        //GPU処理完了を待つ
+        waitForPreviousFrame();
+
+        //フェンスイベントのクリーンアップ
+        if (m_fenceEvent)
+        {
+            CloseHandle(m_fenceEvent);
+            m_fenceEvent = nullptr;
+        }
+
+        Utils::log_info("DirectX 12 resources cleaned up");
+    }
+
+    void App::onWindowResize(int width, int height)
+    {
+        Utils::log_info(std::format("Window resized: {}x{}", width, height));
+        // TODO 将来的にはスワップチェーンのリサイズ処理を実装予定
+        // 現在は何もしない
+    }
+
+    void App::onWindowClose()
+    {
+        Utils::log_info("Window close requested");
     }
 }

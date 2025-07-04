@@ -80,9 +80,9 @@ namespace Engine::Core {
 
         void setTitle(std::wstring_view title)const noexcept;
 
-        void setResizeCallBack(ResizeCallback callback) noexcept { m_resizeCallback = std::move(callback); }
+        void setResizeCallback(ResizeCallback callback) noexcept { m_resizeCallback = std::move(callback); }
 
-        void setCloseCallBack(CloseCallback callback) noexcept { m_closeCallback = std::move(callback); }
+        void setCloseCallback(CloseCallback callback) noexcept { m_closeCallback = std::move(callback); }
 
     private:
         HWND m_handle = nullptr;
