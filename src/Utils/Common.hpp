@@ -70,11 +70,11 @@ namespace Engine::Utils
     [[nodiscard]] constexpr Error make_error(
         ErrorType type,
         std::string_view message,
-        HRESULT hr,
         std::source_location location = std::source_location::current()) noexcept
     {
-        return Error{ type, std::string(message),location, hr };
+        return Error{ type, std::string(message), location, S_OK };
     }
+
 
 
     // =============================================================================
@@ -90,6 +90,8 @@ namespace Engine::Utils
                 return std::unexpected(Engine::Utils::make_error(error_type, message, _hr)); \
             } \
         } while(0)
+
+#undef CHECK_CONDITION
 
     /// 条件をチェックして、失敗時にエラーを返すマクロ
 #define CHECK_CONDITION(condition, error_type, message) \

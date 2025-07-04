@@ -72,11 +72,34 @@ namespace Engine::Core {
 
         //ウィンドウハンドルを取得
         //ウィンドウハンドル
-        [[nodiscard]] HWND getHandle() const noexcept;
+        [[nodiscard]] HWND getHandle() const noexcept { return m_handle; }
 
-        [[nodiscard]] bool isValid() const noexcept;
+        [[nodiscard]] std::pair<int, int> getClientSize() const noexcept;
 
+        [[nodiscard]] bool isValid() const noexcept { return m_handle != nullptr; }
 
+        void setTitle(std::wstring_view title)const noexcept;
+
+        void setResizeCallBack(ResizeCallback callback) noexcept { m_resizeCallback = std::move(callback); }
+
+        void setCloseCallBack(CloseCallback callback) noexcept { m_closeCallback = std::move(callback); }
+
+    private:
+        HWND m_handle = nullptr;
+        std::wstring m_className;
+        HINSTANCE m_hInstance = nullptr;
+
+        //イベントコールバック
+        ResizeCallback m_resizeCallback;
+        CloseCallback m_closeCallback;
+
+        [[nodiscard]] Utils::VoidResult registerWindowClass(HINSTANCE hInstance);
+
+        static LRESULT CALLBACK staticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+        LRESULT windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+        void destroy() noexcept;
 
     };
 }

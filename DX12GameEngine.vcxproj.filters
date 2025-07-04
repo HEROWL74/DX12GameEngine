@@ -37,5 +37,8 @@
     <ClCompile Include="src\main.cpp">
       <Filter>ソース ファイル\src</Filter>
     </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>ソース ファイル\src\Core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
