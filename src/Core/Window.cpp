@@ -1,4 +1,4 @@
-#include "src/Core/Window.hpp"
+#include "Window.hpp"
 #include <format>
 
 namespace Engine::Core {
