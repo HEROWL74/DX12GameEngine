@@ -18,6 +18,9 @@
     <Filter Include="ソース ファイル\src\Utils">
       <UniqueIdentifier>{ad7a8604-5bda-4a79-b8bc-c3de516e573f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\src\Graphics">
+      <UniqueIdentifier>{7350b8ef-69e4-438f-87e5-e8e56d754b24}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Utils\Common.hpp">
@@ -29,6 +32,9 @@
     <ClInclude Include="src\Core\Window.hpp">
       <Filter>ソース ファイル\src\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Device.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -39,6 +45,9 @@
     </ClCompile>
     <ClCompile Include="src\Core\Window.cpp">
       <Filter>ソース ファイル\src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Device.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
