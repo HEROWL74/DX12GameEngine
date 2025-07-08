@@ -98,6 +98,10 @@ namespace Engine::Core
         auto syncResult = createSyncObjects();
         if (!syncResult) return syncResult;
 
+        // 三角形レンダラーの初期化
+        auto triangleResult = m_triangleRenderer.initialize(&m_device);
+        if (!triangleResult) return triangleResult;
+
         Utils::log_info("DirectX 12 initialization completed successfully!");
         return {};
     }
@@ -238,6 +242,28 @@ namespace Engine::Core
         // 画面クリア（濃い青色で塗りつぶし）
         const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
         m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
+        // ビューポートとシザー矩形を設定
+        const auto [clientWidth, clientHeight] = m_window.getClientSize();
+        D3D12_VIEWPORT viewport{};
+        viewport.TopLeftX = 0.0f;
+        viewport.TopLeftY = 0.0f;
+        viewport.Width = static_cast<float>(clientWidth);
+        viewport.Height = static_cast<float>(clientHeight);
+        viewport.MinDepth = 0.0f;
+        viewport.MaxDepth = 1.0f;
+
+        D3D12_RECT scissorRect{};
+        scissorRect.left = 0;
+        scissorRect.top = 0;
+        scissorRect.right = clientWidth;
+        scissorRect.bottom = clientHeight;
+
+        m_commandList->RSSetViewports(1, &viewport);
+        m_commandList->RSSetScissorRects(1, &scissorRect);
+
+        // 三角形を描画
+        m_triangleRenderer.render(m_commandList.Get());
 
         // リソースバリア：バックバッファを表示状態に戻す
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;

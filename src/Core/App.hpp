@@ -10,6 +10,7 @@
 #include "Window.hpp"
 #include "../Graphics/Device.hpp"
 #include "../Utils/Common.hpp"
+#include "../Graphics/TriangleRenderer.hpp"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -25,7 +26,7 @@ namespace Engine::Core
         App() = default;
         ~App() = default;
 
-        // シングルトン的な使用を想定しているのでコピー・ムーブ禁止
+        // シングルトン的な使用するためコピー・ムーブ禁止
         App(const App&) = delete;
         App& operator=(const App&) = delete;
         App(App&&) = delete;
@@ -41,6 +42,7 @@ namespace Engine::Core
         // ウィンドウとデバイス管理
         Window m_window;
         Graphics::Device m_device;
+        Graphics::TriangleRenderer m_triangleRenderer;
 
         // スワップチェーン関係
         ComPtr<ID3D12CommandQueue> m_commandQueue;      // GPU命令の送信先
