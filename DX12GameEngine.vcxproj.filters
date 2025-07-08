@@ -35,6 +35,9 @@
     <ClInclude Include="src\Graphics\Device.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Shader.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -47,6 +50,9 @@
       <Filter>ソース ファイル\src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Device.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Shader.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
