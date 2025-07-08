@@ -46,7 +46,7 @@
     <ClCompile Include="src\Core\Window.cpp">
       <Filter>ソース ファイル\src\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Device.cpp">
+    <ClCompile Include="src\Graphics\Device.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>

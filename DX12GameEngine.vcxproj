@@ -131,9 +131,9 @@
     <ClInclude Include="src\Utils\Common.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Device.cpp" />
     <ClCompile Include="src\Core\App.cpp" />
     <ClCompile Include="src\Core\Window.cpp" />
+    <ClCompile Include="src\Graphics\Device.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

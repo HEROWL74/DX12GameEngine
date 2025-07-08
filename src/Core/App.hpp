@@ -9,6 +9,7 @@
 #include <d3dcompiler.h>
 
 #include "Window.hpp"
+#include "../Graphics/Device.hpp"
 #include "../Utils/Common.hpp"
 
 #pragma comment(lib, "d3d12.lib")
