@@ -130,6 +130,7 @@
     <ClInclude Include="src\Graphics\Device.hpp" />
     <ClInclude Include="src\Graphics\Shader.hpp" />
     <ClInclude Include="src\Graphics\TriangleRenderer.hpp" />
+    <ClInclude Include="src\Math\Math.hpp" />
     <ClInclude Include="src\Utils\Common.hpp" />
   </ItemGroup>
   <ItemGroup>
