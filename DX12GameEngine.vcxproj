@@ -129,6 +129,7 @@
     <ClInclude Include="src\Core\Window.hpp" />
     <ClInclude Include="src\Graphics\Device.hpp" />
     <ClInclude Include="src\Graphics\Shader.hpp" />
+    <ClInclude Include="src\Graphics\TriangleRenderer.hpp" />
     <ClInclude Include="src\Utils\Common.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -136,6 +137,7 @@
     <ClCompile Include="src\Core\Window.cpp" />
     <ClCompile Include="src\Graphics\Device.cpp" />
     <ClCompile Include="src\Graphics\Shader.cpp" />
+    <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
