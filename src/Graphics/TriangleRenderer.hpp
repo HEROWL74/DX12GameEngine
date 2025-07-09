@@ -7,6 +7,9 @@
 #include <array>
 #include "Device.hpp"
 #include "Shader.hpp"
+#include "ConstantBuffer.hpp"
+#include "Camera.hpp"
+#include "../Math/Math.hpp"
 #include "../Utils/Common.hpp"
 
 using Microsoft::WRL::ComPtr;
@@ -37,14 +40,31 @@ namespace Engine::Graphics
         [[nodiscard]] Utils::VoidResult initialize(Device* device);
 
         // 三角形を描画
-        void render(ID3D12GraphicsCommandList* commandList);
+        void render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex);
+
+        // 3D空間での位置・回転・スケールを設定
+        void setPosition(const Math::Vector3& position) { m_position = position; updateWorldMatrix(); }
+        void setRotation(const Math::Vector3& rotation) { m_rotation = rotation; updateWorldMatrix(); }
+        void setScale(const Math::Vector3& scale) { m_scale = scale; updateWorldMatrix(); }
+
+        // ゲッター
+        const Math::Vector3& getPosition() const { return m_position; }
+        const Math::Vector3& getRotation() const { return m_rotation; }
+        const Math::Vector3& getScale() const { return m_scale; }
 
         // 有効かチェック
-        [[nodiscard]] bool isValid() const noexcept { return m_rootSignature != nullptr; }
+        [[nodiscard]] bool isValid() const noexcept { return m_rootSignature != nullptr && m_constantBufferManager.isValid(); }
 
     private:
         Device* m_device = nullptr;
         ShaderManager m_shaderManager;
+        ConstantBufferManager m_constantBufferManager;
+
+        // 3D変換パラメータ
+        Math::Vector3 m_position = Math::Vector3::zero();
+        Math::Vector3 m_rotation = Math::Vector3::zero();
+        Math::Vector3 m_scale = Math::Vector3::one();
+        Math::Matrix4 m_worldMatrix;
 
         // 描画リソース
         ComPtr<ID3D12RootSignature> m_rootSignature;        // ルートシグネチャ
@@ -63,5 +83,8 @@ namespace Engine::Graphics
 
         // 三角形の頂点データを設定
         void setupTriangleVertices();
+
+        // ワールド行列を更新
+        void updateWorldMatrix();
     };
 }

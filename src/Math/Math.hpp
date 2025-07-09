@@ -1,3 +1,4 @@
+// src/Math/Math.hpp
 #pragma once
 
 #include <cmath>
@@ -6,361 +7,365 @@
 
 namespace Engine::Math
 {
-	//定数
-	constexpr float PI = 3.14159265359f;
-	constexpr float PI2 = PI * 2.0f;
-	constexpr float PI_HALF = PI * 0.5f;
-	constexpr float DEG_TO_RAD = PI / 180.0f;
-	constexpr float RAD_TO_DEG = 180.0f / PI;
+    // 定数
+    constexpr float PI = 3.14159265359f;
+    constexpr float PI2 = PI * 2.0f;
+    constexpr float PI_HALF = PI * 0.5f;
+    constexpr float DEG_TO_RAD = PI / 180.0f;
+    constexpr float RAD_TO_DEG = 180.0f / PI;
 
-	//ユーティリティ関数
-	template <typename T>
-	constexpr T clamp(T value, T min, T max)
-	{
-		return (value < min) ? min : (value > max) ? max : value;
-	}
+    // ユーティリティ関数
+    template<typename T>
+    constexpr T clamp(T value, T min, T max)
+    {
+        return (value < min) ? min : (value > max) ? max : value;
+    }
 
-	constexpr float lerp(float a, float b, float t)
-	{
-		return a + t * (b - a);
-	}
+    constexpr float lerp(float a, float b, float t)
+    {
+        return a + t * (b - a);
+    }
 
-	constexpr float degrees(float radians)
-	{
-		return radians * RAD_TO_DEG;
-	}
+    constexpr float degrees(float radians)
+    {
+        return radians * RAD_TO_DEG;
+    }
 
-	constexpr float radians(float degrees)
-	{
-		return degrees * DEG_TO_RAD;
-	}
+    constexpr float radians(float degrees)
+    {
+        return degrees * DEG_TO_RAD;
+    }
 
-	//三次元ベクトルクラス
-	class Vector3
-	{
-	public:
-		float x, y ,z;
+    // 3次元ベクトルクラス
+    class Vector3
+    {
+    public:
+        float x, y, z;
 
-		//コンストラクタ
-		constexpr Vector3() : x(0.0f), y(0.0f), z(0.0f) {}
-		constexpr Vector3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
-		constexpr Vector3(float value) : x(value), y(value), z(value) {}
+        // コンストラクタ
+        constexpr Vector3() : x(0.0f), y(0.0f), z(0.0f) {}
+        constexpr Vector3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
+        constexpr Vector3(float value) : x(value), y(value), z(value) {}
 
-		//静的定数
-		static constexpr Vector3 zero()    { return Vector3(0.0f, 0.0f, 0.0f); }
-		static constexpr Vector3 one()     { return Vector3(1.0f, 1.0f, 1.0f); }
-		static constexpr Vector3 up()      { return Vector3(0.0f, 1.0f, 1.0f);}
-		static constexpr Vector3 down()    { return Vector3(0.0f, -1.0f, 0.0f); }
-		static constexpr Vector3 left()    { return Vector3(-1.0f, 0.0f, 0.0f); }
-		static constexpr Vector3 right()   { return Vector3(1.0f, 0.0f, 0.0f); }
-		static constexpr Vector3 forward() { return Vector3(0.0f, 0.0f, 1.0f); }
-		static constexpr Vector3 back()    { return Vector3(0.0f, 0.0f, -1.0f); }
+        // 静的定数
+        static constexpr Vector3 zero() { return Vector3(0.0f, 0.0f, 0.0f); }
+        static constexpr Vector3 one() { return Vector3(1.0f, 1.0f, 1.0f); }
+        static constexpr Vector3 up() { return Vector3(0.0f, 1.0f, 0.0f); }
+        static constexpr Vector3 down() { return Vector3(0.0f, -1.0f, 0.0f); }
+        static constexpr Vector3 left() { return Vector3(-1.0f, 0.0f, 0.0f); }
+        static constexpr Vector3 right() { return Vector3(1.0f, 0.0f, 0.0f); }
+        static constexpr Vector3 forward() { return Vector3(0.0f, 0.0f, 1.0f); }
+        static constexpr Vector3 back() { return Vector3(0.0f, 0.0f, -1.0f); }
 
-		//演算子オーバーロード
-		constexpr Vector3 operator+(const Vector3& other) const
-		{
-			return Vector3(x + other.x, y + other.y, z + other.z);
-		}
+        // 演算子オーバーロード
+        constexpr Vector3 operator+(const Vector3& other) const
+        {
+            return Vector3(x + other.x, y + other.y, z + other.z);
+        }
 
-		constexpr Vector3 operator-(const Vector3& other) const
-		{
-			return Vector3(x - other.x, y - other.y, z - other.z);
-		}
+        constexpr Vector3 operator-(const Vector3& other) const
+        {
+            return Vector3(x - other.x, y - other.y, z - other.z);
+        }
 
-		constexpr Vector3 operator*(float scalar) const
-		{
-			return Vector3(x * scalar, y * scalar, z * scalar);
-		}
-		constexpr Vector3 operator*(const Vector3& other) const
-		{
-			return Vector3(x * other.x, y * other.y, z * other.z);
-		}
+        constexpr Vector3 operator*(float scalar) const
+        {
+            return Vector3(x * scalar, y * scalar, z * scalar);
+        }
 
-		constexpr Vector3 operator/(float scalar) const
-		{
-			return Vector3(x / scalar, y / scalar, z / scalar);
-		}
+        constexpr Vector3 operator*(const Vector3& other) const
+        {
+            return Vector3(x * other.x, y * other.y, z * other.z);
+        }
 
-		Vector3& operator+=(const Vector3& other)
-		{
-			x += other.x; y += other.y; z += other.z;
-			return *this;
-		}
+        constexpr Vector3 operator/(float scalar) const
+        {
+            return Vector3(x / scalar, y / scalar, z / scalar);
+        }
 
-		Vector3& operator-=(const Vector3& other)
-		{
-			x -= other.x; y -= other.y; z -= other.z;
-			return *this;
-		}
+        Vector3& operator+=(const Vector3& other)
+        {
+            x += other.x; y += other.y; z += other.z;
+            return *this;
+        }
 
-		Vector3& operator*=(float scalar)
-		{
-			x *= scalar; y *= scalar; z += scalar;
-			return *this;
-		}
+        Vector3& operator-=(const Vector3& other)
+        {
+            x -= other.x; y -= other.y; z -= other.z;
+            return *this;
+        }
 
-		constexpr Vector3 operator-() const
-		{
-			return Vector3(-x, -y, -z);
-		}
+        Vector3& operator*=(float scalar)
+        {
+            x *= scalar; y *= scalar; z *= scalar;
+            return *this;
+        }
 
-		//ベクトル操作
-		float length () const
-		{
-			return std::sqrt(x * x + y * y + z * z);
-		}
-		float lengthSquared() const
-		{
-			return x * x + y * y + z * z;
-		}
+        constexpr Vector3 operator-() const
+        {
+            return Vector3(-x, -y, -z);
+        }
 
-		Vector3 normalized() const
-		{
-			float len = length();
-			if (len > 0.0f)
-				return *this / len;
-			return Vector3::zero();
-		}
+        // ベクトル操作
+        float length() const
+        {
+            return std::sqrt(x * x + y * y + z * z);
+        }
 
-		void normalize()
-		{
-			*this = normalized();
-		}
+        float lengthSquared() const
+        {
+            return x * x + y * y + z * z;
+        }
 
-		//静的関数
-		static float dot(const Vector3& a, const Vector3& b)
-		{
-			return a.x * b.x + a.y * b.y + a.z * b.z;
-		}
+        Vector3 normalized() const
+        {
+            float len = length();
+            if (len > 0.0f)
+                return *this / len;
+            return Vector3::zero();
+        }
 
-		static Vector3 cross(const Vector3& a, const Vector3& b)
-		{
-			return Vector3(
-				a.y * b.z - a.z * b.y,
-				a.z * b.x - a.x * b.z,
-				a.x * b.y - a.y * b.x
-			);
-		}
+        void normalize()
+        {
+            *this = normalized();
+        }
 
-		static Vector3 lerp(const Vector3& a, const Vector3 b, float t)
-		{
-			return a + (b - a) * t;
-		}
+        // 静的関数
+        static float dot(const Vector3& a, const Vector3& b)
+        {
+            return a.x * b.x + a.y * b.y + a.z * b.z;
+        }
 
-		static float distance(const Vector3& a, const Vector3& b)
-		{
-			return (b - a).length();
-		}
-	};
+        static Vector3 cross(const Vector3& a, const Vector3& b)
+        {
+            return Vector3(
+                a.y * b.z - a.z * b.y,
+                a.z * b.x - a.x * b.z,
+                a.x * b.y - a.y * b.x
+            );
+        }
 
-	//スカラー * Vector3の演算子
-	constexpr Vector3 operator*(float scalar, const Vector3& vector)
-	{
-		return vector * scalar;
-	}
+        static Vector3 lerp(const Vector3& a, const Vector3& b, float t)
+        {
+            return a + (b - a) * t;
+        }
 
-	//4x4行列クラス
-	class Matrix4
-	{
-	public:
-		//行列データ（行優先）
-		std::array<std::array<float, 4>, 4> m;
+        static float distance(const Vector3& a, const Vector3& b)
+        {
+            return (b - a).length();
+        }
+    };
 
-		//コンストラクタ
-		Matrix4()
-		{
-			identity();
-		}
+    // スカラー * Vector3の演算子
+    constexpr Vector3 operator*(float scalar, const Vector3& vector)
+    {
+        return vector * scalar;
+    }
 
-		Matrix4(std::initializer_list<std::initializer_list<float>> values)
-		{
-			identity();
-			int row = 0;
-			for (const auto& rowData : values)
-			{
-				if (row >= 4) break;
-				int col = 0;
-				for (float value : rowData)
-				{
-					if (col >= 4) break;
-					m[row][col] = value;
-					++col;
-				}
-				++row;
-			}
-		}
+    // 4x4行列クラス
+    class Matrix4
+    {
+    public:
+        // 行列データ（行優先）
+        std::array<std::array<float, 4>, 4> m;
 
-		//要素アクセス
-		float& operator()(int row, int col) { return m[row][col]; }
-		const float& operator()(int row, int col) const { return m[row][col]; }
+        // コンストラクタ
+        Matrix4()
+        {
+            identity();
+        }
 
-		//単位行列に設定
-		void identity()
-		{
-			for (int i = 0; i < 4; ++i) {
-				for (int j = 0; j < 4; ++j) {
-					m[i][j] = (i == j) ? 1.0f : 0.0f;
-				}
-			}
-		}
+        Matrix4(std::initializer_list<std::initializer_list<float>> values)
+        {
+            identity();
+            int row = 0;
+            for (const auto& rowData : values)
+            {
+                if (row >= 4) break;
+                int col = 0;
+                for (float value : rowData)
+                {
+                    if (col >= 4) break;
+                    m[row][col] = value;
+                    ++col;
+                }
+                ++row;
+            }
+        }
 
-		//行列演算
-		Matrix4 operator*(const Matrix4& other)
-		{
-			Matrix4 result;
-			for (int i = 0; i < 4; ++i) 
-			{
-				for (int j = 0; j < 4; ++j) 
-				{
-					result.m[i][j] = 0.0f;
-					for (int k = 0; k < 4; ++k) 
-					{
-						result.m[i][j] += m[i][k] * other.m[k][j];
-					}
-				}
-			}
-			return result;
-		}
+        // 要素アクセス
+        float& operator()(int row, int col) { return m[row][col]; }
+        const float& operator()(int row, int col) const { return m[row][col]; }
 
-		Vector3 transformPoint(const Vector3& point) const
-		{
-			float w = m[3][0] * point.x + m[3][1] * point.y + m[3][2] * point.z + m[3][3];
-			if (w != 0.0f)
-			{
-				return Vector3(
-					(m[0][0] * point.x + m[0][1] * point.y + m[0][2] * point.z + m[0][3]) / w,
-					(m[0][0] * point.x + m[1][1] * point.y + m[1][2] * point.z + m[1][3]) / w,
-					(m[0][0] * point.x + m[2][1] * point.y + m[2][2] * point.z + m[2][3]) / w
-				);
-			}
-			return Vector3::zero();
-		}
+        // 単位行列に設定
+        void identity()
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                for (int j = 0; j < 4; ++j)
+                {
+                    m[i][j] = (i == j) ? 1.0f : 0.0f;
+                }
+            }
+        }
 
-		Vector3 transformDirection(const Vector3& direction) const
-		{
-			return Vector3(
-				m[0][0] * direction.x + m[0][1] * direction.y + m[0][2] * direction.z,
-				m[1][0] * direction.x + m[1][1] * direction.y + m[1][2] * direction.z,
-				m[2][0] * direction.x + m[2][1] * direction.y + m[2][2] * direction.z
-			);
-		}
+        // 行列演算
+        Matrix4 operator*(const Matrix4& other) const
+        {
+            Matrix4 result;
+            for (int i = 0; i < 4; ++i)
+            {
+                for (int j = 0; j < 4; ++j)
+                {
+                    result.m[i][j] = 0.0f;
+                    for (int k = 0; k < 4; ++k)
+                    {
+                        result.m[i][j] += m[i][k] * other.m[k][j];
+                    }
+                }
+            }
+            return result;
+        }
 
-		//変換行列の作成
-		static Matrix4 translation(const Vector3& position)
-		{
-			Matrix4 result;
-			result.m[0][3] = position.x;
-			result.m[1][3] = position.y;
-			result.m[2][3] = position.z;
-			return result;
-		}
+        Vector3 transformPoint(const Vector3& point) const
+        {
+            float w = m[3][0] * point.x + m[3][1] * point.y + m[3][2] * point.z + m[3][3];
+            if (w != 0.0f)
+            {
+                return Vector3(
+                    (m[0][0] * point.x + m[0][1] * point.y + m[0][2] * point.z + m[0][3]) / w,
+                    (m[1][0] * point.x + m[1][1] * point.y + m[1][2] * point.z + m[1][3]) / w,
+                    (m[2][0] * point.x + m[2][1] * point.y + m[2][2] * point.z + m[2][3]) / w
+                );
+            }
+            return Vector3::zero();
+        }
 
-		static Matrix4 rotationX(float angle)
-		{
-			Matrix4 result;
-			float cosA = std::cos(angle);
-			float sinA = std::sin(angle);
-			result.m[1][1] = cosA;
-			result.m[1][2] = -sinA;
-			result.m[2][1] = sinA;
-			result.m[2][2] = cosA;
-			return result;
-		}
+        Vector3 transformDirection(const Vector3& direction) const
+        {
+            return Vector3(
+                m[0][0] * direction.x + m[0][1] * direction.y + m[0][2] * direction.z,
+                m[1][0] * direction.x + m[1][1] * direction.y + m[1][2] * direction.z,
+                m[2][0] * direction.x + m[2][1] * direction.y + m[2][2] * direction.z
+            );
+        }
 
-		static Matrix4 rotationY(float angle)
-		{
-			Matrix4 result;
-			float cosA = std::cos(angle);
-			float sinA = std::sin(angle);
-			result.m[0][0] = cosA;
-			result.m[0][2] = sinA;
-			result.m[2][0] = -sinA;
-			result.m[2][2] = cosA;
-			return result;
-		}
+        // 変換行列の作成
+        static Matrix4 translation(const Vector3& position)
+        {
+            Matrix4 result;
+            result.m[0][3] = position.x;
+            result.m[1][3] = position.y;
+            result.m[2][3] = position.z;
+            return result;
+        }
 
-		static Matrix4 rotationZ(float angle)
-		{
-			Matrix4 result;
-			float cosA = std::cos(angle);
-			float sinA = std::sin(angle);
-			result.m[0][0] = cosA;
-			result.m[0][1] = -sinA;
-			result.m[1][0] = sinA;
-			result.m[1][1] = cosA;
-			return result;
-		}
+        static Matrix4 rotationX(float angle)
+        {
+            Matrix4 result;
+            float cosA = std::cos(angle);
+            float sinA = std::sin(angle);
+            result.m[1][1] = cosA;
+            result.m[1][2] = -sinA;
+            result.m[2][1] = sinA;
+            result.m[2][2] = cosA;
+            return result;
+        }
 
-		static Matrix4 scaling(const Vector3& scale)
-		{
-			Matrix4 result;
-			result.m[0][0] = scale.x;
-			result.m[1][1] = scale.y;
-			result.m[2][2] = scale.z;
-			return result;
-		}
+        static Matrix4 rotationY(float angle)
+        {
+            Matrix4 result;
+            float cosA = std::cos(angle);
+            float sinA = std::sin(angle);
+            result.m[0][0] = cosA;
+            result.m[0][2] = sinA;
+            result.m[2][0] = -sinA;
+            result.m[2][2] = cosA;
+            return result;
+        }
 
-		//ビュー行列
-		static Matrix4 lookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
-		{
-			Vector3 forward = (target - eye).normalized();
-			Vector3 right = Vector3::cross(forward, up).normalized();
-			Vector3 newUp = Vector3::cross(right, forward);
+        static Matrix4 rotationZ(float angle)
+        {
+            Matrix4 result;
+            float cosA = std::cos(angle);
+            float sinA = std::sin(angle);
+            result.m[0][0] = cosA;
+            result.m[0][1] = -sinA;
+            result.m[1][0] = sinA;
+            result.m[1][1] = cosA;
+            return result;
+        }
 
-			Matrix4 result;
-			result.m[0][0] = right.x;
-			result.m[0][1] = right.y;
-			result.m[0][2] = right.z;
-			result.m[0][3] = -Vector3::dot(right, eye);
+        static Matrix4 scaling(const Vector3& scale)
+        {
+            Matrix4 result;
+            result.m[0][0] = scale.x;
+            result.m[1][1] = scale.y;
+            result.m[2][2] = scale.z;
+            return result;
+        }
 
-			result.m[1][0] = newUp.x;
-			result.m[1][1] = newUp.y;
-			result.m[1][2] = newUp.z;
-			result.m[1][3] = -Vector3::dot(newUp, eye);
+        // ビュー行列
+        static Matrix4 lookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
+        {
+            Vector3 forward = (target - eye).normalized();
+            Vector3 right = Vector3::cross(forward, up).normalized();
+            Vector3 newUp = Vector3::cross(right, forward);
 
-			result.m[2][0] = -forward.x;
-			result.m[2][1] = -forward.y;
-			result.m[2][2] = -forward.z;
-			result.m[2][3] = Vector3::dot(forward, eye);
+            Matrix4 result;
+            result.m[0][0] = right.x;
+            result.m[0][1] = right.y;
+            result.m[0][2] = right.z;
+            result.m[0][3] = -Vector3::dot(right, eye);
 
-			result.m[3][0] = 0.0f;
-			result.m[3][1] = 0.0f;
-			result.m[3][2] = 0.0f;
-			result.m[3][3] = 1.0f;
+            result.m[1][0] = newUp.x;
+            result.m[1][1] = newUp.y;
+            result.m[1][2] = newUp.z;
+            result.m[1][3] = -Vector3::dot(newUp, eye);
 
-			return result;
-		}
+            result.m[2][0] = -forward.x;
+            result.m[2][1] = -forward.y;
+            result.m[2][2] = -forward.z;
+            result.m[2][3] = Vector3::dot(forward, eye);
 
-		//プロジェクション行列
-		static Matrix4 perspective(float fovy, float aspect, float near, float far)
-		{
-			float tanHalFovy = std::tan(fovy * 0.5f);
+            result.m[3][0] = 0.0f;
+            result.m[3][1] = 0.0f;
+            result.m[3][2] = 0.0f;
+            result.m[3][3] = 1.0f;
 
-			Matrix4 result;
-			result.m[0][0] = 1.0f / (aspect * tanHalFovy);
-			result.m[1][1] = 1.0f / tanHalFovy;
-			result.m[2][2] = -(far + near) / (far - near);
-			result.m[2][3] = -(2.0f * far * near) / (far - near);
-			result.m[3][2] = -1.0f;
-			result.m[3][3] = 0.0f;
+            return result;
+        }
 
-			return result;
-		}
+        // プロジェクション行列
+        static Matrix4 perspective(float fovy, float aspect, float nearPlane, float farPlane)
+        {
+            float tanHalfFovy = std::tan(fovy * 0.5f);
 
-		static Matrix4 orthographic(float left, float right, float bottom, float top, float near, float far)
-		{
-			Matrix4 result;
-			result.m[0][0] = 2.0f / (right - left);
-			result.m[1][1] = 2.0f / (top - bottom);
-			result.m[2][2] = -2.0f / (far - near);
-			result.m[0][3] = -(right + left) / (right - left);
-			result.m[1][3] = -(top + bottom) / (top - bottom);
-			result.m[2][3] = -(far + near) / (far - near);
+            Matrix4 result;
+            result.m[0][0] = 1.0f / (aspect * tanHalfFovy);
+            result.m[1][1] = 1.0f / tanHalfFovy;
+            result.m[2][2] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+            result.m[2][3] = -(2.0f * farPlane * nearPlane) / (farPlane - nearPlane);
+            result.m[3][2] = -1.0f;
+            result.m[3][3] = 0.0f;
 
-			return result;
-		}
+            return result;
+        }
 
-		//データポインターを取得
-		const float* data() const { return &m[0][0]; }
-	};
+        static Matrix4 orthographic(float left, float right, float bottom, float top, float nearPlane, float farPlane)
+        {
+            Matrix4 result;
+            result.m[0][0] = 2.0f / (right - left);
+            result.m[1][1] = 2.0f / (top - bottom);
+            result.m[2][2] = -2.0f / (farPlane - nearPlane);
+            result.m[0][3] = -(right + left) / (right - left);
+            result.m[1][3] = -(top + bottom) / (top - bottom);
+            result.m[2][3] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+
+            return result;
+        }
+
+        // データポインターを取得（DirectX用）
+        const float* data() const { return &m[0][0]; }
+    };
 }
