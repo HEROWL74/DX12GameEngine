@@ -255,6 +255,112 @@ namespace Engine::Math
 			return result;
 		}
 
-		//TODO: 回転関数x,y,zの作成
+		static Matrix4 rotationX(float angle)
+		{
+			Matrix4 result;
+			float cosA = std::cos(angle);
+			float sinA = std::sin(angle);
+			result.m[1][1] = cosA;
+			result.m[1][2] = -sinA;
+			result.m[2][1] = sinA;
+			result.m[2][2] = cosA;
+			return result;
+		}
+
+		static Matrix4 rotationY(float angle)
+		{
+			Matrix4 result;
+			float cosA = std::cos(angle);
+			float sinA = std::sin(angle);
+			result.m[0][0] = cosA;
+			result.m[0][2] = sinA;
+			result.m[2][0] = -sinA;
+			result.m[2][2] = cosA;
+			return result;
+		}
+
+		static Matrix4 rotationZ(float angle)
+		{
+			Matrix4 result;
+			float cosA = std::cos(angle);
+			float sinA = std::sin(angle);
+			result.m[0][0] = cosA;
+			result.m[0][1] = -sinA;
+			result.m[1][0] = sinA;
+			result.m[1][1] = cosA;
+			return result;
+		}
+
+		static Matrix4 scaling(const Vector3& scale)
+		{
+			Matrix4 result;
+			result.m[0][0] = scale.x;
+			result.m[1][1] = scale.y;
+			result.m[2][2] = scale.z;
+			return result;
+		}
+
+		//ビュー行列
+		static Matrix4 lookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
+		{
+			Vector3 forward = (target - eye).normalized();
+			Vector3 right = Vector3::cross(forward, up).normalized();
+			Vector3 newUp = Vector3::cross(right, forward);
+
+			Matrix4 result;
+			result.m[0][0] = right.x;
+			result.m[0][1] = right.y;
+			result.m[0][2] = right.z;
+			result.m[0][3] = -Vector3::dot(right, eye);
+
+			result.m[1][0] = newUp.x;
+			result.m[1][1] = newUp.y;
+			result.m[1][2] = newUp.z;
+			result.m[1][3] = -Vector3::dot(newUp, eye);
+
+			result.m[2][0] = -forward.x;
+			result.m[2][1] = -forward.y;
+			result.m[2][2] = -forward.z;
+			result.m[2][3] = Vector3::dot(forward, eye);
+
+			result.m[3][0] = 0.0f;
+			result.m[3][1] = 0.0f;
+			result.m[3][2] = 0.0f;
+			result.m[3][3] = 1.0f;
+
+			return result;
+		}
+
+		//プロジェクション行列
+		static Matrix4 perspective(float fovy, float aspect, float near, float far)
+		{
+			float tanHalFovy = std::tan(fovy * 0.5f);
+
+			Matrix4 result;
+			result.m[0][0] = 1.0f / (aspect * tanHalFovy);
+			result.m[1][1] = 1.0f / tanHalFovy;
+			result.m[2][2] = -(far + near) / (far - near);
+			result.m[2][3] = -(2.0f * far * near) / (far - near);
+			result.m[3][2] = -1.0f;
+			result.m[3][3] = 0.0f;
+
+			return result;
+		}
+
+		static Matrix4 orthographic(float left, float right, float bottom, float top, float near, float far)
+		{
+			Matrix4 result;
+			result.m[0][0] = 2.0f / (right - left);
+			result.m[1][1] = 2.0f / (top - bottom);
+			result.m[2][2] = -2.0f / (far - near);
+			result.m[0][3] = -(right + left) / (right - left);
+			result.m[1][3] = -(top + bottom) / (top - bottom);
+			result.m[2][3] = -(far + near) / (far - near);
+
+			return result;
+		}
+
+		//データポインターを取得
+		const float* data() const { return &m[0][0]; }
 	};
 }
