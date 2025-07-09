@@ -21,6 +21,9 @@
     <Filter Include="ソース ファイル\src\Graphics">
       <UniqueIdentifier>{7350b8ef-69e4-438f-87e5-e8e56d754b24}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\src\Math">
+      <UniqueIdentifier>{5a49188c-2005-4894-90e2-8f1ca116659f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Utils\Common.hpp">
@@ -38,6 +41,12 @@
     <ClInclude Include="src\Graphics\Shader.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Math\Math.hpp">
+      <Filter>ソース ファイル\src\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\TriangleRenderer.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -53,6 +62,9 @@
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Shader.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\TriangleRenderer.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
