@@ -5,10 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="リソース ファイル">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="ソース ファイル\src">
       <UniqueIdentifier>{786aaf70-3a1d-4561-8c95-ce94a61df724}</UniqueIdentifier>
     </Filter>
@@ -23,6 +19,9 @@
     </Filter>
     <Filter Include="ソース ファイル\src\Math">
       <UniqueIdentifier>{5a49188c-2005-4894-90e2-8f1ca116659f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Shaders">
+      <UniqueIdentifier>{d1c0b3e1-b76f-4152-86e1-9284aa771f40}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -47,6 +46,15 @@
     <ClInclude Include="src\Graphics\TriangleRenderer.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Camera.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\ConstantBuffer.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Mesh.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -67,5 +75,19 @@
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Camera.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\ConstantBuffer.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders\BasicVertex.hlsl">
+      <Filter>ソース ファイル\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\BasicPixel.hlsl">
+      <Filter>ソース ファイル\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

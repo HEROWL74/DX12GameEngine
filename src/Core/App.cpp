@@ -102,6 +102,15 @@ namespace Engine::Core
         auto triangleResult = m_triangleRenderer.initialize(&m_device);
         if (!triangleResult) return triangleResult;
 
+        // カメラの初期化
+        const auto [clientWidth, clientHeight] = m_window.getClientSize();
+        m_camera.setPerspective(45.0f, static_cast<float>(clientWidth) / clientHeight, 0.1f, 100.0f);
+        m_camera.setPosition({ 0.0f, 0.0f, 3.0f });
+        m_camera.lookAt({ 0.0f, 0.0f, 0.0f });
+
+        // 三角形を3D空間に配置
+        m_triangleRenderer.setPosition(Math::Vector3(0.0f, 0.0f, 0.0f));
+
         Utils::log_info("DirectX 12 initialization completed successfully!");
         return {};
     }
@@ -263,7 +272,7 @@ namespace Engine::Core
         m_commandList->RSSetScissorRects(1, &scissorRect);
 
         // 三角形を描画
-        m_triangleRenderer.render(m_commandList.Get());
+        m_triangleRenderer.render(m_commandList.Get(), m_camera, m_frameIndex);
 
         // リソースバリア：バックバッファを表示状態に戻す
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -318,6 +327,12 @@ namespace Engine::Core
     void App::onWindowResize(int width, int height)
     {
         Utils::log_info(std::format("Window resized: {}x{}", width, height));
+
+        // カメラのアスペクト比を更新
+        if (height > 0)
+        {
+            m_camera.updateAspect(static_cast<float>(width) / height);
+        }
 
         // TODO: スワップチェーンのリサイズ処理を実装
         // 現在は何もしない

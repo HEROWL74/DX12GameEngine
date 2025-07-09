@@ -9,8 +9,15 @@ namespace Engine::Graphics
         m_device = device;
         Utils::log_info("Initializing Triangle Renderer...");
 
+        // 定数バッファマネージャーを初期化
+        auto constantBufferResult = m_constantBufferManager.initialize(device);
+        if (!constantBufferResult) return constantBufferResult;
+
         // 三角形の頂点データを設定
         setupTriangleVertices();
+
+        // ワールド行列を初期化
+        updateWorldMatrix();
 
         // 各コンポーネントを順番に初期化
         auto rootSigResult = createRootSignature();
@@ -29,11 +36,70 @@ namespace Engine::Graphics
         return {};
     }
 
-    void TriangleRenderer::render(ID3D12GraphicsCommandList* commandList)
+    void TriangleRenderer::render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex)
     {
+        // デバッグログを追加
+        static bool firstFrame = true;
+        if (firstFrame) {
+            // カメラの行列情報をログ出力
+            Math::Matrix4 viewMatrix = camera.getViewMatrix();
+            Math::Matrix4 projMatrix = camera.getProjectionMatrix();
+
+            Utils::log_info("=== Camera Matrix Debug ===");
+            Utils::log_info(std::format("View Matrix [0]: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+                viewMatrix.m[0][0], viewMatrix.m[0][1], viewMatrix.m[0][2], viewMatrix.m[0][3]));
+            Utils::log_info(std::format("View Matrix [1]: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+                viewMatrix.m[1][0], viewMatrix.m[1][1], viewMatrix.m[1][2], viewMatrix.m[1][3]));
+            Utils::log_info(std::format("View Matrix [2]: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+                viewMatrix.m[2][0], viewMatrix.m[2][1], viewMatrix.m[2][2], viewMatrix.m[2][3]));
+            Utils::log_info(std::format("View Matrix [3]: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+                viewMatrix.m[3][0], viewMatrix.m[3][1], viewMatrix.m[3][2], viewMatrix.m[3][3]));
+
+            Utils::log_info("=== Projection Matrix Debug ===");
+            Utils::log_info(std::format("Proj Matrix [0]: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+                projMatrix.m[0][0], projMatrix.m[0][1], projMatrix.m[0][2], projMatrix.m[0][3]));
+            Utils::log_info(std::format("Proj Matrix [1]: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+                projMatrix.m[1][0], projMatrix.m[1][1], projMatrix.m[1][2], projMatrix.m[1][3]));
+            Utils::log_info(std::format("Proj Matrix [2]: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+                projMatrix.m[2][0], projMatrix.m[2][1], projMatrix.m[2][2], projMatrix.m[2][3]));
+            Utils::log_info(std::format("Proj Matrix [3]: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+                projMatrix.m[3][0], projMatrix.m[3][1], projMatrix.m[3][2], projMatrix.m[3][3]));
+
+            // 頂点データの確認
+            Utils::log_info("=== Vertex Data Debug ===");
+            for (size_t i = 0; i < m_triangleVertices.size(); ++i) {
+                const auto& vertex = m_triangleVertices[i];
+                Utils::log_info(std::format("Vertex {}: Pos({:.3f}, {:.3f}, {:.3f}), Color({:.3f}, {:.3f}, {:.3f})",
+                    i, vertex.position[0], vertex.position[1], vertex.position[2],
+                    vertex.color[0], vertex.color[1], vertex.color[2]));
+            }
+
+            firstFrame = false;
+        }
+
+        // 定数バッファを更新
+        CameraConstants cameraConstants{};
+        cameraConstants.viewMatrix = camera.getViewMatrix();
+        cameraConstants.projectionMatrix = camera.getProjectionMatrix();
+        cameraConstants.viewProjectionMatrix = camera.getViewProjectionMatrix();
+        cameraConstants.cameraPosition = camera.getPosition();
+
+        ObjectConstants objectConstants{};
+        objectConstants.worldMatrix = m_worldMatrix;
+        // 修正: 行列の掛け算順序を正しく設定 (VP * World)
+        objectConstants.worldViewProjectionMatrix = camera.getViewProjectionMatrix() * m_worldMatrix;
+        objectConstants.objectPosition = m_position;
+
+        m_constantBufferManager.updateCameraConstants(frameIndex, cameraConstants);
+        m_constantBufferManager.updateObjectConstants(frameIndex, objectConstants);
+
         // ルートシグネチャとパイプラインステートを設定
         commandList->SetGraphicsRootSignature(m_rootSignature.Get());
         commandList->SetPipelineState(m_pipelineState.Get());
+
+        // 定数バッファを設定
+        commandList->SetGraphicsRootConstantBufferView(0, m_constantBufferManager.getCameraConstantsGPUAddress(frameIndex));
+        commandList->SetGraphicsRootConstantBufferView(1, m_constantBufferManager.getObjectConstantsGPUAddress(frameIndex));
 
         // プリミティブトポロジを設定（三角形リスト）
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -47,10 +113,24 @@ namespace Engine::Graphics
 
     Utils::VoidResult TriangleRenderer::createRootSignature()
     {
-        // 空のルートシグネチャを作成（今回は定数バッファやテクスチャを使わない）
+        // 2つの定数バッファ用ルートシグネチャ
+        D3D12_ROOT_PARAMETER rootParameters[2];
+
+        // カメラ定数バッファ
+        rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+        rootParameters[0].Descriptor.ShaderRegister = 0;
+        rootParameters[0].Descriptor.RegisterSpace = 0;
+        rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+        // オブジェクト定数バッファ
+        rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+        rootParameters[1].Descriptor.ShaderRegister = 1;
+        rootParameters[1].Descriptor.RegisterSpace = 0;
+        rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
-        rootSignatureDesc.NumParameters = 0;
-        rootSignatureDesc.pParameters = nullptr;
+        rootSignatureDesc.NumParameters = _countof(rootParameters);
+        rootSignatureDesc.pParameters = rootParameters;
         rootSignatureDesc.NumStaticSamplers = 0;
         rootSignatureDesc.pStaticSamplers = nullptr;
         rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -78,24 +158,22 @@ namespace Engine::Graphics
 
     Utils::VoidResult TriangleRenderer::createShaders()
     {
-        // 頂点シェーダーをコンパイル
-        auto vsResult = m_shaderManager.compileFromString(
-            BasicShaders::getColorVertexShader(),
+        // ファイルから頂点シェーダーをコンパイル
+        auto vsResult = m_shaderManager.compileFromFile(
+            L"shaders/BasicVertex.hlsl",
             "main",
-            ShaderType::Vertex,
-            "ColorVertexShader"
+            ShaderType::Vertex
         );
         if (!vsResult)
         {
             return std::unexpected(vsResult.error());
         }
 
-        // ピクセルシェーダーをコンパイル
-        auto psResult = m_shaderManager.compileFromString(
-            BasicShaders::getColorPixelShader(),
+        // ファイルからピクセルシェーダーをコンパイル
+        auto psResult = m_shaderManager.compileFromFile(
+            L"shaders/BasicPixel.hlsl",
             "main",
-            ShaderType::Pixel,
-            "ColorPixelShader"
+            ShaderType::Pixel
         );
         if (!psResult)
         {
@@ -103,8 +181,8 @@ namespace Engine::Graphics
         }
 
         // シェーダーを登録
-        m_shaderManager.registerShader("vs_color", vsResult.value());
-        m_shaderManager.registerShader("ps_color", psResult.value());
+        m_shaderManager.registerShader("basic_vertex", vsResult.value());
+        m_shaderManager.registerShader("basic_pixel", psResult.value());
 
         return {};
     }
@@ -112,8 +190,8 @@ namespace Engine::Graphics
     Utils::VoidResult TriangleRenderer::createPipelineState()
     {
         // シェーダーを取得
-        const ShaderInfo* vertexShader = m_shaderManager.getShader("vs_color");
-        const ShaderInfo* pixelShader = m_shaderManager.getShader("ps_color");
+        const ShaderInfo* vertexShader = m_shaderManager.getShader("basic_vertex");
+        const ShaderInfo* pixelShader = m_shaderManager.getShader("basic_pixel");
 
         CHECK_CONDITION(vertexShader != nullptr, Utils::ErrorType::ShaderCompilation,
             "Vertex shader not found");
@@ -135,8 +213,8 @@ namespace Engine::Graphics
 
         // ラスタライザーステート
         psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-        psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
-        psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
+        psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+        psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
         psoDesc.RasterizerState.DepthBias = 0;
         psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
         psoDesc.RasterizerState.SlopeScaledDepthBias = 0.0f;
@@ -231,11 +309,23 @@ namespace Engine::Graphics
 
     void TriangleRenderer::setupTriangleVertices()
     {
-        // カラフルな三角形の頂点データ
+        // デバッグ用：小さめの三角形
         m_triangleVertices = { {
             { { 0.0f,  0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} },  // 上：赤
             { { 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f} },  // 右下：緑
             { {-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f} }   // 左下：青
         } };
+    }
+
+    void TriangleRenderer::updateWorldMatrix()
+    {
+        // スケール -> 回転 -> 移動の順で行列を合成
+        Math::Matrix4 scaleMatrix = Math::Matrix4::scaling(m_scale);
+        Math::Matrix4 rotationMatrix = Math::Matrix4::rotationX(Math::radians(m_rotation.x)) *
+            Math::Matrix4::rotationY(Math::radians(m_rotation.y)) *
+            Math::Matrix4::rotationZ(Math::radians(m_rotation.z));
+        Math::Matrix4 translationMatrix = Math::Matrix4::translation(m_position);
+
+        m_worldMatrix = translationMatrix * rotationMatrix * scaleMatrix;
     }
 }

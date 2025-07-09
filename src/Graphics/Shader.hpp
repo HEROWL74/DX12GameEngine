@@ -80,21 +80,4 @@ namespace Engine::Graphics
         // コンパイルフラグを取得
         [[nodiscard]] UINT getCompileFlags() const;
     };
-
-    // 基本的なシェーダーのソースコードを提供するヘルパークラス
-    class BasicShaders
-    {
-    public:
-        // 単色三角形用の頂点シェーダー
-        [[nodiscard]] static std::string getBasicVertexShader();
-
-        // 単色三角形用のピクセルシェーダー
-        [[nodiscard]] static std::string getBasicPixelShader();
-
-        // カラー付き三角形用の頂点シェーダー
-        [[nodiscard]] static std::string getColorVertexShader();
-
-        // カラー付き三角形用のピクセルシェーダー
-        [[nodiscard]] static std::string getColorPixelShader();
-    };
 }
