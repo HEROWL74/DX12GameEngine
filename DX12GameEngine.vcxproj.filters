@@ -64,6 +64,9 @@
     <ClInclude Include="src\Input\MouseState.hpp">
       <Filter>ソース ファイル\src\Input</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\CubeRenderer.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
