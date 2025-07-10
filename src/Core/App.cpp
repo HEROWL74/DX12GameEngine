@@ -43,6 +43,14 @@ namespace Engine::Core
             return std::unexpected(d3dResult.error());
         }
 
+        // 入力システムの初期化
+        auto inputResult = initializeInput();
+        if (!inputResult)
+        {
+            Utils::log_error(inputResult.error());
+            return std::unexpected(inputResult.error());
+        }
+
         Utils::log_info("Game Engine initialization completed successfully!");
         return {};
     }
@@ -108,10 +116,55 @@ namespace Engine::Core
         m_camera.setPosition({ 0.0f, 0.0f, 3.0f });
         m_camera.lookAt({ 0.0f, 0.0f, 0.0f });
 
+        // カメラコントローラーの初期化
+        m_cameraController = std::make_unique<Graphics::FPSCameraController>(&m_camera);
+        m_cameraController->setMovementSpeed(5.0f);
+        m_cameraController->setMouseSensitivity(0.1f);
+
         // 三角形を3D空間に配置
         m_triangleRenderer.setPosition(Math::Vector3(0.0f, 0.0f, 0.0f));
 
         Utils::log_info("DirectX 12 initialization completed successfully!");
+        return {};
+    }
+
+    Utils::VoidResult App::initializeInput()
+    {
+        Utils::log_info("Initializing input system...");
+
+        auto* inputManager = m_window.getInputManager();
+        if (!inputManager)
+        {
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "InputManager not available"));
+        }
+
+        // マウスを相対モードに設定（FPSスタイル）
+        #ifdef _DEBUG
+        inputManager->setRelativeMouseMode(true);
+        #else
+        inputManager->setRelativeMouseMode(true);
+        #endif
+
+        inputManager->setMouseSensitivity(0.1f);  // 感度を下げる
+
+        // 以下は既存のコードのまま
+        inputManager->setKeyPressedCallback([this](Input::KeyCode key) {
+            onKeyPressed(key);
+            });
+
+        inputManager->setKeyReleasedCallback([this](Input::KeyCode key) {
+            onKeyReleased(key);
+            });
+
+        inputManager->setMouseMoveCallback([this](int x, int y, int deltaX, int deltaY) {
+            onMouseMove(x, y, deltaX, deltaY);
+            });
+
+        inputManager->setMouseButtonPressedCallback([this](Input::MouseButton button, int x, int y) {
+            onMouseButtonPressed(button, x, y);
+            });
+
+        Utils::log_info("Input system initialized successfully!");
         return {};
     }
 
@@ -187,7 +240,7 @@ namespace Engine::Core
 
     Utils::VoidResult App::createCommandObjects()
     {
-        // コマンドアロケータの作成
+        // コマンドアロケーターの作成
         CHECK_HR(m_device.getDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)),
             Utils::ErrorType::ResourceCreation, "Failed to create command allocator");
 
@@ -220,8 +273,16 @@ namespace Engine::Core
 
     void App::update()
     {
-        // 現在は何もしない
-        // TODO: ゲームロジックやアニメーションの更新処理を記述
+        // デルタタイムの計算
+        updateDeltaTime();
+
+        // 入力処理
+        processInput();
+
+        // 三角形の回転（デモ用）
+        static float rotationAngle = 0.0f;
+        rotationAngle += 0.5f * m_deltaTime;
+        m_triangleRenderer.setRotation(Math::Vector3(0.0f, rotationAngle, 0.0f));
     }
 
     void App::render()
@@ -294,6 +355,61 @@ namespace Engine::Core
         waitForPreviousFrame();
     }
 
+    void App::updateDeltaTime()
+    {
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        if (m_lastFrameTime.time_since_epoch().count() == 0)
+        {
+            m_lastFrameTime = currentTime;
+        }
+
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - m_lastFrameTime);
+        m_deltaTime = duration.count() / 1000000.0f;
+        m_lastFrameTime = currentTime;
+
+        // フレームレートの計算
+        m_frameCount++;
+        m_frameTimeAccumulator += m_deltaTime;
+        if (m_frameTimeAccumulator >= 1.0f)
+        {
+            m_currentFPS = m_frameCount / m_frameTimeAccumulator;
+            m_frameCount = 0;
+            m_frameTimeAccumulator = 0.0f;
+
+            // FPSをウィンドウタイトルに表示
+            std::wstring title = std::format(L"DX12 Game Engine - FPS: {:.1f}", m_currentFPS);
+            m_window.setTitle(title);
+        }
+    }
+
+    void App::processInput()
+    {
+        auto* inputManager = m_window.getInputManager();
+        if (!inputManager || !m_cameraController)
+        {
+            return;
+        }
+
+        // WASDキーでカメラ移動
+        bool forward = inputManager->isKeyDown(Input::KeyCode::W);
+        bool backward = inputManager->isKeyDown(Input::KeyCode::S);
+        bool left = inputManager->isKeyDown(Input::KeyCode::A);
+        bool right = inputManager->isKeyDown(Input::KeyCode::D);
+        bool up = inputManager->isKeyDown(Input::KeyCode::Space);
+        bool down = inputManager->isKeyDown(Input::KeyCode::LeftShift);
+
+        // カメラコントローラーに移動情報を渡す
+        m_cameraController->processKeyboard(forward, backward, left, right, up, down, m_deltaTime);
+
+        // マウスによる視点変更
+        if (inputManager->getMouseState().isRelativeMode)
+        {
+            int deltaX = inputManager->getMouseDeltaX();
+            int deltaY = inputManager->getMouseDeltaY();
+            m_cameraController->processMouseMovement(static_cast<float>(deltaX), static_cast<float>(deltaY));
+        }
+    }
+
     void App::waitForPreviousFrame()
     {
         const UINT64 fence = m_fenceValue;
@@ -341,5 +457,45 @@ namespace Engine::Core
     void App::onWindowClose()
     {
         Utils::log_info("Window close requested.");
+        PostQuitMessage(0);
+    }
+
+    void App::onKeyPressed(Input::KeyCode key)
+    {
+        // デバッグ用：キー入力のログ出力
+        if (key == Input::KeyCode::Escape)
+        {
+            Utils::log_info("Escape key pressed - requesting exit");
+            PostQuitMessage(0);
+        }
+        else if (key == Input::KeyCode::F1)
+        {
+            // F1キーでマウス相対モードの切り替え
+            auto* inputManager = m_window.getInputManager();
+            if (inputManager)
+            {
+                bool currentMode = inputManager->getMouseState().isRelativeMode;
+                inputManager->setRelativeMouseMode(!currentMode);
+                Utils::log_info(std::format("Mouse relative mode: {}", !currentMode ? "ON" : "OFF"));
+            }
+        }
+    }
+
+    void App::onKeyReleased(Input::KeyCode key)
+    {
+        // 現在は何もしない
+    }
+
+    void App::onMouseMove(int x, int y, int deltaX, int deltaY)
+    {
+        // マウス移動の処理はprocessInput()で行う
+    }
+
+    void App::onMouseButtonPressed(Input::MouseButton button, int x, int y)
+    {
+        if (button == Input::MouseButton::Left)
+        {
+            Utils::log_info(std::format("Left mouse button pressed at ({}, {})", x, y));
+        }
     }
 }

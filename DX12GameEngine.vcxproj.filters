@@ -23,6 +23,9 @@
     <Filter Include="ソース ファイル\Shaders">
       <UniqueIdentifier>{d1c0b3e1-b76f-4152-86e1-9284aa771f40}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\src\Input">
+      <UniqueIdentifier>{0b098dff-efeb-425d-8b64-b6720aecf80a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Utils\Common.hpp">
@@ -52,8 +55,14 @@
     <ClInclude Include="src\Graphics\ConstantBuffer.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Mesh.hpp">
-      <Filter>ソース ファイル\src\Graphics</Filter>
+    <ClInclude Include="src\Input\KeyCode.hpp">
+      <Filter>ソース ファイル\src\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\InputManager.hpp">
+      <Filter>ソース ファイル\src\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\MouseState.hpp">
+      <Filter>ソース ファイル\src\Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +89,9 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\ConstantBuffer.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\InputManager.cpp">
+      <Filter>ソース ファイル\src\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
