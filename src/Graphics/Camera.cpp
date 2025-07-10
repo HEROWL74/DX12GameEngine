@@ -237,13 +237,13 @@ namespace Engine::Graphics
         float velocity = m_movementSpeed * deltaTime;
 
         if (forward)
-            m_camera->moveForward(velocity);
+            m_camera->moveForward(velocity);    // •„†‚ðC³
         if (backward)
-            m_camera->moveForward(-velocity);
+            m_camera->moveForward(-velocity);   // •„†‚ðC³
         if (right)
-            m_camera->moveRight(velocity);
+            m_camera->moveRight(velocity);      // •„†‚ðC³
         if (left)
-            m_camera->moveRight(-velocity);
+            m_camera->moveRight(-velocity);     // •„†‚ðC³
         if (up)
             m_camera->moveUp(velocity);
         if (down)

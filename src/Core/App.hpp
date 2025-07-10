@@ -6,11 +6,13 @@
 #include <wrl.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
+#include <chrono>
 
 #include "Window.hpp"
 #include "../Graphics/Device.hpp"
 #include "../Graphics/TriangleRenderer.hpp"
 #include "../Graphics/Camera.hpp"
+#include "../Input/InputManager.hpp"
 #include "../Utils/Common.hpp"
 
 #pragma comment(lib, "d3d12.lib")
@@ -45,12 +47,15 @@ namespace Engine::Core
         Graphics::Device m_device;
         Graphics::TriangleRenderer m_triangleRenderer;
         Graphics::Camera m_camera;
+        std::unique_ptr<Graphics::FPSCameraController> m_cameraController;
 
         // スワップチェーン関係
         ComPtr<ID3D12CommandQueue> m_commandQueue;      // GPU命令の送信先
         ComPtr<IDXGISwapChain3> m_swapChain;            // 画面表示用バッファ管理
         ComPtr<ID3D12DescriptorHeap> m_rtvHeap;         // レンダーターゲットビュー用デスクリプタヒープ
         ComPtr<ID3D12Resource> m_renderTargets[2];      // 描画先バッファ（ダブルバッファリング）
+
+
 
         // コマンド関係
         ComPtr<ID3D12CommandAllocator> m_commandAllocator;  // コマンドリスト用メモリ管理
@@ -64,8 +69,16 @@ namespace Engine::Core
         // 描画関係
         UINT m_frameIndex = 0;              // 現在のフレームインデックス
 
+        // 時間管理
+        std::chrono::high_resolution_clock::time_point m_lastFrameTime{};
+        float m_deltaTime = 0.0f;
+        float m_currentFPS = 0.0f;
+        int m_frameCount = 0;
+        float m_frameTimeAccumulator = 0.0f;
+
         // 初期化処理
         [[nodiscard]] Utils::VoidResult initD3D();
+        [[nodiscard]] Utils::VoidResult initializeInput();
         [[nodiscard]] Utils::VoidResult createCommandQueue();
         [[nodiscard]] Utils::VoidResult createSwapChain();
         [[nodiscard]] Utils::VoidResult createRenderTargets();
@@ -76,6 +89,10 @@ namespace Engine::Core
         void update();
         void render();
 
+        // 時間管理
+        void updateDeltaTime();
+        void processInput();
+
         // フレーム完了待ち
         void waitForPreviousFrame();
 
@@ -85,5 +102,11 @@ namespace Engine::Core
         // イベントハンドラ
         void onWindowResize(int width, int height);
         void onWindowClose();
+
+        // 入力イベントハンドラ
+        void onKeyPressed(Input::KeyCode key);
+        void onKeyReleased(Input::KeyCode key);
+        void onMouseMove(int x, int y, int deltaX, int deltaY);
+        void onMouseButtonPressed(Input::MouseButton button, int x, int y);
     };
 }

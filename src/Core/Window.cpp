@@ -1,3 +1,4 @@
+// src/Core/Window.cpp
 #include "Window.hpp"
 #include <format>
 
@@ -11,6 +12,7 @@ namespace Engine::Core {
 		:m_handle(other.m_handle)
 		, m_className(std::move(other.m_className))
 		, m_hInstance(other.m_hInstance)
+		, m_inputManager(std::move(other.m_inputManager))
 		, m_resizeCallback(std::move(other.m_resizeCallback))
 		, m_closeCallback(std::move(other.m_closeCallback))
 	{
@@ -27,6 +29,7 @@ namespace Engine::Core {
 			m_handle = other.m_handle;
 			m_className = std::move(other.m_className);
 			m_hInstance = other.m_hInstance;
+			m_inputManager = std::move(other.m_inputManager);
 			m_resizeCallback = std::move(other.m_resizeCallback);
 			m_closeCallback = std::move(other.m_closeCallback);
 
@@ -37,34 +40,34 @@ namespace Engine::Core {
 		return *this;
 	}
 
-	//パブリックメソッド
+	// パブリックメソッド
 
-	Utils::VoidResult Window::create(HINSTANCE hInstacne, const WindowSettings& settings)
+	Utils::VoidResult Window::create(HINSTANCE hInstance, const WindowSettings& settings)
 	{
-		m_hInstance = hInstacne;
+		m_hInstance = hInstance;
 
-		//ウィンドウクラスを登録する
-		auto result = registerWindowClass(hInstacne);
+		// ウィンドウクラスを登録する
+		auto result = registerWindowClass(hInstance);
 		if (!result)
 		{
 			return result;
 		}
 
-		//ウィンドウスタイルを決定
+		// ウィンドウスタイルを決定
 		DWORD windowStyle = WS_OVERLAPPEDWINDOW;
 		if (!settings.resizable)
 		{
 			windowStyle &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
 		}
 
-		//クライアント領域のサイズからウィンドウサイズ
+		// クライアント領域のサイズからウィンドウサイズを計算
 		RECT windowRect = { 0,0,settings.width, settings.height };
 		AdjustWindowRect(&windowRect, windowStyle, FALSE);
 
-		const  int windowWidth = windowRect.right - windowRect.left;
+		const int windowWidth = windowRect.right - windowRect.left;
 		const int windowHeight = windowRect.bottom - windowRect.top;
 
-		//ウィンドウ作成
+		// ウィンドウ作成
 		m_handle = CreateWindowExW(
 			0,
 			m_className.c_str(),
@@ -76,15 +79,19 @@ namespace Engine::Core {
 			windowHeight,
 			nullptr,
 			nullptr,
-			hInstacne,
+			hInstance,
 			this
 		);
 
 		CHECK_CONDITION(m_handle != nullptr, Utils::ErrorType::WindowCreation,
 			"Failed to create window");
 
+		// 入力システムを初期化
+		m_inputManager = std::make_unique<Input::InputManager>();
+		m_inputManager->initialize(m_handle);
+
 		Utils::log_info(std::format("Window created: {}x{}", settings.width, settings.height));
-		
+
 		return {};
 	}
 
@@ -110,6 +117,13 @@ namespace Engine::Core {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+
+		// 入力システムを更新
+		if (m_inputManager)
+		{
+			m_inputManager->update();
+		}
+
 		return true;
 	}
 
@@ -133,10 +147,15 @@ namespace Engine::Core {
 		}
 	}
 
-	//プライベートメソッド
+	Input::InputManager* Window::getInputManager() const noexcept
+	{
+		return m_inputManager.get();
+	}
+
+	// プライベートメソッド
 	Utils::VoidResult Window::registerWindowClass(HINSTANCE hInstance)
 	{
-		//ユニークなクラス名を生成
+		// ユニークなクラス名を生成
 		m_className = std::format(L"GameEngineWindow_{}",
 			reinterpret_cast<uintptr_t>(this));
 
@@ -167,14 +186,14 @@ namespace Engine::Core {
 
 		if (uMsg == WM_NCCREATE)
 		{
-			//ウィンドウ作成時に渡されたthisポインタを取得
+			// ウィンドウ作成時に渡されたthisポインタを取得
 			CREATESTRUCTW* createStruct = reinterpret_cast<CREATESTRUCTW*>(lParam);
 			window = static_cast<Window*>(createStruct->lpCreateParams);
 			SetWindowLongPtrW(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
 		}
 		else
 		{
-			//既に設定されたthisポインタを取得
+			// 既に設定されたthisポインタを取得
 			window = reinterpret_cast<Window*>(GetWindowLongPtrW(hWnd, GWLP_USERDATA));
 		}
 
@@ -188,11 +207,16 @@ namespace Engine::Core {
 
 	LRESULT Window::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
+		// 入力システムにメッセージを転送
+		if (m_inputManager && m_inputManager->handleWindowMessage(hWnd, uMsg, wParam, lParam))
+		{
+			return 0;
+		}
+
 		switch (uMsg)
 		{
 		case WM_SIZE:
 		{
-			//ウィンドウサイズが変更された
 			const int width = LOWORD(lParam);
 			const int height = HIWORD(lParam);
 
@@ -202,8 +226,39 @@ namespace Engine::Core {
 			}
 		}
 		break;
+
+		case WM_ACTIVATE:
+		{
+			// ウィンドウがアクティブでなくなったら相対モードを解除
+			if (LOWORD(wParam) == WA_INACTIVE && m_inputManager)
+			{
+				if (m_inputManager->getMouseState().isRelativeMode)
+				{
+					m_inputManager->setRelativeMouseMode(false);
+					Utils::log_info("Window lost focus - disabled relative mouse mode");
+				}
+			}
+		}
+		break;
+
+		case WM_KILLFOCUS:
+		{
+			// フォーカスを失った時も相対モードを解除
+			if (m_inputManager && m_inputManager->getMouseState().isRelativeMode)
+			{
+				m_inputManager->setRelativeMouseMode(false);
+				Utils::log_info("Window lost focus - disabled relative mouse mode");
+			}
+		}
+		break;
+
 		case WM_CLOSE:
 		{
+			// 終了前に相対モードを解除
+			if (m_inputManager)
+			{
+				m_inputManager->setRelativeMouseMode(false);
+			}
 			if (m_closeCallback)
 			{
 				m_closeCallback();
@@ -214,10 +269,25 @@ namespace Engine::Core {
 
 		case WM_KEYDOWN:
 		{
-			//キーが押された
-			if (wParam == VK_ESCAPE)
+			// Alt+F4での終了も処理
+			if (wParam == VK_F4 && (GetKeyState(VK_MENU) & 0x8000))
 			{
+				if (m_inputManager)
+				{
+					m_inputManager->setRelativeMouseMode(false);
+				}
 				PostQuitMessage(0);
+				return 0;
+			}
+			// ESCキーでの終了
+			else if (wParam == VK_ESCAPE)
+			{
+				if (m_inputManager)
+				{
+					m_inputManager->setRelativeMouseMode(false);
+				}
+				PostQuitMessage(0);
+				return 0;
 			}
 		}
 		break;
@@ -237,6 +307,13 @@ namespace Engine::Core {
 
 	void Window::destroy() noexcept
 	{
+		// 入力システムをシャットダウン
+		if (m_inputManager)
+		{
+			m_inputManager->shutdown();
+			m_inputManager.reset();
+		}
+
 		if (m_handle)
 		{
 			DestroyWindow(m_handle);
@@ -251,7 +328,4 @@ namespace Engine::Core {
 
 		m_hInstance = nullptr;
 	}
-}   
-
-
-
+}

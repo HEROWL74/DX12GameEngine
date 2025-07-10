@@ -132,9 +132,11 @@
     <ClInclude Include="src\Graphics\Camera.hpp" />
     <ClInclude Include="src\Graphics\ConstantBuffer.hpp" />
     <ClInclude Include="src\Graphics\Device.hpp" />
-    <ClInclude Include="src\Graphics\Mesh.hpp" />
     <ClInclude Include="src\Graphics\Shader.hpp" />
     <ClInclude Include="src\Graphics\TriangleRenderer.hpp" />
+    <ClInclude Include="src\Input\InputManager.hpp" />
+    <ClInclude Include="src\Input\KeyCode.hpp" />
+    <ClInclude Include="src\Input\MouseState.hpp" />
     <ClInclude Include="src\Math\Math.hpp" />
     <ClInclude Include="src\Utils\Common.hpp" />
   </ItemGroup>
@@ -146,6 +148,7 @@
     <ClCompile Include="src\Graphics\Device.cpp" />
     <ClCompile Include="src\Graphics\Shader.cpp" />
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
+    <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
