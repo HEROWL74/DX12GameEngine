@@ -100,6 +100,9 @@ namespace Engine::Core
         auto renderTargetResult = createRenderTargets();
         if (!renderTargetResult) return renderTargetResult;
 
+        auto depthStencilResult = createDepthStencilBuffer();
+        if (!depthStencilResult) return depthStencilResult;
+
         auto commandResult = createCommandObjects();
         if (!commandResult) return commandResult;
 
@@ -255,6 +258,70 @@ namespace Engine::Core
         return {};
     }
 
+    //深度ステンシルバッファの作成
+    Utils::VoidResult App::createDepthStencilBuffer()
+    {
+        const auto [clientWidth, clientHeight] = m_window.getClientSize();
+
+        //深度ステンシルバッファ用のヒープ作成
+        D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
+        dsvHeapDesc.NumDescriptors = 1;                          //このヒープに何個のDSVを入れるか
+        dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;       //このヒープは何用？
+        dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;     //このヒープに特別な使い方をするか？
+
+        CHECK_HR(m_device.getDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_dsvHeap)),
+            Utils::ErrorType::ResourceCreation, "Failed to create DSV descriptor heap");
+
+        //深度ステンシルバッファを作成
+        D3D12_CLEAR_VALUE depthOptimizedClearValue{};
+        depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT; //バッファのフォーマット指定・32bitの浮動小数点形式の深度バッファ
+        depthOptimizedClearValue.DepthStencil.Depth = 1.0f;      //Zバッファをどんな値でクリア（初期化）するか？」
+        depthOptimizedClearValue.DepthStencil.Stencil = 0;       //ステンシル値の初期値（マスク描画などで使う番号）
+
+        D3D12_HEAP_PROPERTIES heapProps{};                         
+        heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;                   //GPUのためのメモリを使いたいときに指定
+        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;//特別な目的がない限りUNKNOWNに設定
+        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN; //特別な目的がない限りUNKNOWNに設定
+        heapProps.CreationNodeMask = 1;                             //どのGPUノードでこのリソースを作るか 
+        heapProps.VisibleNodeMask = 1;                              //どのノードからアクセス可能にするか
+
+        D3D12_RESOURCE_DESC depthStencilDesc{};
+        depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D; //リソースの種類は 2D テクスチャ
+        depthStencilDesc.Alignment = 0;                                  //アライメントは0でOK（自動で最適な値が設定される）
+        depthStencilDesc.Width = clientWidth;                            //深度バッファの解像度（幅←・高さ）
+        depthStencilDesc.Height = clientHeight;                          //深度バッファの解像度（幅・高さ←）
+        depthStencilDesc.DepthOrArraySize = 1;                           //1枚のテクスチャ（Depth=1）
+        depthStencilDesc.MipLevels = 1;                                  //ミップマップは使わない（Zバッファには不要）
+        depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;                 //Zバッファの形式（32bit 浮動小数点の深度）
+        depthStencilDesc.SampleDesc.Count = 1;                           //マルチサンプリング（MSAA）の設定
+        depthStencilDesc.SampleDesc.Quality = 0;                         //マルチサンプリング（MSAA）の設定
+        depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;          //自動レイアウトでOK
+        depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;//このリソースを 「深度バッファとして使います」 と明示
+
+        CHECK_HR(m_device.getDevice()->CreateCommittedResource(
+            &heapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &depthStencilDesc,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+            &depthOptimizedClearValue,
+            IID_PPV_ARGS(&m_depthStencilBuffer)),
+            Utils::ErrorType::ResourceCreation, "Failed to create depth stencil buffer");
+
+        //深度ステンシルビュー設定
+        D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        dsvDesc.Texture2D.MipSlice = 0;
+
+        m_device.getDevice()->CreateDepthStencilView(
+            m_depthStencilBuffer.Get(),
+            &dsvDesc,
+            m_dsvHeap->GetCPUDescriptorHandleForHeapStart()
+        );
+
+        return {};
+    }
+
     Utils::VoidResult App::createSyncObjects()
     {
         // 同期用フェンスの作成
@@ -307,11 +374,16 @@ namespace Engine::Core
         const UINT rtvDescriptorSize = m_device.getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         rtvHandle.ptr += m_frameIndex * rtvDescriptorSize;
 
-        m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+        D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+
+        m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
         // 画面クリア（濃い青色で塗りつぶし）
         const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
         m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
+        //深度バッファをクリア
+        m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0,nullptr);
 
         // ビューポートとシザー矩形を設定
         const auto [clientWidth, clientHeight] = m_window.getClientSize();

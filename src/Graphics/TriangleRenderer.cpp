@@ -213,8 +213,8 @@ namespace Engine::Graphics
 
         // ラスタライザーステート
         psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-        psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-        psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
+        psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+        psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
         psoDesc.RasterizerState.DepthBias = 0;
         psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
         psoDesc.RasterizerState.SlopeScaledDepthBias = 0.0f;
@@ -239,13 +239,26 @@ namespace Engine::Graphics
             psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
         }
 
-        // その他の設定
-        psoDesc.DepthStencilState.DepthEnable = FALSE;
+        //深度ステイシルステート
+        psoDesc.DepthStencilState.DepthEnable = TRUE;    //深度テスト有効
+        psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;//深度書き込み有効
+        psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
         psoDesc.DepthStencilState.StencilEnable = FALSE;
+        psoDesc.DepthStencilState.StencilReadMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+        psoDesc.DepthStencilState.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+
+        const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp = {
+            D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS
+        };
+        psoDesc.DepthStencilState.FrontFace = defaultStencilOp;
+        psoDesc.DepthStencilState.BackFace = defaultStencilOp;
+
+        // その他の設定
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.NumRenderTargets = 1;
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT; //深度バッファフォーマット指定
         psoDesc.SampleDesc.Count = 1;
 
         CHECK_HR(m_device->getDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)),

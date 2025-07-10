@@ -55,7 +55,9 @@ namespace Engine::Core
         ComPtr<ID3D12DescriptorHeap> m_rtvHeap;         // レンダーターゲットビュー用デスクリプタヒープ
         ComPtr<ID3D12Resource> m_renderTargets[2];      // 描画先バッファ（ダブルバッファリング）
 
-
+        //深度バッファ関係
+        ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
+        ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
         // コマンド関係
         ComPtr<ID3D12CommandAllocator> m_commandAllocator;  // コマンドリスト用メモリ管理
@@ -82,6 +84,7 @@ namespace Engine::Core
         [[nodiscard]] Utils::VoidResult createCommandQueue();
         [[nodiscard]] Utils::VoidResult createSwapChain();
         [[nodiscard]] Utils::VoidResult createRenderTargets();
+        [[nodiscard]] Utils::VoidResult createDepthStencilBuffer(); //新規追加
         [[nodiscard]] Utils::VoidResult createCommandObjects();
         [[nodiscard]] Utils::VoidResult createSyncObjects();
 
