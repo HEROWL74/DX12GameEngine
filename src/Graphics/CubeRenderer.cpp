@@ -1,0 +1,450 @@
+// src/Graphics/CubeRenderer.cpp
+#include "CubeRenderer.hpp"
+#include <format>
+
+namespace Engine::Graphics
+{
+    Utils::VoidResult CubeRenderer::initialize(Device* device)
+    {
+        // デバッグ用: nullチェック
+        CHECK_CONDITION(device != nullptr, Utils::ErrorType::Unknown, "Device is null");
+        CHECK_CONDITION(device->isValid(), Utils::ErrorType::Unknown, "Device is not valid");
+
+        m_device = device;
+        Utils::log_info("Initializing Cube Renderer...");
+
+        // 定数バッファマネージャーを初期化
+        auto constantBufferResult = m_constantBufferManager.initialize(device);
+        if (!constantBufferResult) {
+            Utils::log_error(constantBufferResult.error());
+            return constantBufferResult;
+        }
+
+        // 立方体の頂点データを設定
+        setupCubeVertices();
+
+        // ワールド行列を初期化
+        updateWorldMatrix();
+
+        // 各コンポーネントを順番に初期化
+        auto rootSigResult = createRootSignature();
+        if (!rootSigResult) {
+            Utils::log_error(rootSigResult.error());
+            return rootSigResult;
+        }
+
+        auto shaderResult = createShaders();
+        if (!shaderResult) {
+            Utils::log_error(shaderResult.error());
+            return shaderResult;
+        }
+
+        auto pipelineResult = createPipelineState();
+        if (!pipelineResult) {
+            Utils::log_error(pipelineResult.error());
+            return pipelineResult;
+        }
+
+        auto vertexBufferResult = createVertexBuffer();
+        if (!vertexBufferResult) {
+            Utils::log_error(vertexBufferResult.error());
+            return vertexBufferResult;
+        }
+
+        auto indexBufferResult = createIndexBuffer();
+        if (!indexBufferResult) {
+            Utils::log_error(indexBufferResult.error());
+            return indexBufferResult;
+        }
+
+        Utils::log_info("Cube Renderer initialized successfully!");
+        return {};
+    }
+
+    void CubeRenderer::render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex)
+    {
+        // デバッグ用: nullチェック
+        if (!commandList) {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "CommandList is null"));
+            return;
+        }
+
+        if (!m_constantBufferManager.isValid()) {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "ConstantBufferManager is not valid"));
+            return;
+        }
+
+        if (!m_rootSignature) {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "RootSignature is not initialized"));
+            return;
+        }
+
+        if (!m_pipelineState) {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "PipelineState is not initialized"));
+            return;
+        }
+        // 定数バッファを更新
+        CameraConstants cameraConstants{};
+        cameraConstants.viewMatrix = camera.getViewMatrix();
+        cameraConstants.projectionMatrix = camera.getProjectionMatrix();
+        cameraConstants.viewProjectionMatrix = camera.getViewProjectionMatrix();
+        cameraConstants.cameraPosition = camera.getPosition();
+
+        ObjectConstants objectConstants{};
+        objectConstants.worldMatrix = m_worldMatrix;
+        objectConstants.worldViewProjectionMatrix = camera.getViewProjectionMatrix() * m_worldMatrix;
+        objectConstants.objectPosition = m_position;
+
+        m_constantBufferManager.updateCameraConstants(frameIndex, cameraConstants);
+        m_constantBufferManager.updateObjectConstants(frameIndex, objectConstants);
+
+        // ルートシグネチャとパイプラインステートを設定
+        commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+        commandList->SetPipelineState(m_pipelineState.Get());
+
+        // 定数バッファを設定
+        commandList->SetGraphicsRootConstantBufferView(0, m_constantBufferManager.getCameraConstantsGPUAddress(frameIndex));
+        commandList->SetGraphicsRootConstantBufferView(1, m_constantBufferManager.getObjectConstantsGPUAddress(frameIndex));
+
+        // プリミティブトポロジを設定（三角形リスト）
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        // 頂点バッファとインデックスバッファを設定
+        commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+        commandList->IASetIndexBuffer(&m_indexBufferView);
+
+        // 立方体を描画（36インデックス、1インスタンス）
+        commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
+    }
+
+    Utils::VoidResult CubeRenderer::createRootSignature()
+    {
+        // 2つの定数バッファ用ルートシグネチャ（TriangleRendererと同じ）
+        D3D12_ROOT_PARAMETER rootParameters[2];
+
+        // カメラ定数バッファ
+        rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+        rootParameters[0].Descriptor.ShaderRegister = 0;
+        rootParameters[0].Descriptor.RegisterSpace = 0;
+        rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+        // オブジェクト定数バッファ
+        rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+        rootParameters[1].Descriptor.ShaderRegister = 1;
+        rootParameters[1].Descriptor.RegisterSpace = 0;
+        rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+        D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
+        rootSignatureDesc.NumParameters = _countof(rootParameters);
+        rootSignatureDesc.pParameters = rootParameters;
+        rootSignatureDesc.NumStaticSamplers = 0;
+        rootSignatureDesc.pStaticSamplers = nullptr;
+        rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+        ComPtr<ID3DBlob> signature;
+        ComPtr<ID3DBlob> error;
+
+        HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+        if (FAILED(hr))
+        {
+            std::string errorMsg = "Failed to serialize root signature";
+            if (error)
+            {
+                errorMsg += std::format(": {}", static_cast<char*>(error->GetBufferPointer()));
+            }
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ResourceCreation, errorMsg, hr));
+        }
+
+        CHECK_HR(m_device->getDevice()->CreateRootSignature(0, signature->GetBufferPointer(),
+            signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)),
+            Utils::ErrorType::ResourceCreation, "Failed to create root signature");
+
+        return {};
+    }
+
+    Utils::VoidResult CubeRenderer::createShaders()
+    {
+        // 既存のシェーダーを再利用（BasicVertex.hlsl, BasicPixel.hlsl）
+        auto vsResult = m_shaderManager.compileFromFile(
+            L"shaders/BasicVertex.hlsl",
+            "main",
+            ShaderType::Vertex
+        );
+        if (!vsResult)
+        {
+            return std::unexpected(vsResult.error());
+        }
+
+        auto psResult = m_shaderManager.compileFromFile(
+            L"shaders/BasicPixel.hlsl",
+            "main",
+            ShaderType::Pixel
+        );
+        if (!psResult)
+        {
+            return std::unexpected(psResult.error());
+        }
+
+        // シェーダーを登録
+        m_shaderManager.registerShader("basic_vertex", vsResult.value());
+        m_shaderManager.registerShader("basic_pixel", psResult.value());
+
+        return {};
+    }
+
+    Utils::VoidResult CubeRenderer::createPipelineState()
+    {
+        // シェーダーを取得
+        const ShaderInfo* vertexShader = m_shaderManager.getShader("basic_vertex");
+        const ShaderInfo* pixelShader = m_shaderManager.getShader("basic_pixel");
+
+        CHECK_CONDITION(vertexShader != nullptr, Utils::ErrorType::ShaderCompilation,
+            "Vertex shader not found");
+        CHECK_CONDITION(pixelShader != nullptr, Utils::ErrorType::ShaderCompilation,
+            "Pixel shader not found");
+
+        // 入力レイアウトを定義
+        D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+        };
+
+        // パイプラインステートの設定
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
+        psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.VS = { vertexShader->blob->GetBufferPointer(), vertexShader->blob->GetBufferSize() };
+        psoDesc.PS = { pixelShader->blob->GetBufferPointer(), pixelShader->blob->GetBufferSize() };
+
+        // ラスタライザーステート
+        psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+        psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+        psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
+        psoDesc.RasterizerState.DepthBias = 0;
+        psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
+        psoDesc.RasterizerState.SlopeScaledDepthBias = 0.0f;
+        psoDesc.RasterizerState.DepthClipEnable = TRUE;
+        psoDesc.RasterizerState.MultisampleEnable = FALSE;
+        psoDesc.RasterizerState.AntialiasedLineEnable = FALSE;
+        psoDesc.RasterizerState.ForcedSampleCount = 0;
+        psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+        // ブレンドステート
+        psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
+        psoDesc.BlendState.IndependentBlendEnable = FALSE;
+        const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc = {
+            FALSE, FALSE,
+            D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+            D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+            D3D12_LOGIC_OP_NOOP,
+            D3D12_COLOR_WRITE_ENABLE_ALL,
+        };
+        for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+        {
+            psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
+        }
+
+        // 深度ステンシルステート
+        psoDesc.DepthStencilState.DepthEnable = TRUE;
+        psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+        psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+        psoDesc.DepthStencilState.StencilEnable = FALSE;
+        psoDesc.DepthStencilState.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+        psoDesc.DepthStencilState.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+
+        const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp = {
+            D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS
+        };
+        psoDesc.DepthStencilState.FrontFace = defaultStencilOp;
+        psoDesc.DepthStencilState.BackFace = defaultStencilOp;
+
+        // その他の設定
+        psoDesc.SampleMask = UINT_MAX;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.NumRenderTargets = 1;
+        psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+        psoDesc.SampleDesc.Count = 1;
+
+        CHECK_HR(m_device->getDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)),
+            Utils::ErrorType::ResourceCreation, "Failed to create graphics pipeline state");
+
+        return {};
+    }
+
+    Utils::VoidResult CubeRenderer::createVertexBuffer()
+    {
+        const UINT vertexBufferSize = sizeof(m_cubeVertices);
+
+        // 頂点バッファ用のヒーププロパティ（アップロードヒープ）
+        D3D12_HEAP_PROPERTIES heapProps{};
+        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        heapProps.CreationNodeMask = 1;
+        heapProps.VisibleNodeMask = 1;
+
+        // リソース記述子
+        D3D12_RESOURCE_DESC resourceDesc{};
+        resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        resourceDesc.Alignment = 0;
+        resourceDesc.Width = vertexBufferSize;
+        resourceDesc.Height = 1;
+        resourceDesc.DepthOrArraySize = 1;
+        resourceDesc.MipLevels = 1;
+        resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+        resourceDesc.SampleDesc.Count = 1;
+        resourceDesc.SampleDesc.Quality = 0;
+        resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+        CHECK_HR(m_device->getDevice()->CreateCommittedResource(
+            &heapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &resourceDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&m_vertexBuffer)),
+            Utils::ErrorType::ResourceCreation, "Failed to create vertex buffer");
+
+        // 頂点データをバッファにコピー
+        UINT8* pVertexDataBegin;
+        D3D12_RANGE readRange{ 0, 0 };
+
+        CHECK_HR(m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)),
+            Utils::ErrorType::ResourceCreation, "Failed to map vertex buffer");
+
+        memcpy(pVertexDataBegin, m_cubeVertices.data(), sizeof(m_cubeVertices));
+        m_vertexBuffer->Unmap(0, nullptr);
+
+        // 頂点バッファビューを設定
+        m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
+        m_vertexBufferView.StrideInBytes = sizeof(Vertex);
+        m_vertexBufferView.SizeInBytes = vertexBufferSize;
+
+        return {};
+    }
+
+    Utils::VoidResult CubeRenderer::createIndexBuffer()
+    {
+        const UINT indexBufferSize = sizeof(m_cubeIndices);
+
+        // インデックスバッファ用のヒーププロパティ
+        D3D12_HEAP_PROPERTIES heapProps{};
+        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        heapProps.CreationNodeMask = 1;
+        heapProps.VisibleNodeMask = 1;
+
+        // リソース記述子
+        D3D12_RESOURCE_DESC resourceDesc{};
+        resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        resourceDesc.Alignment = 0;
+        resourceDesc.Width = indexBufferSize;
+        resourceDesc.Height = 1;
+        resourceDesc.DepthOrArraySize = 1;
+        resourceDesc.MipLevels = 1;
+        resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+        resourceDesc.SampleDesc.Count = 1;
+        resourceDesc.SampleDesc.Quality = 0;
+        resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+        CHECK_HR(m_device->getDevice()->CreateCommittedResource(
+            &heapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &resourceDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&m_indexBuffer)),
+            Utils::ErrorType::ResourceCreation, "Failed to create index buffer");
+
+        // インデックスデータをバッファにコピー
+        UINT8* pIndexDataBegin;
+        D3D12_RANGE readRange{ 0, 0 };
+
+        CHECK_HR(m_indexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)),
+            Utils::ErrorType::ResourceCreation, "Failed to map index buffer");
+
+        memcpy(pIndexDataBegin, m_cubeIndices.data(), sizeof(m_cubeIndices));
+        m_indexBuffer->Unmap(0, nullptr);
+
+        // インデックスバッファビューを設定
+        m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+        m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+        m_indexBufferView.SizeInBytes = indexBufferSize;
+
+        return {};
+    }
+
+    void CubeRenderer::setupCubeVertices()
+    {
+        // 立方体の24頂点（各面に4頂点、異なる色を設定）
+        m_cubeVertices = { {
+                // 前面（Z+）- 赤
+                {{ -0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // 左下
+                {{  0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // 右下
+                {{  0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // 右上
+                {{ -0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // 左上
+
+                // 背面（Z-）- 緑
+                {{  0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // 左下
+                {{ -0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // 右下
+                {{ -0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // 右上
+                {{  0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // 左上
+
+                // 左面（X-）- 青
+                {{ -0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}, // 左下
+                {{ -0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}}, // 右下
+                {{ -0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}}, // 右上
+                {{ -0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}, // 左上
+
+                // 右面（X+）- 黄
+                {{  0.5f, -0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}}, // 左下
+                {{  0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}}, // 右下
+                {{  0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}}, // 右上
+                {{  0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}}, // 左上
+
+                // 上面（Y+）- マゼンタ
+                {{ -0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}}, // 左下
+                {{  0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}}, // 右下
+                {{  0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}}, // 右上
+                {{ -0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}}, // 左上
+
+                // 下面（Y-）- シアン
+                {{ -0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}}, // 左下
+                {{  0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}}, // 右下
+                {{  0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}}, // 右上
+                {{ -0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}}  // 左上
+            } };
+
+        // 立方体のインデックス（36インデックス）
+        m_cubeIndices = { {
+                // 前面
+                0, 1, 2,  2, 3, 0,
+                // 背面
+                4, 5, 6,  6, 7, 4,
+                // 左面
+                8, 9, 10,  10, 11, 8,
+                // 右面
+                12, 13, 14,  14, 15, 12,
+                // 上面
+                16, 17, 18,  18, 19, 16,
+                // 下面
+                20, 21, 22,  22, 23, 20
+            } };
+    }
+
+    void CubeRenderer::updateWorldMatrix()
+    {
+        // スケール -> 回転 -> 移動の順で行列を合成
+        Math::Matrix4 scaleMatrix = Math::Matrix4::scaling(m_scale);
+        Math::Matrix4 rotationMatrix = Math::Matrix4::rotationX(Math::radians(m_rotation.x)) *
+            Math::Matrix4::rotationY(Math::radians(m_rotation.y)) *
+            Math::Matrix4::rotationZ(Math::radians(m_rotation.z));
+        Math::Matrix4 translationMatrix = Math::Matrix4::translation(m_position);
+
+        m_worldMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+    }
+}

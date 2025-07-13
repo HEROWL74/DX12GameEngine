@@ -128,6 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\App.hpp" />
+    <ClInclude Include="src\Core\GameObject.hpp" />
     <ClInclude Include="src\Core\Window.hpp" />
     <ClInclude Include="src\Graphics\Camera.hpp" />
     <ClInclude Include="src\Graphics\ConstantBuffer.hpp" />
@@ -135,6 +136,7 @@
     <ClInclude Include="src\Graphics\Device.hpp" />
     <ClInclude Include="src\Graphics\Shader.hpp" />
     <ClInclude Include="src\Graphics\TriangleRenderer.hpp" />
+    <ClInclude Include="src\Graphics\VertexTypes.hpp" />
     <ClInclude Include="src\Input\InputManager.hpp" />
     <ClInclude Include="src\Input\KeyCode.hpp" />
     <ClInclude Include="src\Input\MouseState.hpp" />
@@ -146,6 +148,7 @@
     <ClCompile Include="src\Core\Window.cpp" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
     <ClCompile Include="src\Graphics\ConstantBuffer.cpp" />
+    <ClCompile Include="src\Graphics\CubeRenderer.cpp" />
     <ClCompile Include="src\Graphics\Device.cpp" />
     <ClCompile Include="src\Graphics\Shader.cpp" />
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />

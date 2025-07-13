@@ -14,6 +14,7 @@
 #include "../Graphics/Camera.hpp"
 #include "../Input/InputManager.hpp"
 #include "../Utils/Common.hpp"
+#include "../Graphics/CubeRenderer.hpp"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -46,6 +47,8 @@ namespace Engine::Core
         Window m_window;
         Graphics::Device m_device;
         Graphics::TriangleRenderer m_triangleRenderer;
+        Graphics::CubeRenderer m_cubeRenderer;
+        std::vector<Graphics::CubeRenderer> m_cubes; //•¡”‚Ì—§•û‘Ì—p
         Graphics::Camera m_camera;
         std::unique_ptr<Graphics::FPSCameraController> m_cameraController;
 

@@ -100,6 +100,7 @@ namespace Engine::Core
         auto renderTargetResult = createRenderTargets();
         if (!renderTargetResult) return renderTargetResult;
 
+        // 深度バッファ作成
         auto depthStencilResult = createDepthStencilBuffer();
         if (!depthStencilResult) return depthStencilResult;
 
@@ -109,14 +110,31 @@ namespace Engine::Core
         auto syncResult = createSyncObjects();
         if (!syncResult) return syncResult;
 
+        // **デバイスが確実に初期化されているかチェック**
+        if (!m_device.isValid()) {
+            return std::unexpected(Utils::make_error(Utils::ErrorType::DeviceCreation, "Device is not valid after initialization"));
+        }
+
         // 三角形レンダラーの初期化
+        Utils::log_info("Initializing Triangle Renderer...");
         auto triangleResult = m_triangleRenderer.initialize(&m_device);
-        if (!triangleResult) return triangleResult;
+        if (!triangleResult) {
+            Utils::log_error(triangleResult.error());
+            return triangleResult;
+        }
+
+        // **立方体レンダラーの初期化**
+        Utils::log_info("Initializing Cube Renderer...");
+        auto cubeResult = m_cubeRenderer.initialize(&m_device);
+        if (!cubeResult) {
+            Utils::log_error(cubeResult.error());
+            return cubeResult;
+        }
 
         // カメラの初期化
         const auto [clientWidth, clientHeight] = m_window.getClientSize();
         m_camera.setPerspective(45.0f, static_cast<float>(clientWidth) / clientHeight, 0.1f, 100.0f);
-        m_camera.setPosition({ 0.0f, 0.0f, 3.0f });
+        m_camera.setPosition({ 0.0f, 0.0f, 5.0f });
         m_camera.lookAt({ 0.0f, 0.0f, 0.0f });
 
         // カメラコントローラーの初期化
@@ -124,13 +142,13 @@ namespace Engine::Core
         m_cameraController->setMovementSpeed(5.0f);
         m_cameraController->setMouseSensitivity(0.1f);
 
-        // 三角形を3D空間に配置
-        m_triangleRenderer.setPosition(Math::Vector3(0.0f, 0.0f, 0.0f));
+        // オブジェクトの配置
+        m_triangleRenderer.setPosition(Math::Vector3(-2.0f, 0.0f, 0.0f));  // 左に配置
+        m_cubeRenderer.setPosition(Math::Vector3(2.0f, 0.0f, 0.0f));       // 右に配置
 
         Utils::log_info("DirectX 12 initialization completed successfully!");
         return {};
     }
-
     Utils::VoidResult App::initializeInput()
     {
         Utils::log_info("Initializing input system...");
@@ -350,6 +368,11 @@ namespace Engine::Core
         static float rotationAngle = 0.0f;
         rotationAngle += 0.5f * m_deltaTime;
         m_triangleRenderer.setRotation(Math::Vector3(0.0f, rotationAngle, 0.0f));
+
+        //立方体の回転（デモ用）
+        static float cubeRotationAngle = 0.0f;
+        cubeRotationAngle += 45.0f * m_deltaTime;
+        m_cubeRenderer.setRotation(Math::Vector3(cubeRotationAngle, cubeRotationAngle * 0.7f, 0.0f));
     }
 
     void App::render()
@@ -358,7 +381,7 @@ namespace Engine::Core
         m_commandAllocator->Reset();
         m_commandList->Reset(m_commandAllocator.Get(), nullptr);
 
-        // リソースバリア：バックバッファをレンダーターゲット状態に変更
+        // リソースバリア: バックバッファをレンダーターゲット状態に変更
         D3D12_RESOURCE_BARRIER barrier{};
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -369,21 +392,22 @@ namespace Engine::Core
 
         m_commandList->ResourceBarrier(1, &barrier);
 
-        // レンダーターゲットの設定
+        // レンダーターゲットビューと深度ステンシルビューのハンドル取得
         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
         const UINT rtvDescriptorSize = m_device.getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         rtvHandle.ptr += m_frameIndex * rtvDescriptorSize;
 
         D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
 
+        // レンダーターゲットと深度ステンシルを設定
         m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
         // 画面クリア（濃い青色で塗りつぶし）
         const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
         m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
-        //深度バッファをクリア
-        m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0,nullptr);
+        // 深度バッファもクリア
+        m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
         // ビューポートとシザー矩形を設定
         const auto [clientWidth, clientHeight] = m_window.getClientSize();
@@ -405,9 +429,16 @@ namespace Engine::Core
         m_commandList->RSSetScissorRects(1, &scissorRect);
 
         // 三角形を描画
-        m_triangleRenderer.render(m_commandList.Get(), m_camera, m_frameIndex);
+        if (m_triangleRenderer.isValid()) {
+            m_triangleRenderer.render(m_commandList.Get(), m_camera, m_frameIndex);
+        }
 
-        // リソースバリア：バックバッファを表示状態に戻す
+        // **立方体を描画
+        if (m_cubeRenderer.isValid()) {
+            m_cubeRenderer.render(m_commandList.Get(), m_camera, m_frameIndex);
+        }
+
+        // リソースバリア: バックバッファを表示状態に戻す
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 
