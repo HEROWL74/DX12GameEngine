@@ -67,6 +67,12 @@
     <ClInclude Include="src\Graphics\CubeRenderer.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\VertexTypes.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\GameObject.hpp">
+      <Filter>ソース ファイル\src\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -95,6 +101,9 @@
     </ClCompile>
     <ClCompile Include="src\Input\InputManager.cpp">
       <Filter>ソース ファイル\src\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\CubeRenderer.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

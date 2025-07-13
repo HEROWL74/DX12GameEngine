@@ -9,6 +9,7 @@
 #include "Shader.hpp"
 #include "ConstantBuffer.hpp"
 #include "Camera.hpp"
+#include "VertexTypes.hpp"  // 追加
 #include "../Math/Math.hpp"
 #include "../Utils/Common.hpp"
 
@@ -16,12 +17,7 @@ using Microsoft::WRL::ComPtr;
 
 namespace Engine::Graphics
 {
-    // 頂点データ構造体
-    struct Vertex
-    {
-        float position[3];  // x, y, z
-        float color[3];     // r, g, b
-    };
+    // Vertex構造体の定義を削除（VertexTypes.hppに移動したため）
 
     // 三角形描画専用のレンダラー
     class TriangleRenderer
