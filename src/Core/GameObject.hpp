@@ -56,6 +56,7 @@ namespace Engine::Core
 	//=========================================================
 	class Transform : public Component
 	{
+	public:
 		Transform() = default;
 		~Transform() = default;
 
