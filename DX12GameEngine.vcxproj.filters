@@ -73,6 +73,9 @@
     <ClInclude Include="src\Core\GameObject.hpp">
       <Filter>ソース ファイル\src\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\RenderComponent.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -107,6 +110,9 @@
     </ClCompile>
     <ClCompile Include="src\Core\GameObject.cpp">
       <Filter>ソース ファイル\src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\RenderComponent.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
