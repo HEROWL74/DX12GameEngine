@@ -110,31 +110,56 @@ namespace Engine::Core
         auto syncResult = createSyncObjects();
         if (!syncResult) return syncResult;
 
+        auto sceneResult = m_scene.initialize(&m_device);
+        if (!sceneResult) {
+            Utils::log_error(sceneResult.error());
+            return sceneResult;
+        }
+
         // **デバイスが確実に初期化されているかチェック**
         if (!m_device.isValid()) {
             return std::unexpected(Utils::make_error(Utils::ErrorType::DeviceCreation, "Device is not valid after initialization"));
         }
 
-        // 三角形レンダラーの初期化
-        Utils::log_info("Initializing Triangle Renderer...");
-        auto triangleResult = m_triangleRenderer.initialize(&m_device);
-        if (!triangleResult) {
-            Utils::log_error(triangleResult.error());
-            return triangleResult;
+
+        //三角形オブジェクト
+        auto* triangleObject = m_scene.createGameObject("Triangle");
+        triangleObject->getTransform()->setPosition(Math::Vector3(-2.0f, 0.0f, 0.0f));
+        auto* triangleRender = triangleObject->addComponent<Graphics::RenderComponent>(Graphics::RenderableType::Triangle);
+        auto triangleInitResult = triangleRender->initialize(&m_device);
+        if (!triangleInitResult) {
+            Utils::log_error(triangleInitResult.error());
+            return triangleInitResult;
         }
 
-        // **立方体レンダラーの初期化**
-        Utils::log_info("Initializing Cube Renderer...");
-        auto cubeResult = m_cubeRenderer.initialize(&m_device);
-        if (!cubeResult) {
-            Utils::log_error(cubeResult.error());
-            return cubeResult;
+
+        // 立方体オブジェクト
+        auto* cubeObject = m_scene.createGameObject("Cube");
+        cubeObject->getTransform()->setPosition(Math::Vector3(2.0f, 0.0f, 0.0f));
+        auto* cubeRender = cubeObject->addComponent<Graphics::RenderComponent>(Graphics::RenderableType::Cube);
+        auto cubeInitResult = cubeRender->initialize(&m_device);
+        if (!cubeInitResult) {
+            Utils::log_error(cubeInitResult.error());
+            return cubeInitResult;
+        }
+
+        // 複数の立方体を作成（デモ用）
+        for (int i = 0; i < 3; ++i)
+        {
+            auto* extraCube = m_scene.createGameObject("Cube" + std::to_string(i + 2));
+            extraCube->getTransform()->setPosition(Math::Vector3(0.0f, 2.0f * (i + 1), -3.0f));
+            extraCube->getTransform()->setScale(Math::Vector3(0.5f, 0.5f, 0.5f));
+            auto* extraRender = extraCube->addComponent<Graphics::RenderComponent>(Graphics::RenderableType::Cube);
+            auto extraInitResult = extraRender->initialize(&m_device);
+            if (!extraInitResult) {
+                Utils::log_warning("Failed to initialize extra cube renderer");
+            }
         }
 
         // カメラの初期化
         const auto [clientWidth, clientHeight] = m_window.getClientSize();
         m_camera.setPerspective(45.0f, static_cast<float>(clientWidth) / clientHeight, 0.1f, 100.0f);
-        m_camera.setPosition({ 0.0f, 0.0f, 5.0f });
+        m_camera.setPosition({ 0.0f, 0.0f, 8.0f });
         m_camera.lookAt({ 0.0f, 0.0f, 0.0f });
 
         // カメラコントローラーの初期化
@@ -142,9 +167,10 @@ namespace Engine::Core
         m_cameraController->setMovementSpeed(5.0f);
         m_cameraController->setMouseSensitivity(0.1f);
 
-        // オブジェクトの配置
-        m_triangleRenderer.setPosition(Math::Vector3(-2.0f, 0.0f, 0.0f));  // 左に配置
-        m_cubeRenderer.setPosition(Math::Vector3(2.0f, 0.0f, 0.0f));       // 右に配置
+
+
+        //シーンを開始
+        m_scene.start();
 
         Utils::log_info("DirectX 12 initialization completed successfully!");
         return {};
@@ -364,15 +390,38 @@ namespace Engine::Core
         // 入力処理
         processInput();
 
-        // 三角形の回転（デモ用）
-        static float rotationAngle = 0.0f;
-        rotationAngle += 0.5f * m_deltaTime;
-        m_triangleRenderer.setRotation(Math::Vector3(0.0f, rotationAngle, 0.0f));
+        //シーンの更新
+        m_scene.update(m_deltaTime);
+        m_scene.lateUpdate(m_deltaTime);
 
-        //立方体の回転（デモ用）
-        static float cubeRotationAngle = 0.0f;
-        cubeRotationAngle += 45.0f * m_deltaTime;
-        m_cubeRenderer.setRotation(Math::Vector3(cubeRotationAngle, cubeRotationAngle * 0.7f, 0.0f));
+        // **デモ用アニメーション - GameObjectを使用**
+        auto* triangleObject = m_scene.findGameObject("Triangle");
+        if (triangleObject)
+        {
+            static float triangleRotation = 0.0f;
+            triangleRotation += 30.0f * m_deltaTime;
+            triangleObject->getTransform()->setRotation(Math::Vector3(0.0f, triangleRotation, 0.0f));
+        }
+
+        auto* cubeObject = m_scene.findGameObject("Cube");
+        if (cubeObject)
+        {
+            static float cubeRotation = 0.0f;
+            cubeRotation += 45.0f * m_deltaTime;
+            cubeObject->getTransform()->setRotation(Math::Vector3(cubeRotation, cubeRotation * 0.7f, 0.0f));
+        }
+
+        // 追加の立方体をアニメーション
+        for (int i = 0; i < 3; ++i)
+        {
+            auto* extraCube = m_scene.findGameObject("Cube" + std::to_string(i + 2));
+            if (extraCube)
+            {
+                static float extraRotation = 0.0f;
+                extraRotation += (60.0f + i * 20.0f) * m_deltaTime;
+                extraCube->getTransform()->setRotation(Math::Vector3(0.0f, extraRotation, 0.0f));
+            }
+        }
     }
 
     void App::render()
@@ -428,15 +477,9 @@ namespace Engine::Core
         m_commandList->RSSetViewports(1, &viewport);
         m_commandList->RSSetScissorRects(1, &scissorRect);
 
-        // 三角形を描画
-        if (m_triangleRenderer.isValid()) {
-            m_triangleRenderer.render(m_commandList.Get(), m_camera, m_frameIndex);
-        }
+        
 
-        // **立方体を描画
-        if (m_cubeRenderer.isValid()) {
-            m_cubeRenderer.render(m_commandList.Get(), m_camera, m_frameIndex);
-        }
+        m_scene.render(m_commandList.Get(), m_camera, m_frameIndex);
 
         // リソースバリア: バックバッファを表示状態に戻す
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
