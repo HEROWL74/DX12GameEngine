@@ -30,7 +30,7 @@ namespace Engine::Graphics
 		[[nodiscard]] Utils::VoidResult initialize(Device* device);
 
 		//レンダリング
-		void Render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex);
+		void render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex);
 
 		//レンダリングタイプ
 		RenderableType getRenderableType() const { return m_renderableType; }
@@ -45,7 +45,7 @@ namespace Engine::Graphics
 		bool isVisible() const { return m_visible; }
 
 		//有効性チェック
-		[[nidiscard]] bool isValid() const;
+		[[nodiscard]] bool isValid() const;
 
 	private:
 		Device* m_device = nullptr;

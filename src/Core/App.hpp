@@ -10,11 +10,10 @@
 
 #include "Window.hpp"
 #include "../Graphics/Device.hpp"
-#include "../Graphics/TriangleRenderer.hpp"
 #include "../Graphics/Camera.hpp"
 #include "../Input/InputManager.hpp"
 #include "../Utils/Common.hpp"
-#include "../Graphics/CubeRenderer.hpp"
+#include "../Graphics/RenderComponent.hpp"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -51,6 +50,7 @@ namespace Engine::Core
         std::vector<Graphics::CubeRenderer> m_cubes; //複数の立方体用
         Graphics::Camera m_camera;
         std::unique_ptr<Graphics::FPSCameraController> m_cameraController;
+        Graphics::Scene m_scene;
 
         // スワップチェーン関係
         ComPtr<ID3D12CommandQueue> m_commandQueue;      // GPU命令の送信先

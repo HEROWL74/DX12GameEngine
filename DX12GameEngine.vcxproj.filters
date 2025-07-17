@@ -26,6 +26,9 @@
     <Filter Include="ソース ファイル\src\Input">
       <UniqueIdentifier>{0b098dff-efeb-425d-8b64-b6720aecf80a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\src\UI">
+      <UniqueIdentifier>{10ec1e86-407d-41c8-a9fb-34bea7888cca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Utils\Common.hpp">
@@ -76,6 +79,24 @@
     <ClInclude Include="src\Graphics\RenderComponent.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\UI\imconfig.h">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\imgui.h">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\imgui_impl_dx12.h">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\imgui_impl_win32.h">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\imgui_internal.h">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\ImGuiManager.hpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -113,6 +134,27 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\RenderComponent.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\imgui.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\imgui_demo.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\imgui_draw.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\imgui_impl_dx12.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\imgui_impl_win32.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\imgui_tables.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\imgui_widgets.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

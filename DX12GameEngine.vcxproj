@@ -146,6 +146,12 @@
     <ClInclude Include="src\Input\KeyCode.hpp" />
     <ClInclude Include="src\Input\MouseState.hpp" />
     <ClInclude Include="src\Math\Math.hpp" />
+    <ClInclude Include="src\UI\imconfig.h" />
+    <ClInclude Include="src\UI\imgui.h" />
+    <ClInclude Include="src\UI\ImGuiManager.hpp" />
+    <ClInclude Include="src\UI\imgui_impl_dx12.h" />
+    <ClInclude Include="src\UI\imgui_impl_win32.h" />
+    <ClInclude Include="src\UI\imgui_internal.h" />
     <ClInclude Include="src\Utils\Common.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -161,6 +167,13 @@
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\UI\imgui.cpp" />
+    <ClCompile Include="src\UI\imgui_demo.cpp" />
+    <ClCompile Include="src\UI\imgui_draw.cpp" />
+    <ClCompile Include="src\UI\imgui_impl_dx12.cpp" />
+    <ClCompile Include="src\UI\imgui_impl_win32.cpp" />
+    <ClCompile Include="src\UI\imgui_tables.cpp" />
+    <ClCompile Include="src\UI\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\BasicPixel.hlsl">
