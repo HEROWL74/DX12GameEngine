@@ -29,6 +29,9 @@
     <Filter Include="ソース ファイル\src\UI">
       <UniqueIdentifier>{10ec1e86-407d-41c8-a9fb-34bea7888cca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\src\UI\backends">
+      <UniqueIdentifier>{aa9a3c54-b06e-4b27-8bba-9ea3b2109266}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Utils\Common.hpp">
@@ -79,23 +82,32 @@
     <ClInclude Include="src\Graphics\RenderComponent.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\UI\ImGuiManager.hpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
     <ClInclude Include="src\UI\imconfig.h">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClInclude>
     <ClInclude Include="src\UI\imgui.h">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClInclude>
-    <ClInclude Include="src\UI\imgui_impl_dx12.h">
-      <Filter>ソース ファイル\src\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\UI\imgui_impl_win32.h">
-      <Filter>ソース ファイル\src\UI</Filter>
-    </ClInclude>
     <ClInclude Include="src\UI\imgui_internal.h">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClInclude>
-    <ClInclude Include="src\UI\ImGuiManager.hpp">
+    <ClInclude Include="src\UI\imstb_rectpack.h">
       <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\imstb_textedit.h">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\imstb_truetype.h">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\backends\imgui_impl_dx12.h">
+      <Filter>ソース ファイル\src\UI\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\backends\imgui_impl_win32.h">
+      <Filter>ソース ファイル\src\UI\backends</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -135,6 +147,9 @@
     <ClCompile Include="src\Graphics\RenderComponent.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\UI\ImGuiManager.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
     <ClCompile Include="src\UI\imgui.cpp">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClCompile>
@@ -144,17 +159,17 @@
     <ClCompile Include="src\UI\imgui_draw.cpp">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClCompile>
-    <ClCompile Include="src\UI\imgui_impl_dx12.cpp">
-      <Filter>ソース ファイル\src\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UI\imgui_impl_win32.cpp">
-      <Filter>ソース ファイル\src\UI</Filter>
-    </ClCompile>
     <ClCompile Include="src\UI\imgui_tables.cpp">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClCompile>
     <ClCompile Include="src\UI\imgui_widgets.cpp">
       <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\backends\imgui_impl_dx12.cpp">
+      <Filter>ソース ファイル\src\UI\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\backends\imgui_impl_win32.cpp">
+      <Filter>ソース ファイル\src\UI\backends</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

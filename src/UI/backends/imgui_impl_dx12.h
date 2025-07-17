@@ -6,6 +6,7 @@
 //  [X] Renderer: Large meshes support (64k+ vertices) even with 16-bit indices (ImGuiBackendFlags_RendererHasVtxOffset).
 //  [X] Renderer: Texture updates support for dynamic font atlas (ImGuiBackendFlags_RendererHasTextures).
 //  [X] Renderer: Expose selected render state for draw callbacks to use. Access in '(ImGui_ImplXXXX_RenderState*)GetPlatformIO().Renderer_RenderState'.
+//  [X] Renderer: Multi-viewport support (multiple windows). Enable with 'io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable'.
 
 // The aim of imgui_impl_dx12.h/.cpp is to be usable in your engine without any modification.
 // IF YOU FEEL YOU NEED TO MAKE ANY CHANGE TO THIS CODE, please share them and your feedback at https://github.com/ocornut/imgui/
@@ -19,7 +20,7 @@
 // - Introduction, links and more at the top of imgui.cpp
 
 #pragma once
-#include "imgui.h"      // IMGUI_IMPL_API
+#include "../imgui.h"      // IMGUI_IMPL_API
 #ifndef IMGUI_DISABLE
 #include <dxgiformat.h> // DXGI_FORMAT
 #include <d3d12.h>      // D3D12_CPU_DESCRIPTOR_HANDLE
