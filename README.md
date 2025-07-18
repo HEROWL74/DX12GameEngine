@@ -45,7 +45,7 @@ Microsoftのリファレンスページや、サンプルコードを見なが�
 ## 📧 作者について
 
 - 名前：HEROWL
-- X (旧Twitter)：[HRAKProgrammer](https://x.com/HRAKProgrammer)]
+- X (旧Twitter)：[HRAKProgrammer](https://x.com/HRAKProgrammer)
 - 開発環境：Visual Studio 2022 / Windows 11 / C++20&23
 - 興味分野：ゲームエンジン開発、ゲーム開発、バスケットボール、水上オートバイ運転
 
