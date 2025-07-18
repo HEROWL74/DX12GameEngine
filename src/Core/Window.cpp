@@ -1,7 +1,7 @@
 // src/Core/Window.cpp
 #include "Window.hpp"
 #include <format>
-
+#include "../UI/ImGuiManager.hpp"
 namespace Engine::Core {
 	Window::~Window()
 	{
@@ -207,6 +207,9 @@ namespace Engine::Core {
 
 	LRESULT Window::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
+		if (m_imguiManager) {
+			m_imguiManager->handleWindowMessage(hWnd, uMsg, wParam, lParam);
+		}
 		// 入力システムにメッセージを転送
 		if (m_inputManager && m_inputManager->handleWindowMessage(hWnd, uMsg, wParam, lParam))
 		{

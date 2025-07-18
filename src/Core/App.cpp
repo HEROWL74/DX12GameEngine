@@ -116,7 +116,15 @@ namespace Engine::Core
             return sceneResult;
         }
 
-        // **デバイスが確実に初期化されているかチェック**
+        auto imguiResult = m_imguiManager.initialize(&m_device, m_window.getHandle());
+        if (!imguiResult) {
+            Utils::log_error(imguiResult.error());
+            return imguiResult;
+        }
+
+        m_window.setImGuiManager(&m_imguiManager);
+
+        // デバイスが確実に初期化されているかチェック
         if (!m_device.isValid()) {
             return std::unexpected(Utils::make_error(Utils::ErrorType::DeviceCreation, "Device is not valid after initialization"));
         }
@@ -167,12 +175,23 @@ namespace Engine::Core
         m_cameraController->setMovementSpeed(5.0f);
         m_cameraController->setMouseSensitivity(0.1f);
 
+        //ImGuiウィンドウを作成
+        m_debugWindow = std::make_unique<UI::DebugWindow>();
+        m_hierarchyWindow = std::make_unique<UI::SceneHierarchyWindow>();
+        m_inspectorWindow = std::make_unique<UI::InspectorWindow>();
 
+        //シーンを設定
+        m_hierarchyWindow->setScene(&m_scene);
+
+        m_hierarchyWindow->setSelectionChangedCallback([this](Core::GameObject* selectedObject) {
+            m_inspectorWindow->setSelectedObject(selectedObject);
+        });
 
         //シーンを開始
         m_scene.start();
 
         Utils::log_info("DirectX 12 initialization completed successfully!");
+        Utils::log_info("ImGui setup completed!");
         return {};
     }
     Utils::VoidResult App::initializeInput()
@@ -394,7 +413,12 @@ namespace Engine::Core
         m_scene.update(m_deltaTime);
         m_scene.lateUpdate(m_deltaTime);
 
-        // **デモ用アニメーション - GameObjectを使用**
+        //ImGui情報を更新
+        m_debugWindow->setFPS(m_currentFPS);
+        m_debugWindow->setFrameTime(m_deltaTime);
+        m_debugWindow->setObjectCount(m_scene.getGameObjects().size());
+
+        // デモ用アニメーション
         auto* triangleObject = m_scene.findGameObject("Triangle");
         if (triangleObject)
         {
@@ -429,6 +453,11 @@ namespace Engine::Core
         // コマンドリストの記録開始
         m_commandAllocator->Reset();
         m_commandList->Reset(m_commandAllocator.Get(), nullptr);
+
+        m_imguiManager.newFrame();
+        m_debugWindow->draw();
+        m_hierarchyWindow->draw();
+        m_inspectorWindow->draw();
 
         // リソースバリア: バックバッファをレンダーターゲット状態に変更
         D3D12_RESOURCE_BARRIER barrier{};
@@ -478,8 +507,11 @@ namespace Engine::Core
         m_commandList->RSSetScissorRects(1, &scissorRect);
 
         
-
+        //シーンのレンダリング
         m_scene.render(m_commandList.Get(), m_camera, m_frameIndex);
+
+        //ImGui描画
+        m_imguiManager.render(m_commandList.Get());
 
         // リソースバリア: バックバッファを表示状態に戻す
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -632,6 +664,7 @@ namespace Engine::Core
         // 現在は何もしない
     }
 
+    [[maybe_unused]]
     void App::onMouseMove(int x, int y, int deltaX, int deltaY)
     {
         // マウス移動の処理はprocessInput()で行う

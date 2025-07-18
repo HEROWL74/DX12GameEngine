@@ -14,6 +14,7 @@
 #include "../Input/InputManager.hpp"
 #include "../Utils/Common.hpp"
 #include "../Graphics/RenderComponent.hpp"
+#include "../UI/ImGuiManager.hpp"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -80,6 +81,12 @@ namespace Engine::Core
         float m_currentFPS = 0.0f;
         int m_frameCount = 0;
         float m_frameTimeAccumulator = 0.0f;
+
+        //ImGui関係のスマートポインタ
+        UI::ImGuiManager m_imguiManager;
+        std::unique_ptr<UI::DebugWindow> m_debugWindow;
+        std::unique_ptr<UI::SceneHierarchyWindow> m_hierarchyWindow;
+        std::unique_ptr<UI::InspectorWindow> m_inspectorWindow;
 
         // 初期化処理
         [[nodiscard]] Utils::VoidResult initD3D();
