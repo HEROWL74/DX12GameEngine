@@ -7,6 +7,9 @@
 #include <memory>
 #include "../Utils/Common.hpp"
 #include "../Input/InputManager.hpp"
+namespace Engine::UI {
+    class ImGuiManager;
+}
 
 namespace Engine::Core {
     // =============================================================================
@@ -85,6 +88,8 @@ namespace Engine::Core {
 
         void setCloseCallback(CloseCallback callback) noexcept { m_closeCallback = std::move(callback); }
 
+        void setImGuiManager(UI::ImGuiManager* manager) { m_imguiManager = manager; }
+
         // 入力システムへのアクセス
         [[nodiscard]] Input::InputManager* getInputManager() const noexcept;
 
@@ -95,6 +100,7 @@ namespace Engine::Core {
 
         // 入力システム
         std::unique_ptr<Input::InputManager> m_inputManager;
+        UI::ImGuiManager* m_imguiManager = nullptr;
 
         // イベントコールバック
         ResizeCallback m_resizeCallback;

@@ -5,6 +5,7 @@
 #include <wrl.h>
 #include <d3d12.h>
 #include <memory>
+#include <functional>
 #include "../Graphics/Device.hpp"
 #include "../Utils/Common.hpp"
 #include "../Core/GameObject.hpp"
@@ -71,7 +72,7 @@ namespace Engine::UI
 
 		//初期化ヘルパー
 		[[nodiscard]] Utils::VoidResult createDescriptorHeap();
-	}; 
+	};
 
 	//======================================================================
 	//ImGuiウィンドウの基底クラス
@@ -80,7 +81,8 @@ namespace Engine::UI
 	{
 	public:
 		ImGuiWindow(const std::string& title, bool visible = true)
-			:m_title(title), m_visible(visible) { }
+			:m_title(title), m_visible(visible) {
+		}
 		virtual ~ImGuiWindow() = default;
 
 		//描画
@@ -128,14 +130,22 @@ namespace Engine::UI
 	public:
 		SceneHierarchyWindow() : ImGuiWindow("Scene Hierarchy") {}
 
-		void draw() override; 
+		void draw() override;
 
 		//シーンの設定
 		void setScene(Graphics::Scene* scene) { m_scene = scene; }
 
+		// 選択機能
+		Core::GameObject* getSelectedObject() const { return m_selectedObject; }
+		void setSelectedObject(Core::GameObject* object) { m_selectedObject = object; }
+
+		// 選択変更コールバック
+		void setSelectionChangedCallback(std::function<void(Core::GameObject*)> callback);
+
 	private:
 		Graphics::Scene* m_scene = nullptr;
 		Core::GameObject* m_selectedObject = nullptr;
+		std::function<void(Core::GameObject*)> m_onSelectionChanged;
 
 		void drawGameObject(Core::GameObject* gameObject);
 	};
@@ -151,13 +161,13 @@ namespace Engine::UI
 		void draw() override;
 
 		//選択オブジェクトの設定
-		void setSelectedObject(Core::GameObject* object) {}
+		void setSelectedObject(Core::GameObject* object) { m_selectedObject = object; }
 
 	private:
 		Core::GameObject* m_selectedObject = nullptr;
 
 		void drawTransformComponent(Core::Transform* transform);
 		void drawRenderComponent(Graphics::RenderComponent* renderComponent);
-		
+
 	};
 }
