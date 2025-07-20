@@ -94,7 +94,7 @@ namespace Engine::Core
         [[nodiscard]] Utils::VoidResult createCommandQueue();
         [[nodiscard]] Utils::VoidResult createSwapChain();
         [[nodiscard]] Utils::VoidResult createRenderTargets();
-        [[nodiscard]] Utils::VoidResult createDepthStencilBuffer(); //êVãKí«â¡
+        [[nodiscard]] Utils::VoidResult createDepthStencilBuffer();
         [[nodiscard]] Utils::VoidResult createCommandObjects();
         [[nodiscard]] Utils::VoidResult createSyncObjects();
 
