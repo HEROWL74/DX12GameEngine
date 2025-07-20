@@ -35,7 +35,128 @@ namespace Engine::Math
     {
         return degrees * DEG_TO_RAD;
     }
+    
+    //2次元ベクトルクラス
+    class Vector2
+    {
+    public:
+        float x, y;
 
+        // コンストラクタ
+        constexpr Vector2() : x(0.0f), y(0.0f) {}
+        constexpr Vector2(float x_, float y_) : x(x_), y(y_) {}
+        constexpr Vector2(float value) : x(value), y(value) {}
+
+        // 静的定数
+        static constexpr Vector2 zero() { return Vector2(0.0f, 0.0f); }
+        static constexpr Vector2 one() { return Vector2(1.0f, 1.0f); }
+        static constexpr Vector2 up() { return Vector2(0.0f, 1.0f); }
+        static constexpr Vector2 down() { return Vector2(0.0f, -1.0f); }
+        static constexpr Vector2 left() { return Vector2(-1.0f, 0.0f); }
+        static constexpr Vector2 right() { return Vector2(1.0f, 0.0f); }
+
+        // 演算子オーバーロード
+        constexpr Vector2 operator+(const Vector2& other) const
+        {
+            return Vector2(x + other.x, y + other.y);
+        }
+
+        constexpr Vector2 operator-(const Vector2& other) const
+        {
+            return Vector2(x - other.x, y - other.y);
+        }
+
+        constexpr Vector2 operator*(float scalar) const
+        {
+            return Vector2(x * scalar, y * scalar);
+        }
+
+        constexpr Vector2 operator*(const Vector2& other) const
+        {
+            return Vector2(x * other.x, y * other.y);
+        }
+
+        constexpr Vector2 operator/(float scalar) const
+        {
+            return Vector2(x / scalar, y / scalar);
+        }
+
+        Vector2& operator+=(const Vector2& other)
+        {
+            x += other.x; y += other.y;
+            return *this;
+        }
+
+        Vector2& operator-=(const Vector2& other)
+        {
+            x -= other.x; y -= other.y;
+            return *this;
+        }
+
+        Vector2& operator*=(float scalar)
+        {
+            x *= scalar; y *= scalar;
+            return *this;
+        }
+
+        constexpr Vector2 operator-() const
+        {
+            return Vector2(-x, -y);
+        }
+
+        // ベクトル操作
+        float length() const
+        {
+            return std::sqrt(x * x + y * y);
+        }
+
+        float lengthSquared() const
+        {
+            return x * x + y * y;
+        }
+
+        Vector2 normalized() const
+        {
+            float len = length();
+            if (len > 0.0f)
+                return *this / len;
+            return Vector2::zero();
+        }
+
+        void normalize()
+        {
+            *this = normalized();
+        }
+
+        //静的関数
+        static float dot(const Vector2& a, const Vector2& b)
+        {
+            return a.x * b.x + a.y * b.y;
+        }
+
+        static Vector2 lerp(const Vector2& a, const Vector2& b, float t)
+        {
+            return a * (b - a) * t;
+        }
+
+        static float distance(const Vector2& a, const Vector2& b)
+        {
+            return (b - a).length();
+        }
+
+        //2Dの外積（スカラー値）
+        static float cross(const Vector2& a, const Vector2& b)
+        {
+            return a.x * b.y - a.y * b.x;
+        }
+    }; 
+
+    //スカラー×Vector2の演算子
+    constexpr Vector2 operator*(float scalar, const Vector2& vector)
+    {
+        return vector * scalar;
+    }
+   
     // 3次元ベクトルクラス
     class Vector3
     {
@@ -304,7 +425,7 @@ namespace Engine::Math
             result.m[2][2] = scale.z;
             return result;
         }
-
+        
         // ビュー行列
         static Matrix4 lookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
         {

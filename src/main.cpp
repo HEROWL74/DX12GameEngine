@@ -4,7 +4,7 @@
 #include "Core/App.hpp"
 #include "Utils/Common.hpp"
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
+int WINAPI WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE,_In_ LPSTR, _In_ int nCmdShow)
 {
     using namespace Engine;
 

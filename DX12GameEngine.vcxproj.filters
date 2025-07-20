@@ -20,9 +20,6 @@
     <Filter Include="ソース ファイル\src\Math">
       <UniqueIdentifier>{5a49188c-2005-4894-90e2-8f1ca116659f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\Shaders">
-      <UniqueIdentifier>{d1c0b3e1-b76f-4152-86e1-9284aa771f40}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\src\Input">
       <UniqueIdentifier>{0b098dff-efeb-425d-8b64-b6720aecf80a}</UniqueIdentifier>
     </Filter>
@@ -31,6 +28,9 @@
     </Filter>
     <Filter Include="ソース ファイル\src\UI\backends">
       <UniqueIdentifier>{aa9a3c54-b06e-4b27-8bba-9ea3b2109266}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\shaders">
+      <UniqueIdentifier>{d1c0b3e1-b76f-4152-86e1-9284aa771f40}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -109,6 +109,9 @@
     <ClInclude Include="src\UI\backends\imgui_impl_win32.h">
       <Filter>ソース ファイル\src\UI\backends</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Material.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -174,10 +177,10 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\BasicVertex.hlsl">
-      <Filter>ソース ファイル\Shaders</Filter>
+      <Filter>ソース ファイル\shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\BasicPixel.hlsl">
-      <Filter>ソース ファイル\Shaders</Filter>
+      <Filter>ソース ファイル\shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

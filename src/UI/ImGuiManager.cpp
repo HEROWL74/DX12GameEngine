@@ -76,7 +76,7 @@ namespace Engine::UI
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui DX12"));
 		}
 
-		// **フォントテクスチャを事前に作成 - 修正版**
+		// フォントテクスチャを事前に作成
 		{
 			// ダミーのコマンドリストを作成してフォントをアップロード
 			ComPtr<ID3D12CommandAllocator> fontCommandAllocator;
@@ -93,7 +93,7 @@ namespace Engine::UI
 				IID_PPV_ARGS(&fontCommandList)),
 				Utils::ErrorType::ResourceCreation, "Failed to create font command list");
 
-			// **フォントアトラスを手動で構築**
+			// フォントアトラスを手動で構築
 			unsigned char* pixels;
 			int width, height;
 			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
