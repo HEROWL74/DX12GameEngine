@@ -112,6 +112,9 @@
     <ClInclude Include="src\Graphics\Material.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Texture.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -173,6 +176,9 @@
     </ClCompile>
     <ClCompile Include="src\UI\backends\imgui_impl_win32.cpp">
       <Filter>ソース ファイル\src\UI\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Material.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
