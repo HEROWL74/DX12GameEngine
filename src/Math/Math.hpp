@@ -283,6 +283,26 @@ namespace Engine::Math
         return vector * scalar;
     }
 
+    //4次元ベクトルクラス（マテリアル定数のバッファ用）
+    class Vector4
+    {
+    public:
+        float x, y, z, w;
+
+        //コンストラクタ
+        constexpr Vector4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+        constexpr Vector4(float x_, float y_, float z_, float w_): x(x_), y(y_), z(z_), w(w_) {}
+        constexpr Vector4(const Vector3& xyz, float w_) : x(xyz.x), y(xyz.y), z(xyz.z), w(w_) {}
+        constexpr Vector4(float value) : x(value), y(value), z(value), w(value) {}
+
+        //静的関数
+        static constexpr Vector4 zero() { return Vector4(0.0f, 0.0f, 0.0f, 0.0f); }
+        static constexpr Vector4 one() { return Vector4( 1.0f, 1.0f, 1.0f, 1.0f); }
+
+        //Vector3への変換
+        Vector3 xyz() const { return Vector3(x, y, z); }
+    };
+
     // 4x4行列クラス
     class Matrix4
     {

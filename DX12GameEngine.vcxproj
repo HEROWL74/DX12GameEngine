@@ -138,9 +138,13 @@
     <ClInclude Include="src\Graphics\ConstantBuffer.hpp" />
     <ClInclude Include="src\Graphics\CubeRenderer.hpp" />
     <ClInclude Include="src\Graphics\Device.hpp" />
-    <ClInclude Include="src\Graphics\Material.hpp" />
+    <ClInclude Include="src\Graphics\Material.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="src\Graphics\RenderComponent.hpp" />
     <ClInclude Include="src\Graphics\Shader.hpp" />
+    <ClInclude Include="src\Graphics\Texture.hpp" />
     <ClInclude Include="src\Graphics\TriangleRenderer.hpp" />
     <ClInclude Include="src\Graphics\VertexTypes.hpp" />
     <ClInclude Include="src\Input\InputManager.hpp" />
@@ -166,6 +170,7 @@
     <ClCompile Include="src\Graphics\ConstantBuffer.cpp" />
     <ClCompile Include="src\Graphics\CubeRenderer.cpp" />
     <ClCompile Include="src\Graphics\Device.cpp" />
+    <ClCompile Include="src\Graphics\Material.cpp" />
     <ClCompile Include="src\Graphics\RenderComponent.cpp" />
     <ClCompile Include="src\Graphics\Shader.cpp" />
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
