@@ -115,6 +115,12 @@
     <ClInclude Include="src\Graphics\Texture.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\stb_image.h">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\stb_image_resize2.h">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -178,6 +184,9 @@
       <Filter>ソース ファイル\src\UI\backends</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Material.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Texture.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>

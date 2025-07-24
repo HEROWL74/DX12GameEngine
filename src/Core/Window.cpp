@@ -272,6 +272,16 @@ namespace Engine::Core {
 
 		case WM_KEYDOWN:
 		{
+			// F1キーでマウス相対モードの切り替え
+			if (wParam == VK_F1)
+			{
+				if (m_inputManager)
+				{
+					bool currentMode = m_inputManager->getMouseState().isRelativeMode;
+					m_inputManager->setRelativeMouseMode(!currentMode);
+					Utils::log_info(std::format("Mouse relative mode: {}", !currentMode ? "ON" : "OFF"));
+				}
+
 			// Alt+F4での終了も処理
 			if (wParam == VK_F4 && (GetKeyState(VK_MENU) & 0x8000))
 			{
