@@ -144,6 +144,7 @@
     </ClInclude>
     <ClInclude Include="src\Graphics\RenderComponent.hpp" />
     <ClInclude Include="src\Graphics\Shader.hpp" />
+    <ClInclude Include="src\Graphics\ShaderManager.hpp" />
     <ClInclude Include="src\Graphics\stb_image.h" />
     <ClInclude Include="src\Graphics\stb_image_resize2.h" />
     <ClInclude Include="src\Graphics\Texture.hpp" />
@@ -175,6 +176,7 @@
     <ClCompile Include="src\Graphics\Material.cpp" />
     <ClCompile Include="src\Graphics\RenderComponent.cpp" />
     <ClCompile Include="src\Graphics\Shader.cpp" />
+    <ClCompile Include="src\Graphics\ShaderMamager.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
@@ -189,26 +191,11 @@
     <ClCompile Include="src\UI\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\BasicPixel.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="shaders\BasicVertex.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
-    </FxCompile>
+    <FxCompile Include="assets\shaders\BasicPixel.hlsl" />
+    <FxCompile Include="assets\shaders\BasicVertex.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\Common.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

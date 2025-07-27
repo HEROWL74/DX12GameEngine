@@ -160,7 +160,7 @@ namespace Engine::Graphics
     {
         // ファイルから頂点シェーダーをコンパイル
         auto vsResult = m_shaderManager.compileFromFile(
-            L"shaders/BasicVertex.hlsl",
+            L"assets/shaders/BasicVertex.hlsl",
             "main",
             ShaderType::Vertex
         );
@@ -171,7 +171,7 @@ namespace Engine::Graphics
 
         // ファイルからピクセルシェーダーをコンパイル
         auto psResult = m_shaderManager.compileFromFile(
-            L"shaders/BasicPixel.hlsl",
+            L"assets/shaders/BasicPixel.hlsl",
             "main",
             ShaderType::Pixel
         );

@@ -29,7 +29,10 @@
     <Filter Include="ソース ファイル\src\UI\backends">
       <UniqueIdentifier>{aa9a3c54-b06e-4b27-8bba-9ea3b2109266}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\shaders">
+    <Filter Include="ソース ファイル\assets">
+      <UniqueIdentifier>{ee7f8802-62b3-426f-9457-2f84acfda172}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\assets\shaders">
       <UniqueIdentifier>{d1c0b3e1-b76f-4152-86e1-9284aa771f40}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -121,6 +124,9 @@
     <ClInclude Include="src\Graphics\stb_image_resize2.h">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\ShaderManager.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -189,13 +195,21 @@
     <ClCompile Include="src\Graphics\Texture.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\ShaderMamager.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\BasicVertex.hlsl">
-      <Filter>ソース ファイル\shaders</Filter>
+    <FxCompile Include="assets\shaders\BasicPixel.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\BasicPixel.hlsl">
-      <Filter>ソース ファイル\shaders</Filter>
+    <FxCompile Include="assets\shaders\BasicVertex.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\Common.hlsli">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
