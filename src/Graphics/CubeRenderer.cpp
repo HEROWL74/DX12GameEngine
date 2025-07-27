@@ -166,7 +166,7 @@ namespace Engine::Graphics
     {
         // 既存のシェーダーを再利用（BasicVertex.hlsl, BasicPixel.hlsl）
         auto vsResult = m_shaderManager.compileFromFile(
-            L"shaders/BasicVertex.hlsl",
+            L"assets/shaders/BasicVertex.hlsl",
             "main",
             ShaderType::Vertex
         );
@@ -176,7 +176,7 @@ namespace Engine::Graphics
         }
 
         auto psResult = m_shaderManager.compileFromFile(
-            L"shaders/BasicPixel.hlsl",
+            L"assets/shaders/BasicPixel.hlsl",
             "main",
             ShaderType::Pixel
         );

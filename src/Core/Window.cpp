@@ -282,28 +282,28 @@ namespace Engine::Core {
 					Utils::log_info(std::format("Mouse relative mode: {}", !currentMode ? "ON" : "OFF"));
 				}
 
-			// Alt+F4での終了も処理
-			if (wParam == VK_F4 && (GetKeyState(VK_MENU) & 0x8000))
-			{
-				if (m_inputManager)
+				// Alt+F4での終了も処理
+				if (wParam == VK_F4 && (GetKeyState(VK_MENU) & 0x8000))
 				{
-					m_inputManager->setRelativeMouseMode(false);
+					if (m_inputManager)
+					{
+						m_inputManager->setRelativeMouseMode(false);
+					}
+					PostQuitMessage(0);
+					return 0;
 				}
-				PostQuitMessage(0);
-				return 0;
-			}
-			// ESCキーでの終了
-			else if (wParam == VK_ESCAPE)
-			{
-				if (m_inputManager)
+				// ESCキーでの終了
+				else if (wParam == VK_ESCAPE)
 				{
-					m_inputManager->setRelativeMouseMode(false);
+					if (m_inputManager)
+					{
+						m_inputManager->setRelativeMouseMode(false);
+					}
+					PostQuitMessage(0);
+					return 0;
 				}
-				PostQuitMessage(0);
-				return 0;
 			}
-		}
-		break;
+			break;
 
 		case WM_DESTROY:
 		{
@@ -316,10 +316,11 @@ namespace Engine::Core {
 		}
 
 		return 0;
-	}
+		}
 
-	void Window::destroy() noexcept
-	{
+
+	}
+	void Window::destroy() noexcept {
 		// 入力システムをシャットダウン
 		if (m_inputManager)
 		{
