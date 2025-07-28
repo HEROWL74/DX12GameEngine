@@ -206,9 +206,18 @@
     <FxCompile Include="assets\shaders\BasicVertex.hlsl">
       <Filter>ソース ファイル\assets\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PBR_VS.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PBR_PS.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\Common.hlsli">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\Lighting.hlsli">
       <Filter>ソース ファイル\assets\shaders</Filter>
     </None>
   </ItemGroup>
