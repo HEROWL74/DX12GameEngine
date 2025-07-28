@@ -206,10 +206,10 @@
     <FxCompile Include="assets\shaders\BasicVertex.hlsl">
       <Filter>ソース ファイル\assets\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PBR_VS.hlsl">
+    <FxCompile Include="assets\shaders\PBR_PS.hlsl">
       <Filter>ソース ファイル\assets\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PBR_PS.hlsl">
+    <FxCompile Include="assets\shaders\PBR_VS.hlsl">
       <Filter>ソース ファイル\assets\shaders</Filter>
     </FxCompile>
   </ItemGroup>
