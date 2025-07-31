@@ -17,8 +17,12 @@ namespace Engine::Graphics
 
     Utils::VoidResult Material::initialize(Device* device)
     {
+        Utils::log_info(std::format("=== Material::initialize START for '{}' ===", m_name));
+        Utils::log_info(std::format("Current m_initialized state: {}", m_initialized));
+
         if (m_initialized)
         {
+            Utils::log_info(std::format("Material '{}' already initialized, returning", m_name));
             return {};
         }
 
@@ -26,30 +30,34 @@ namespace Engine::Graphics
         CHECK_CONDITION(device->isValid(), Utils::ErrorType::Unknown, "Device is not valid");
 
         m_device = device;
+        Utils::log_info(std::format("Device assigned to material '{}'", m_name));
 
         // 定数バッファを作成
+        Utils::log_info(std::format("Calling createConstantBuffer for '{}'", m_name));
         auto cbResult = createConstantBuffer();
         if (!cbResult)
         {
+            Utils::log_warning(std::format("createConstantBuffer failed for '{}': {}", m_name, cbResult.error().message));
             return cbResult;
         }
+        Utils::log_info(std::format("createConstantBuffer succeeded for '{}'", m_name));
 
         // デスクリプタを作成
+        Utils::log_info(std::format("Calling createDescriptors for '{}'", m_name));
         auto descResult = createDescriptors();
         if (!descResult)
         {
+            Utils::log_warning(std::format("createDescriptors failed for '{}': {}", m_name, descResult.error().message));
             return descResult;
         }
+        Utils::log_info(std::format("createDescriptors succeeded for '{}'", m_name));
 
-        // 初期データを更新
-        auto updateResult = updateConstantBuffer();
-        if (!updateResult)
-        {
-            return updateResult;
-        }
-
+        // 初期化フラグを設定
+        Utils::log_info(std::format("Setting m_initialized = true for '{}'", m_name));
         m_initialized = true;
-        Utils::log_info(std::format("Material '{}' initialized successfully", m_name));
+        Utils::log_info(std::format("m_initialized is now: {} for '{}'", m_initialized, m_name));
+
+        Utils::log_info(std::format("=== Material::initialize COMPLETE for '{}' ===", m_name));
         return {};
     }
 
@@ -89,10 +97,37 @@ namespace Engine::Graphics
 
     Utils::VoidResult Material::updateConstantBuffer()
     {
-        if (!m_initialized || !m_constantBufferData)
-        {
-            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Material not initialized"));
+        Utils::log_info(std::format("=== updateConstantBuffer called for '{}' ===", m_name));
+        Utils::log_info(std::format("m_initialized: {}", m_initialized));
+        Utils::log_info(std::format("m_device: {}", m_device ? "not null" : "null"));
+        Utils::log_info(std::format("m_constantBufferData: {}", m_constantBufferData ? "not null" : "null"));
+
+        // より詳細な初期化チェック
+        if (!m_initialized) {
+            Utils::log_warning(std::format("Material '{}' not initialized (m_initialized = {})", m_name, m_initialized));
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+                std::format("Material '{}' not initialized", m_name)));
         }
+
+        if (!m_constantBufferData) {
+            Utils::log_warning(std::format("Material '{}' constant buffer data is null", m_name));
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+                std::format("Material '{}' constant buffer data is null", m_name)));
+        }
+
+        if (!m_device) {
+            Utils::log_warning(std::format("Material '{}' device is null", m_name));
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+                std::format("Material '{}' device is null", m_name)));
+        }
+
+        if (!m_device->isValid()) {
+            Utils::log_warning(std::format("Material '{}' device is not valid", m_name));
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+                std::format("Material '{}' device is not valid", m_name)));
+        }
+
+        Utils::log_info(std::format("All checks passed, updating constant buffer for '{}'", m_name));
 
         // GPU用の定数バッファデータを準備
         MaterialConstantBuffer cbData{};
@@ -109,7 +144,7 @@ namespace Engine::Graphics
         // alphaパラメータ
         cbData.alphaParams = Math::Vector4(
             m_properties.alpha,
-            m_properties.useAlphaText ? 1.0f : 0.0f,
+            m_properties.useAlphaTest ? 1.0f : 0.0f,
             m_properties.alphaTestThreshold,
             m_properties.heightScale
         );
@@ -121,6 +156,7 @@ namespace Engine::Graphics
         memcpy(m_constantBufferData, &cbData, sizeof(MaterialConstantBuffer));
 
         m_isDirty = false;
+        Utils::log_info(std::format("updateConstantBuffer completed successfully for '{}'", m_name));
         return {};
     }
 
@@ -128,25 +164,64 @@ namespace Engine::Graphics
     {
         if (!m_initialized)
         {
+            Utils::log_warning(std::format("Attempting to bind uninitialized material '{}'", m_name));
             return;
         }
 
-        // 定数バッファをバインド
-        commandList->SetGraphicsRootConstantBufferView(rootParameterIndex, m_constantBuffer->GetGPUVirtualAddress());
+        if (!m_constantBuffer)
+        {
+            Utils::log_warning(std::format("No constant buffer available for material '{}'", m_name));
+            return;
+        }
 
-        // テクスチャをバインド（次のステップで実装）
-        // 現在はテクスチャシステムがまだないのでスキップ
+        // 定数バッファビューを直接バインド（シンプルな方法）
+        commandList->SetGraphicsRootConstantBufferView(
+            rootParameterIndex,
+            m_constantBuffer->GetGPUVirtualAddress()
+        );
+
+        // ディスクリプタヒープ
+        /*
+        if (m_cbvDescriptorHeap)
+        {
+            ID3D12DescriptorHeap* heaps[] = { m_cbvDescriptorHeap.Get() };
+            commandList->SetDescriptorHeaps(1, heaps);
+            commandList->SetGraphicsRootDescriptorTable(rootParameterIndex, m_cbvGpuHandle);
+        }
+        */
     }
-
     Utils::VoidResult Material::createConstantBuffer()
     {
-        const UINT constantBufferSize = (sizeof(MaterialConstantBuffer) + 255) & ~255; // 256バイトアライメント
+        // より詳細なデバイスチェック
+        if (!m_device) {
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+                std::format("Device is null for material '{}'", m_name)));
+        }
 
+        if (!m_device->isValid()) {
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+                std::format("Device is not valid for material '{}'", m_name)));
+        }
+
+        if (!m_device->getDevice()) {
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+                std::format("D3D12 device is null for material '{}'", m_name)));
+        }
+
+        const UINT constantBufferSize = (sizeof(MaterialConstantBuffer) + 255) & ~255;
+
+        Utils::log_info(std::format("Creating constant buffer of size {} bytes for material '{}'",
+            constantBufferSize, m_name));
+
+        // ヒーププロパティの設定
         D3D12_HEAP_PROPERTIES heapProps{};
-        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD; // CPUからアクセス可能
+        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
         heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        heapProps.CreationNodeMask = 1;
+        heapProps.VisibleNodeMask = 1;
 
+        // リソース記述子
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         resourceDesc.Alignment = 0;
@@ -160,29 +235,73 @@ namespace Engine::Graphics
         resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
         resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-        CHECK_HR(m_device->getDevice()->CreateCommittedResource(
+        HRESULT hr = m_device->getDevice()->CreateCommittedResource(
             &heapProps,
             D3D12_HEAP_FLAG_NONE,
             &resourceDesc,
             D3D12_RESOURCE_STATE_GENERIC_READ,
             nullptr,
-            IID_PPV_ARGS(&m_constantBuffer)),
-            Utils::ErrorType::ResourceCreation,
-            std::format("Failed to create constant buffer for material '{}'", m_name));
+            IID_PPV_ARGS(&m_constantBuffer));
+
+        if (FAILED(hr)) {
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ResourceCreation,
+                std::format("Failed to create constant buffer for material '{}': HRESULT=0x{:X}",
+                    m_name, static_cast<unsigned>(hr)), hr));
+        }
+
+        Utils::log_info(std::format("D3D12 constant buffer resource created for material '{}'", m_name));
 
         // 永続的にマップ
-        D3D12_RANGE readRange{ 0, 0 }; // CPUでは読み取らない
-        CHECK_HR(m_constantBuffer->Map(0, &readRange, &m_constantBufferData),
-            Utils::ErrorType::ResourceCreation,
-            std::format("Failed to map constant buffer for material '{}'", m_name));
+        D3D12_RANGE readRange{ 0, 0 };
+        hr = m_constantBuffer->Map(0, &readRange, &m_constantBufferData);
 
+        if (FAILED(hr)) {
+            m_constantBuffer.Reset();
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ResourceCreation,
+                std::format("Failed to map constant buffer for material '{}': HRESULT=0x{:X}",
+                    m_name, static_cast<unsigned>(hr)), hr));
+        }
+
+        Utils::log_info(std::format("Constant buffer mapped successfully for material '{}'", m_name));
         return {};
     }
-
     Utils::VoidResult Material::createDescriptors()
     {
-        // 現在はシンプルに実装
-        // 次のステップでテクスチャシステムと連携して完全に実装
+        Utils::log_info(std::format("Creating descriptors for material '{}'", m_name));
+
+        
+
+        // CBVディスクリプタヒープの作成（マテリアル用）
+        D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc{};
+        cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        cbvHeapDesc.NumDescriptors = 1; // 定数バッファ用に1つ
+        cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        cbvHeapDesc.NodeMask = 0;
+
+        HRESULT hr = m_device->getDevice()->CreateDescriptorHeap(
+            &cbvHeapDesc,
+            IID_PPV_ARGS(&m_cbvDescriptorHeap));
+
+        if (FAILED(hr))
+        {
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ResourceCreation,
+                std::format("Failed to create CBV descriptor heap for material '{}': HRESULT=0x{:X}",
+                    m_name, static_cast<unsigned>(hr)), hr));
+        }
+
+        // 定数バッファビューの作成
+        D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
+        cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
+        cbvDesc.SizeInBytes = (sizeof(MaterialConstantBuffer) + 255) & ~255; // 256バイトアライン
+
+        // CBVを作成
+        D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle = m_cbvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+        m_device->getDevice()->CreateConstantBufferView(&cbvDesc, cbvHandle);
+
+        // GPUハンドルも保存
+        m_cbvGpuHandle = m_cbvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+
+        Utils::log_info(std::format("Descriptors created successfully for material '{}'", m_name));
         return {};
     }
 
@@ -201,11 +320,10 @@ namespace Engine::Graphics
     //=========================================================================
     // MaterialManager実装
     //=========================================================================
-
     Utils::VoidResult MaterialManager::initialize(Device* device)
     {
-        if (m_initialized)
-        {
+        if (m_initialized) {
+            Utils::log_warning("MaterialManager already initialized");
             return {};
         }
 
@@ -216,21 +334,25 @@ namespace Engine::Graphics
 
         // デフォルトマテリアルを作成
         auto defaultResult = createDefaultMaterial();
-        if (!defaultResult)
-        {
+        if (!defaultResult) {
+            // 失敗した場合はデバイスをリセット
+            m_device = nullptr;
+            Utils::log_warning(std::format("Failed to create default material: {}", defaultResult.error().message));
             return defaultResult;
         }
 
+        // 全て成功した場合のみ初期化フラグを設定
         m_initialized = true;
+
         Utils::log_info("MaterialManager initialized successfully");
         return {};
     }
+
 
     std::shared_ptr<Material> MaterialManager::createMaterial(const std::string& name)
     {
         if (!m_initialized)
         {
-        
             Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "MaterialManager not initialized"));
             return nullptr;
         }
@@ -286,25 +408,72 @@ namespace Engine::Graphics
 
     Utils::VoidResult MaterialManager::createDefaultMaterial()
     {
+        // デフォルトマテリアルを作成
         m_defaultMaterial = std::make_shared<Material>("DefaultMaterial");
+
+        // Device の有効性を再確認
+        if (!m_device || !m_device->isValid()) {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+                "Device is invalid when creating default material"));
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+                "Device is invalid"));
+        }
+
+        // Material を初期化
         auto initResult = m_defaultMaterial->initialize(m_device);
-        if (!initResult)
-        {
+        if (!initResult) {
+            Utils::log_warning(std::format("Failed to initialize default material: {}",
+                initResult.error().message));
+            m_defaultMaterial.reset();
             return initResult;
         }
 
-        // デフォルトマテリアルのプロパティ設定
+        // 初期化が成功した後にプロパティを設定
         MaterialProperties defaultProps;
-        defaultProps.albedo = Math::Vector3(0.8f, 0.8f, 0.8f); // 薄いグレー
+        defaultProps.albedo = Math::Vector3(0.8f, 0.8f, 0.8f);
         defaultProps.metallic = 0.0f;
         defaultProps.roughness = 0.5f;
         defaultProps.ao = 1.0f;
 
+        // setProperties を使用して設定（内部で updateConstantBuffer も呼ばれる）
         m_defaultMaterial->setProperties(defaultProps);
+
+        // マテリアルマップに登録
         m_materials["DefaultMaterial"] = m_defaultMaterial;
 
+        Utils::log_info("Default material created successfully");
         return {};
     }
+
+    void Material::setProperties(const MaterialProperties& properties)
+    {
+        Utils::log_info(std::format("=== setProperties called for '{}' ===", m_name));
+        Utils::log_info(std::format("Current m_initialized: {}", m_initialized));
+        Utils::log_info(std::format("Device valid: {}", (m_device && m_device->isValid())));
+
+        m_properties = properties;
+        m_isDirty = true;
+
+        // 初期化済みの場合のみupdateConstantBuffer()を呼ぶ
+        if (m_initialized && m_device && m_device->isValid()) {
+            Utils::log_info(std::format("Calling updateConstantBuffer for '{}'", m_name));
+            auto result = updateConstantBuffer();
+            if (!result) {
+                Utils::log_warning(std::format("Failed to update constant buffer for material '{}': {}",
+                    m_name, result.error().message));
+            }
+            else {
+                Utils::log_info(std::format("updateConstantBuffer succeeded for '{}'", m_name));
+            }
+        }
+        else {
+            Utils::log_info(std::format("Skipping updateConstantBuffer for '{}' - not ready (init:{}, device:{})",
+                m_name, m_initialized, (m_device && m_device->isValid())));
+        }
+
+        Utils::log_info(std::format("=== setProperties completed for '{}' ===", m_name));
+    }
+
 
     //=========================================================================
     // ユーティリティ関数実装

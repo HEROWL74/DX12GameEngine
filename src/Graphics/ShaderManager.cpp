@@ -209,8 +209,13 @@ namespace Engine::Graphics
         std::vector<D3D12_ROOT_PARAMETER1> rootParams;
         rootParams.reserve(m_desc.rootParameters.size());
 
-        for (const auto& param : m_desc.rootParameters)
+        // DescriptorTable用のレンジを保持するベクター
+        std::vector<std::vector<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
+        descriptorRanges.resize(m_desc.rootParameters.size());
+
+        for (size_t i = 0; i < m_desc.rootParameters.size(); ++i)
         {
+            const auto& param = m_desc.rootParameters[i];
             D3D12_ROOT_PARAMETER1 rootParam = {};
             rootParam.ShaderVisibility = param.visibility;
 
@@ -241,6 +246,14 @@ namespace Engine::Graphics
                 rootParam.Constants.Num32BitValues = param.numConstants;
                 break;
 
+            case RootParameterDesc::DescriptorTable:
+                rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+                // レンジをコピー
+                descriptorRanges[i] = param.ranges;
+                rootParam.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(descriptorRanges[i].size());
+                rootParam.DescriptorTable.pDescriptorRanges = descriptorRanges[i].data();
+                break;
+
             default:
                 return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Unsupported root parameter type"));
             }
@@ -248,7 +261,7 @@ namespace Engine::Graphics
             rootParams.push_back(rootParam);
         }
 
-        // スタティックサンプラー
+        // スタティックサンプラー処理
         std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
         staticSamplers.reserve(m_desc.staticSamplers.size());
 
@@ -417,18 +430,34 @@ namespace Engine::Graphics
 
     std::shared_ptr<Shader> ShaderManager::loadShader(const ShaderCompileDesc& desc)
     {
+        // デバッグ: thisポインタの確認
+        Utils::log_info(std::format("ShaderManager::loadShader called, this = {}",
+            static_cast<void*>(this)));
+
+        if (this == nullptr)
+        {
+            Utils::log_warning("ShaderManager::loadShader - this is nullptr!");
+            return nullptr;
+        }
+
+        Utils::log_info(std::format("Checking m_initialized: {}", m_initialized));
+
         if (!m_initialized)
         {
             Utils::log_warning("ShaderManager not initialized");
             return nullptr;
         }
 
+        Utils::log_info(std::format("Generating shader key for: {}", desc.filePath));
         std::string key = generateShaderKey(desc);
+
         if (hasShader(key))
         {
+            Utils::log_info(std::format("Shader already exists: {}", key));
             return getShader(key);
         }
 
+        Utils::log_info(std::format("Compiling new shader: {}", desc.filePath));
         auto shaderResult = Shader::compileFromFile(desc);
         if (!shaderResult)
         {
@@ -437,7 +466,7 @@ namespace Engine::Graphics
         }
 
         m_shaders[key] = *shaderResult;
-        Utils::log_info(std::format("Shader compiled: {}", desc.filePath));
+        Utils::log_info(std::format("Shader compiled and cached: {}", desc.filePath));
         return *shaderResult;
     }
 
@@ -511,134 +540,24 @@ namespace Engine::Graphics
 
     Utils::VoidResult ShaderManager::createDefaultShaders()
     {
-        // デフォルトPBR頂点シェーダー
-        std::string pbrVertexShader = R"(
-struct VertexInput
-{
-    float3 position : POSITION;
-    float3 normal : NORMAL;
-    float2 uv : TEXCOORD0;
-    float3 tangent : TANGENT;
-};
+        // HLSLファイルからシェーダーをコンパイル
+        ShaderCompileDesc vsDesc;
+        vsDesc.filePath = "assets/shaders/PBR_VS.hlsl";
+        vsDesc.entryPoint = "main";
+        vsDesc.type = ShaderType::Vertex;
 
-struct VertexOutput
-{
-    float4 position : SV_POSITION;
-    float3 worldPos : WORLDPOS;
-    float3 normal : NORMAL;
-    float2 uv : TEXCOORD0;
-    float3 tangent : TANGENT;
-    float3 bitangent : BITANGENT;
-};
-
-cbuffer SceneConstants : register(b0)
-{
-    float4x4 viewMatrix;
-    float4x4 projMatrix;
-    float3 cameraPos;
-    float padding1;
-};
-
-cbuffer ObjectConstants : register(b1)
-{
-    float4x4 worldMatrix;
-    float4x4 normalMatrix;
-};
-
-VertexOutput main(VertexInput input)
-{
-    VertexOutput output;
-    
-    float4 worldPos = mul(float4(input.position, 1.0), worldMatrix);
-    output.worldPos = worldPos.xyz;
-    output.position = mul(mul(worldPos, viewMatrix), projMatrix);
-    
-    output.normal = normalize(mul(input.normal, (float3x3)normalMatrix));
-    output.tangent = normalize(mul(input.tangent, (float3x3)normalMatrix));
-    output.bitangent = cross(output.normal, output.tangent);
-    
-    output.uv = input.uv;
-    
-    return output;
-}
-)";
-
-        // デフォルトPBRピクセルシェーダー
-        std::string pbrPixelShader = R"(
-struct VertexOutput
-{
-    float4 position : SV_POSITION;
-    float3 worldPos : WORLDPOS;
-    float3 normal : NORMAL;
-    float2 uv : TEXCOORD0;
-    float3 tangent : TANGENT;
-    float3 bitangent : BITANGENT;
-};
-
-cbuffer MaterialConstants : register(b2)
-{
-    float4 albedo;
-    float4 roughnessAoEmissiveStrength;
-    float4 emissive;
-    float4 alphaParams;
-    float4 uvTransform;
-};
-
-cbuffer SceneConstants : register(b0)
-{
-    float4x4 viewMatrix;
-    float4x4 projMatrix;
-    float3 cameraPos;
-    float padding1;
-};
-
-Texture2D albedoTexture : register(t0);
-Texture2D normalTexture : register(t1);
-Texture2D metallicTexture : register(t2);
-Texture2D roughnessTexture : register(t3);
-SamplerState linearSampler : register(s0);
-
-float4 main(VertexOutput input) : SV_TARGET
-{
-    float2 uv = input.uv * uvTransform.xy + uvTransform.zw;
-    
-    // アルベド
-    float3 baseColor = albedo.rgb * albedoTexture.Sample(linearSampler, uv).rgb;
-    
-    // 法線マッピング
-    float3 normalMap = normalTexture.Sample(linearSampler, uv).rgb * 2.0 - 1.0;
-    float3x3 TBN = float3x3(input.tangent, input.bitangent, input.normal);
-    float3 normal = normalize(mul(normalMap, TBN));
-    
-    // PBRパラメータ
-    float metallic = albedo.a * metallicTexture.Sample(linearSampler, uv).r;
-    float roughness = roughnessAoEmissiveStrength.x * roughnessTexture.Sample(linearSampler, uv).r;
-    
-    // シンプルなライティング（現在は環境光のみ）
-    float3 viewDir = normalize(cameraPos - input.worldPos);
-    float3 lightDir = normalize(float3(1.0, 1.0, 1.0));
-    
-    float NdotL = saturate(dot(normal, lightDir));
-    float3 diffuse = baseColor * NdotL * 0.8;
-    float3 ambient = baseColor * 0.2;
-    
-    // 発光
-    float3 emission = emissive.rgb * roughnessAoEmissiveStrength.z;
-    
-    float3 finalColor = diffuse + ambient + emission;
-    
-    return float4(finalColor, alphaParams.x);
-}
-)";
-
-        // シェーダーをコンパイル
-        auto vsResult = Shader::compileFromString(pbrVertexShader, "main", ShaderType::Vertex);
+        auto vsResult = Shader::compileFromFile(vsDesc);
         if (!vsResult)
         {
             return std::unexpected(vsResult.error());
         }
 
-        auto psResult = Shader::compileFromString(pbrPixelShader, "main", ShaderType::Pixel);
+        ShaderCompileDesc psDesc;
+        psDesc.filePath = "assets/shaders/PBR_PS.hlsl";
+        psDesc.entryPoint = "main";
+        psDesc.type = ShaderType::Pixel;
+
+        auto psResult = Shader::compileFromFile(psDesc);
         if (!psResult)
         {
             return std::unexpected(psResult.error());
@@ -647,7 +566,30 @@ float4 main(VertexOutput input) : SV_TARGET
         m_shaders["DefaultPBR_VS"] = *vsResult;
         m_shaders["DefaultPBR_PS"] = *psResult;
 
+        Utils::log_info("Default PBR shaders loaded successfully");
         return {};
+    }
+
+    std::shared_ptr<Shader> ShaderManager::compileFromString(
+        const std::string& shaderCode,
+        const std::string& entryPoint,
+        ShaderType type,
+        const std::string& shaderName)
+    {
+        if (!m_initialized)
+        {
+            Utils::log_warning("ShaderManager not initialized");
+            return nullptr;
+        }
+
+        auto shaderResult = Shader::compileFromString(shaderCode, entryPoint, type);
+        if (!shaderResult)
+        {
+            Utils::log_warning(std::format("Failed to compile inline shader '{}': {}", shaderName, shaderResult.error().message));
+            return nullptr;
+        }
+
+        return *shaderResult;
     }
 
     Utils::VoidResult ShaderManager::createDefaultPipelines()
@@ -659,33 +601,57 @@ float4 main(VertexOutput input) : SV_TARGET
         pbrDesc.inputLayout = StandardInputLayouts::PBRVertex;
         pbrDesc.debugName = "DefaultPBR";
 
-        // ルートパラメータ設定
+        // Scene定数バッファ (b0)
         RootParameterDesc sceneConstants;
         sceneConstants.type = RootParameterDesc::ConstantBufferView;
         sceneConstants.shaderRegister = 0;
         sceneConstants.visibility = D3D12_SHADER_VISIBILITY_ALL;
 
+        // Object定数バッファ (b1)
         RootParameterDesc objectConstants;
         objectConstants.type = RootParameterDesc::ConstantBufferView;
         objectConstants.shaderRegister = 1;
         objectConstants.visibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
+        // Material定数バッファ (b2)
         RootParameterDesc materialConstants;
         materialConstants.type = RootParameterDesc::ConstantBufferView;
         materialConstants.shaderRegister = 2;
         materialConstants.visibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        pbrDesc.rootParameters = { sceneConstants, objectConstants, materialConstants };
+        // PBRテクスチャ用ディスクリプタテーブル
+        RootParameterDesc textureTable;
+        textureTable.type = RootParameterDesc::DescriptorTable;
+        textureTable.visibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // スタティックサンプラー
+        // 6つのテクスチャすべてを1つのレンジで定義 (t0-t5)
+        std::vector<D3D12_DESCRIPTOR_RANGE1> srvRanges;
+
+        D3D12_DESCRIPTOR_RANGE1 pbrTextureRange{};
+        pbrTextureRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+        pbrTextureRange.NumDescriptors = 6;  // t0, t1, t2, t3, t4, t5 の6つ
+        pbrTextureRange.BaseShaderRegister = 0;  // t0から開始
+        pbrTextureRange.RegisterSpace = 0;
+        pbrTextureRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
+        pbrTextureRange.OffsetInDescriptorsFromTableStart = 0;
+
+        srvRanges.push_back(pbrTextureRange);
+        textureTable.ranges = srvRanges;
+
+        // ルートパラメータを設定
+        pbrDesc.rootParameters = { sceneConstants, objectConstants, materialConstants, textureTable };
+
+        // スタティックサンプラー (s0)
         StaticSamplerDesc linearSampler;
         linearSampler.shaderRegister = 0;
         linearSampler.filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
         linearSampler.addressModeU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
         linearSampler.addressModeV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        linearSampler.visibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
         pbrDesc.staticSamplers = { linearSampler };
 
+        // パイプライン作成
         auto pbrPipelineResult = PipelineState::create(m_device, pbrDesc);
         if (!pbrPipelineResult)
         {
@@ -695,6 +661,7 @@ float4 main(VertexOutput input) : SV_TARGET
         m_defaultPBRPipeline = *pbrPipelineResult;
         m_pipelineStates["DefaultPBR"] = m_defaultPBRPipeline;
 
+        Utils::log_info("PBR pipeline created successfully");
         return {};
     }
 

@@ -107,5 +107,4 @@ float3 acesToneMapping(float3 color)
     const float e = 0.14;
     
     return saturate((color * (a * color + b)) / (color * (c * color + d) + e));
-
 }

@@ -6,7 +6,7 @@
 #include <d3d12.h>
 #include <array>
 #include "Device.hpp"
-#include "Shader.hpp"
+#include "ShaderManager.hpp"
 #include "ConstantBuffer.hpp"
 #include "Camera.hpp"
 #include "VertexTypes.hpp"  // 追加
@@ -17,8 +17,6 @@ using Microsoft::WRL::ComPtr;
 
 namespace Engine::Graphics
 {
-    // Vertex構造体の定義を削除（VertexTypes.hppに移動したため）
-
     // 三角形描画専用のレンダラー
     class TriangleRenderer
     {
@@ -33,7 +31,7 @@ namespace Engine::Graphics
         TriangleRenderer& operator=(TriangleRenderer&&) = delete;
 
         // 初期化
-        [[nodiscard]] Utils::VoidResult initialize(Device* device);
+        [[nodiscard]] Utils::VoidResult initialize(Device* device, ShaderManager* shaderManager);
 
         // 三角形を描画
         void render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex);
@@ -53,7 +51,8 @@ namespace Engine::Graphics
 
     private:
         Device* m_device = nullptr;
-        ShaderManager m_shaderManager;
+        //ShaderManager m_shaderManager;
+        ShaderManager* m_shaderManager = nullptr;
         ConstantBufferManager m_constantBufferManager;
 
         // 3D変換パラメータ

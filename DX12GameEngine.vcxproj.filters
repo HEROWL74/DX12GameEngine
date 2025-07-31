@@ -49,9 +49,6 @@
     <ClInclude Include="src\Graphics\Device.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Shader.hpp">
-      <Filter>ソース ファイル\src\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\Math\Math.hpp">
       <Filter>ソース ファイル\src\Math</Filter>
     </ClInclude>
@@ -127,6 +124,12 @@
     <ClInclude Include="src\Graphics\ShaderManager.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\MaterialSerialization.hpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\MaterialEditor.hpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -139,9 +142,6 @@
       <Filter>ソース ファイル\src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Device.cpp">
-      <Filter>ソース ファイル\src\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Shader.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp">
@@ -195,7 +195,13 @@
     <ClCompile Include="src\Graphics\Texture.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\ShaderMamager.cpp">
+    <ClCompile Include="src\Graphics\MaterialSerialization.cpp">
+      <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\MaterialEditor.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\ShaderManager.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>

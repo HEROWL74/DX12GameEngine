@@ -12,7 +12,8 @@ namespace Engine::Graphics
 	{
 	}
 
-	Utils::VoidResult RenderComponent::initialize(Device* device)
+
+	Utils::VoidResult RenderComponent::initialize(Device* device, ShaderManager* shaderManager)
 	{
 		if (m_initialized)
 		{
@@ -21,16 +22,28 @@ namespace Engine::Graphics
 
 		CHECK_CONDITION(device != nullptr, Utils::ErrorType::Unknown, "Device is null");
 		CHECK_CONDITION(device->isValid(), Utils::ErrorType::Unknown, "Device is not valid");
+		CHECK_CONDITION(shaderManager != nullptr, Utils::ErrorType::Unknown, "ShaderManager is null in RenderComponent::initialize");
 
 		m_device = device;
+		m_shaderManager = shaderManager;
+
+		Utils::log_info("RenderComponent::initialize - Device and ShaderManager assigned successfully");
+
+		// ShaderManagerの有効性を再確認
+		if (!m_shaderManager) {
+			Utils::log_warning("ShaderManager became null after assignment");
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null after assignment"));
+		}
 
 		auto result = initializeRenderer();
 		if (!result)
 		{
+			Utils::log_error(result.error());
 			return result;
 		}
 
 		m_initialized = true;
+		Utils::log_info("RenderComponent initialized successfully");
 		return {};
 	}
 
@@ -104,19 +117,34 @@ namespace Engine::Graphics
 
 	Utils::VoidResult RenderComponent::initializeRenderer()
 	{
-		//既存のレンダラーをクリア
+		// 既存のレンダラーをクリア
 		m_triangleRenderer.reset();
 		m_cubeRenderer.reset();
 
-		//新しいレンダラーを作成・初期化
+		// ShaderManagerの有効性を確認
+		if (!m_shaderManager) {
+			Utils::log_warning("ShaderManager is null in RenderComponent::initializeRenderer");
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null in RenderComponent"));
+		}
+
+		// 新しいレンダラーを作成・初期化
 		switch (m_renderableType)
 		{
 		case RenderableType::Triangle:
 			m_triangleRenderer = std::make_unique<TriangleRenderer>();
-			return m_triangleRenderer->initialize(m_device);
+			if (!m_triangleRenderer) {
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to create TriangleRenderer"));
+			}
+			Utils::log_info("Created TriangleRenderer, calling initialize with valid ShaderManager");
+			return m_triangleRenderer->initialize(m_device, m_shaderManager);
+
 		case RenderableType::Cube:
 			m_cubeRenderer = std::make_unique<CubeRenderer>();
-			return m_cubeRenderer->initialize(m_device);
+			if (!m_cubeRenderer) {
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to create CubeRenderer"));
+			}
+			Utils::log_info("Created CubeRenderer, calling initialize with valid ShaderManager");
+			return m_cubeRenderer->initialize(m_device, m_shaderManager);
 
 		default:
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Unknown renderable type"));

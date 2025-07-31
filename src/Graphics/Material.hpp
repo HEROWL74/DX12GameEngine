@@ -53,7 +53,7 @@ namespace Engine::Graphics
 
 		//アルファ関連
 		float alpha = 1.0f;    //透明度
-		bool useAlphaText = false; //アルファテストを使用するかしないか
+		bool useAlphaTest = false; //アルファテストを使用するかしないか
 		float alphaTestThreshold = 0.5f;  //アルファテストの閾値（いきち）
 
 		//テクスチャのタイリング
@@ -86,7 +86,7 @@ namespace Engine::Graphics
 		// マテリアルプロパティ
 		const MaterialProperties& getProperties() const { return m_properties; }
 		MaterialProperties& getProperties() { return m_properties; }
-		void setProperties(const MaterialProperties& properties) { m_properties = properties; m_isDirty = true; }
+		void setProperties(const MaterialProperties& properties);
 
 		// 個別プロパティアクセス
 		void setAlbedo(const Math::Vector3& albedo) { m_properties.albedo = albedo; m_isDirty = true; }
@@ -114,6 +114,9 @@ namespace Engine::Graphics
 		// マテリアルの適用（レンダリング時に呼ぶ）
 		void bind(ID3D12GraphicsCommandList* commandList, UINT rootParameterIndex) const;
 
+		friend class MaterialManager;
+		void setDirty(bool dirty = true) { m_isDirty = dirty; }
+
 		// ファイル入出力（後で実装）
 		[[nodiscard]] Utils::VoidResult saveToFile(const std::string& filePath) const;
 		[[nodiscard]] Utils::VoidResult loadFromFile(const std::string& filePath);
@@ -134,6 +137,9 @@ namespace Engine::Graphics
 		//ディスクリプタハンドル
 		D3D12_CPU_DESCRIPTOR_HANDLE m_srvCpuHandle{};
 		D3D12_GPU_DESCRIPTOR_HANDLE m_srvGpuHandle{};
+
+		ComPtr<ID3D12DescriptorHeap> m_cbvDescriptorHeap;
+		D3D12_GPU_DESCRIPTOR_HANDLE m_cbvGpuHandle{};
 
 		//初期化ヘルパー
 	    [[nodiscard]] Utils::VoidResult createConstantBuffer();

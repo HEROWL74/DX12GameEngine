@@ -85,12 +85,9 @@ namespace Engine::Core
         };
 
         auto deviceResult = m_device.initialize(deviceSettings);
-        if (!deviceResult)
-        {
-            return deviceResult;
-        }
+        if (!deviceResult) return deviceResult;
 
-        // 各コンポーネントを順番に初期化
+        // DirectXリソースの基本初期化
         auto queueResult = createCommandQueue();
         if (!queueResult) return queueResult;
 
@@ -100,7 +97,6 @@ namespace Engine::Core
         auto renderTargetResult = createRenderTargets();
         if (!renderTargetResult) return renderTargetResult;
 
-        // 深度バッファ作成
         auto depthStencilResult = createDepthStencilBuffer();
         if (!depthStencilResult) return depthStencilResult;
 
@@ -110,88 +106,115 @@ namespace Engine::Core
         auto syncResult = createSyncObjects();
         if (!syncResult) return syncResult;
 
-        auto sceneResult = m_scene.initialize(&m_device);
-        if (!sceneResult) {
-            Utils::log_error(sceneResult.error());
-            return sceneResult;
-        }
-
         auto imguiResult = m_imguiManager.initialize(&m_device, m_window.getHandle());
-        if (!imguiResult) {
-            Utils::log_error(imguiResult.error());
-            return imguiResult;
-        }
+        if (!imguiResult) return imguiResult;
 
         m_window.setImGuiManager(&m_imguiManager);
 
-        // デバイスが確実に初期化されているかチェック
-        if (!m_device.isValid()) {
-            return std::unexpected(Utils::make_error(Utils::ErrorType::DeviceCreation, "Device is not valid after initialization"));
+        //ShaderManagerを最初に初期化し、成功を確認
+        Utils::log_info("Initializing ShaderManager FIRST...");
+        m_shaderManager = std::make_unique<Graphics::ShaderManager>();
+
+        // ShaderManager初期化の成功を確認
+        auto shaderManagerResult = m_shaderManager->initialize(&m_device);
+        if (!shaderManagerResult) {
+            Utils::log_error(shaderManagerResult.error());
+            return shaderManagerResult;
         }
 
+        // ShaderManagerポインタの有効性を確認
+        if (!m_shaderManager || !m_shaderManager.get()) {
+            Utils::log_warning("ShaderManager pointer is invalid after initialization");
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null after initialization"));
+        }
 
-        //三角形オブジェクト
+        Utils::log_info("ShaderManager initialization completed successfully");
+
+        // TextureManager初期化
+        auto textureManagerResult = m_textureManager.initialize(&m_device);
+        if (!textureManagerResult) return textureManagerResult;
+
+        // MaterialManager初期化
+        auto materialManagerResult = m_materialManager.initialize(&m_device);
+        if (!materialManagerResult) return materialManagerResult;
+
+        // Scene初期化（ShaderManager初期化後）
+        auto sceneResult = m_scene.initialize(&m_device);
+        if (!sceneResult) return sceneResult;
+
+        // GameObject作成時に再度ShaderManagerの有効性を確認
+        if (!m_shaderManager || !m_shaderManager.get()) {
+            Utils::log_warning("ShaderManager became null before GameObject creation");
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null before GameObject creation"));
+        }
+
+        // GameObject とレンダラー作成
         auto* triangleObject = m_scene.createGameObject("Triangle");
         triangleObject->getTransform()->setPosition(Math::Vector3(-2.0f, 0.0f, 0.0f));
         auto* triangleRender = triangleObject->addComponent<Graphics::RenderComponent>(Graphics::RenderableType::Triangle);
-        auto triangleInitResult = triangleRender->initialize(&m_device);
+
+        // ShaderManagerポインタを確実に渡す
+        Graphics::ShaderManager* shaderMgrPtr = m_shaderManager.get();
+        if (!shaderMgrPtr) {
+            Utils::log_warning("Failed to get valid ShaderManager pointer for Triangle");
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager pointer is null"));
+        }
+
+        Utils::log_info(std::format("Calling triangleRender->initialize with ShaderManager: {}", static_cast<void*>(shaderMgrPtr)));
+        auto triangleInitResult = triangleRender->initialize(&m_device, shaderMgrPtr);
         if (!triangleInitResult) {
             Utils::log_error(triangleInitResult.error());
             return triangleInitResult;
         }
 
-
-        // 立方体オブジェクト
         auto* cubeObject = m_scene.createGameObject("Cube");
         cubeObject->getTransform()->setPosition(Math::Vector3(2.0f, 0.0f, 0.0f));
         auto* cubeRender = cubeObject->addComponent<Graphics::RenderComponent>(Graphics::RenderableType::Cube);
-        auto cubeInitResult = cubeRender->initialize(&m_device);
+
+        Utils::log_info(std::format("Calling cubeRender->initialize with ShaderManager: {}", static_cast<void*>(shaderMgrPtr)));
+        auto cubeInitResult = cubeRender->initialize(&m_device, shaderMgrPtr);
         if (!cubeInitResult) {
             Utils::log_error(cubeInitResult.error());
             return cubeInitResult;
         }
 
-        // 複数の立方体を作成（デモ用）
         for (int i = 0; i < 3; ++i)
         {
             auto* extraCube = m_scene.createGameObject("Cube" + std::to_string(i + 2));
             extraCube->getTransform()->setPosition(Math::Vector3(0.0f, 2.0f * (i + 1), -3.0f));
             extraCube->getTransform()->setScale(Math::Vector3(0.5f, 0.5f, 0.5f));
             auto* extraRender = extraCube->addComponent<Graphics::RenderComponent>(Graphics::RenderableType::Cube);
-            auto extraInitResult = extraRender->initialize(&m_device);
-            if (!extraInitResult) {
-                Utils::log_warning("Failed to initialize extra cube renderer");
-            }
+            extraRender->initialize(&m_device, shaderMgrPtr);
         }
 
-        // カメラの初期化
+        m_materialEditor = std::make_unique<UI::MaterialEditorWindow>();
+        m_materialEditor->setMaterialManager(&m_materialManager);
+
+        auto material = m_materialManager.createMaterial("TestMaterial");
+        m_materialEditor->setMaterial(material);
+
+        // カメラ初期化など
         const auto [clientWidth, clientHeight] = m_window.getClientSize();
         m_camera.setPerspective(45.0f, static_cast<float>(clientWidth) / clientHeight, 0.1f, 100.0f);
         m_camera.setPosition({ 0.0f, 0.0f, 8.0f });
         m_camera.lookAt({ 0.0f, 0.0f, 0.0f });
 
-        // カメラコントローラーの初期化
         m_cameraController = std::make_unique<Graphics::FPSCameraController>(&m_camera);
         m_cameraController->setMovementSpeed(5.0f);
         m_cameraController->setMouseSensitivity(0.1f);
 
-        //ImGuiウィンドウを作成
         m_debugWindow = std::make_unique<UI::DebugWindow>();
         m_hierarchyWindow = std::make_unique<UI::SceneHierarchyWindow>();
         m_inspectorWindow = std::make_unique<UI::InspectorWindow>();
 
-        //シーンを設定
         m_hierarchyWindow->setScene(&m_scene);
-
         m_hierarchyWindow->setSelectionChangedCallback([this](Core::GameObject* selectedObject) {
             m_inspectorWindow->setSelectedObject(selectedObject);
-        });
+            });
 
-        //シーンを開始
         m_scene.start();
 
         Utils::log_info("DirectX 12 initialization completed successfully!");
-        Utils::log_info("ImGui setup completed!");
         return {};
     }
     Utils::VoidResult App::initializeInput()
@@ -458,6 +481,7 @@ namespace Engine::Core
         m_debugWindow->draw();
         m_hierarchyWindow->draw();
         m_inspectorWindow->draw();
+        m_materialEditor->draw();
 
         // リソースバリア: バックバッファをレンダーターゲット状態に変更
         D3D12_RESOURCE_BARRIER barrier{};
