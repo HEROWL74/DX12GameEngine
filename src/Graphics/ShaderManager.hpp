@@ -271,6 +271,13 @@ namespace Engine::Graphics
         bool hasPipelineState(const std::string& name) const;
         void removePipelineState(const std::string& name);
 
+        std::shared_ptr<Shader> compileFromString(
+            const std::string& shaderCode,
+            const std::string& entryPoint,
+            ShaderType type,
+            const std::string& shaderName = "InlineShader"
+        );
+
         // デフォルトシェーダーの取得
         std::shared_ptr<PipelineState> getDefaultPBRPipeline() const { return m_defaultPBRPipeline; }
         std::shared_ptr<PipelineState> getDefaultUnlitPipeline() const { return m_defaultUnlitPipeline; }

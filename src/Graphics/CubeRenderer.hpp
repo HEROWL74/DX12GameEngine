@@ -6,7 +6,7 @@
 #include <d3d12.h>
 #include <array>
 #include "Device.hpp"
-#include "Shader.hpp"
+#include "ShaderManager.hpp"
 #include "ConstantBuffer.hpp"
 #include "Camera.hpp"
 #include "VertexTypes.hpp"
@@ -31,7 +31,7 @@ namespace Engine::Graphics
         CubeRenderer& operator=(CubeRenderer&&) = delete;
 
         // ‰Šú‰»
-        [[nodiscard]] Utils::VoidResult initialize(Device* device);
+        [[nodiscard]] Utils::VoidResult initialize(Device* device, ShaderManager* shaderManager);
 
         // —§•û‘Ì‚ğ•`‰æ
         void render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex);
@@ -57,7 +57,7 @@ namespace Engine::Graphics
 
     private:
         Device* m_device = nullptr;
-        ShaderManager m_shaderManager;
+        ShaderManager* m_shaderManager = nullptr;
         ConstantBufferManager m_constantBufferManager;
 
         // 3D•ÏŠ·ƒpƒ‰ƒ[ƒ^

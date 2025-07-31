@@ -15,6 +15,9 @@
 #include "../Utils/Common.hpp"
 #include "../Graphics/RenderComponent.hpp"
 #include "../UI/ImGuiManager.hpp"
+#include "../Graphics/MaterialSerialization.hpp"
+#include "../Graphics/ShaderManager.hpp"
+#include "../UI/MaterialEditor.hpp"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -87,6 +90,12 @@ namespace Engine::Core
         std::unique_ptr<UI::DebugWindow> m_debugWindow;
         std::unique_ptr<UI::SceneHierarchyWindow> m_hierarchyWindow;
         std::unique_ptr<UI::InspectorWindow> m_inspectorWindow;
+
+        //マテリアル関係
+        Graphics::MaterialManager m_materialManager;
+        Graphics::TextureManager m_textureManager;
+        std::unique_ptr<Graphics::ShaderManager> m_shaderManager;  // unique_ptrに変更
+        std::unique_ptr<UI::MaterialEditorWindow> m_materialEditor;
 
         // 初期化処理
         [[nodiscard]] Utils::VoidResult initD3D();

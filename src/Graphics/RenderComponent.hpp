@@ -6,7 +6,8 @@
 #include "Camera.hpp"
 #include "TriangleRenderer.hpp"
 #include "CubeRenderer.hpp"
-
+#include "Material.hpp"
+#include "ShaderManager.hpp"
 namespace Engine::Graphics
 {
 	//レンダリング可能なオブジェクトの種類
@@ -27,7 +28,7 @@ namespace Engine::Graphics
 		~RenderComponent() = default;
 
 		//初期化
-		[[nodiscard]] Utils::VoidResult initialize(Device* device);
+		[[nodiscard]] Utils::VoidResult initialize(Device* device, ShaderManager* shaderManager);
 
 		//レンダリング
 		void render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex);
@@ -35,6 +36,9 @@ namespace Engine::Graphics
 		//レンダリングタイプ
 		RenderableType getRenderableType() const { return m_renderableType; }
 		void setRenderableType(RenderableType type);
+
+		void setMaterial(std::shared_ptr<Graphics::Material> material) { m_material = material; }
+		std::shared_ptr<Graphics::Material> getMaterial() const { return m_material; }
 
 		//色の設定TODO:（マテリアルに発展する予定）
 		void setColor(const Math::Vector3& color) { m_color = color; }
@@ -49,6 +53,7 @@ namespace Engine::Graphics
 
 	private:
 		Device* m_device = nullptr;
+		ShaderManager* m_shaderManager = nullptr;  // ← これを追加
 		RenderableType m_renderableType;
 		Math::Vector3 m_color = Math::Vector3(1.0f, 1.0f, 1.0f);
 		bool m_visible = true;
@@ -57,6 +62,7 @@ namespace Engine::Graphics
 		//レンダラー
 		std::unique_ptr<TriangleRenderer> m_triangleRenderer;
 		std::unique_ptr<CubeRenderer> m_cubeRenderer;
+		std::shared_ptr<Graphics::Material> m_material;
 
 		//初期化ヘルパー
 		[[nodiscard]] Utils::VoidResult initializeRenderer();

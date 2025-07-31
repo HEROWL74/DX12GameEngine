@@ -101,7 +101,7 @@ namespace Engine::Graphics
         // ミップレベルの自動計算
         if (m_desc.mipLevels == 0)
         {
-            m_desc.mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(m_desc.width, m_desc.height)))) + 1;
+            m_desc.mipLevels = static_cast<uint32_t>(std::floor(std::log2(max(m_desc.width, m_desc.height)))) + 1;
         }
 
         auto resourceResult = createResource();
@@ -128,22 +128,22 @@ namespace Engine::Graphics
     {
         D3D12_RESOURCE_DESC resourceDesc{};
 
-        switch (m_desc.type)
+        switch (m_desc.dimension)
         {
-        case TextureType::Texture2D:
+        case TextureDimension::Texture2D:
             resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
             break;
-        case TextureType::Texture3D:
+        case TextureDimension::Texture3D:
             resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
             break;
         default:
-            return std::unexpected(Utils::make_error(Utils::ErrorType::ResourceCreation, "Unsupported texture type"));
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ResourceCreation, "Unsupported texture dimension"));
         }
 
         resourceDesc.Alignment = 0;
         resourceDesc.Width = m_desc.width;
         resourceDesc.Height = m_desc.height;
-        resourceDesc.DepthOrArraySize = m_desc.type == TextureType::Texture3D ? m_desc.depth : m_desc.arraySize;
+        resourceDesc.DepthOrArraySize = m_desc.dimension == TextureDimension::Texture3D ? m_desc.depth : m_desc.arraySize;
         resourceDesc.MipLevels = m_desc.mipLevels;
         resourceDesc.Format = textureFormatToDXGI(m_desc.format);
         resourceDesc.SampleDesc.Count = 1;
@@ -192,14 +192,14 @@ namespace Engine::Graphics
 
     Utils::VoidResult Texture::createViews()
     {
-        //TODO: 現在は基本的なもののみ
+        // 現在は基本的な実装のみ
         // 完全なデスクリプタ管理は後で実装
         return {};
     }
 
     Utils::VoidResult Texture::uploadData(const ImageData& imageData)
     {
-        //TODO: 現在は簡単にして実装
+        // 現在は簡易実装
         // 完全なアップロード機能は後で実装
         return {};
     }
@@ -300,7 +300,7 @@ namespace Engine::Graphics
 
     Utils::Result<ImageData> TextureLoader::loadDDS(const std::string& filePath)
     {
-        //TODO: DDS読み込みは複雑なので、後々実装予定
+        // DDS読み込みは複雑なので、現在は未実装
         return std::unexpected(Utils::make_error(Utils::ErrorType::FileI0, "DDS format not implemented yet"));
     }
 
@@ -330,278 +330,6 @@ namespace Engine::Graphics
 
         stbi_image_free(data);
         return imageData;
-    }
-
-
-
-    Utils::Result<std::vector<ImageData>> TextureLoader::generateMipmaps(const ImageData& baseImage)
-    {
-        if (baseImage.pixels.empty() || baseImage.width == 0 || baseImage.height == 0)
-        {
-            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Invalid base image for mipmap generation"));
-        }
-
-        std::vector<ImageData> mipmaps;
-        mipmaps.push_back(baseImage); // レベル0（元画像）
-
-        uint32_t currentWidth = baseImage.width;
-        uint32_t currentHeight = baseImage.height;
-        ImageData currentLevel = baseImage;
-
-        // 1x1になるまでミップマップを生成
-        while (currentWidth > 1 || currentHeight > 1)
-        {
-            uint32_t nextWidth = std::max(1u, currentWidth / 2);
-            uint32_t nextHeight = std::max(1u, currentHeight / 2);
-
-            ImageData nextLevel;
-            nextLevel.width = nextWidth;
-            nextLevel.height = nextHeight;
-            nextLevel.channels = currentLevel.channels;
-            nextLevel.format = currentLevel.format;
-            nextLevel.rowPitch = calculateRowPitch(nextWidth, nextLevel.format);
-            nextLevel.slicePitch = calculateSlicePitch(nextLevel.rowPitch, nextHeight);
-
-            size_t outputSize = nextWidth * nextHeight * nextLevel.channels;
-            nextLevel.pixels.resize(outputSize);
-
-            // STBライブラリを使用してリサイズ
-            auto result = stbir_resize_uint8_linear(
-                currentLevel.pixels.data(), currentWidth, currentHeight, 0,
-                nextLevel.pixels.data(), nextWidth, nextHeight, 0,
-                static_cast<stbir_pixel_layout>(nextLevel.channels)
-            );
-
-            if (result == 0)
-            {
-                return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
-                    std::format("Failed to generate mipmap level {}x{}", nextWidth, nextHeight)));
-            }
-
-            mipmaps.push_back(nextLevel);
-            currentLevel = nextLevel;
-            currentWidth = nextWidth;
-            currentHeight = nextHeight;
-        }
-
-        return mipmaps;
-    }
-
-    Utils::Result<ImageData> TextureLoader::convertFormat(
-        const ImageData& sourceImage,
-        TextureFormat targetFormat)
-    {
-        if (sourceImage.format == targetFormat)
-        {
-            return sourceImage; // 既に目的のフォーマット
-        }
-
-        ImageData convertedImage = sourceImage;
-        convertedImage.format = targetFormat;
-
-        // 現在サポートしている変換
-        switch (sourceImage.format)
-        {
-        case TextureFormat::R8G8B8A8_UNORM:
-            switch (targetFormat)
-            {
-            case TextureFormat::R8G8B8A8_SRGB:
-                // UNORMからSRGBへの変換（データは同じ、解釈が変わるだけ）
-                convertedImage.format = TextureFormat::R8G8B8A8_SRGB;
-                return convertedImage;
-
-            case TextureFormat::R8G8B8_UNORM:
-                // RGBAからRGBへの変換（アルファチャンネルを削除）
-                return convertRGBAtoRGB(sourceImage);
-
-            case TextureFormat::R8_UNORM:
-                // RGBAからグレースケールへの変換
-                return convertRGBAtoGrayscale(sourceImage);
-
-            default:
-                break;
-            }
-            break;
-
-        case TextureFormat::R8G8B8_UNORM:
-            switch (targetFormat)
-            {
-            case TextureFormat::R8G8B8A8_UNORM:
-                // RGBからRGBAへの変換（アルファ=255を追加）
-                return convertRGBtoRGBA(sourceImage);
-
-            case TextureFormat::R8_UNORM:
-                // RGBからグレースケールへの変換
-                return convertRGBtoGrayscale(sourceImage);
-
-            default:
-                break;
-            }
-            break;
-
-        case TextureFormat::R8_UNORM:
-            switch (targetFormat)
-            {
-            case TextureFormat::R8G8B8A8_UNORM:
-                // グレースケールからRGBAへの変換
-                return convertGrayscaleToRGBA(sourceImage);
-
-            case TextureFormat::R8G8B8_UNORM:
-                // グレースケールからRGBへの変換
-                return convertGrayscaleToRGB(sourceImage);
-
-            default:
-                break;
-            }
-            break;
-
-        default:
-            break;
-        }
-
-        return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
-            std::format("Unsupported format conversion: {} to {}",
-                static_cast<int>(sourceImage.format), static_cast<int>(targetFormat))));
-    }
-
-    // プライベートヘルパー関数の実装
-    Utils::Result<ImageData> TextureLoader::convertRGBAtoRGB(const ImageData& sourceImage)
-    {
-        ImageData result = sourceImage;
-        result.channels = 3;
-        result.format = TextureFormat::R8G8B8_UNORM;
-        result.rowPitch = calculateRowPitch(result.width, result.format);
-        result.slicePitch = calculateSlicePitch(result.rowPitch, result.height);
-
-        size_t pixelCount = sourceImage.width * sourceImage.height;
-        result.pixels.resize(pixelCount * 3);
-
-        for (size_t i = 0; i < pixelCount; ++i)
-        {
-            result.pixels[i * 3 + 0] = sourceImage.pixels[i * 4 + 0]; // R
-            result.pixels[i * 3 + 1] = sourceImage.pixels[i * 4 + 1]; // G
-            result.pixels[i * 3 + 2] = sourceImage.pixels[i * 4 + 2]; // B
-            // アルファチャンネルは削除
-        }
-
-        return result;
-    }
-
-    Utils::Result<ImageData> TextureLoader::convertRGBtoRGBA(const ImageData& sourceImage)
-    {
-        ImageData result = sourceImage;
-        result.channels = 4;
-        result.format = TextureFormat::R8G8B8A8_UNORM;
-        result.rowPitch = calculateRowPitch(result.width, result.format);
-        result.slicePitch = calculateSlicePitch(result.rowPitch, result.height);
-
-        size_t pixelCount = sourceImage.width * sourceImage.height;
-        result.pixels.resize(pixelCount * 4);
-
-        for (size_t i = 0; i < pixelCount; ++i)
-        {
-            result.pixels[i * 4 + 0] = sourceImage.pixels[i * 3 + 0]; // R
-            result.pixels[i * 4 + 1] = sourceImage.pixels[i * 3 + 1]; // G
-            result.pixels[i * 4 + 2] = sourceImage.pixels[i * 3 + 2]; // B
-            result.pixels[i * 4 + 3] = 255;                            // A = 不透明
-        }
-
-        return result;
-    }
-
-    Utils::Result<ImageData> TextureLoader::convertRGBAtoGrayscale(const ImageData& sourceImage)
-    {
-        ImageData result = sourceImage;
-        result.channels = 1;
-        result.format = TextureFormat::R8_UNORM;
-        result.rowPitch = calculateRowPitch(result.width, result.format);
-        result.slicePitch = calculateSlicePitch(result.rowPitch, result.height);
-
-        size_t pixelCount = sourceImage.width * sourceImage.height;
-        result.pixels.resize(pixelCount);
-
-        for (size_t i = 0; i < pixelCount; ++i)
-        {
-            // 輝度計算（ITU-R BT.709の係数）
-            float r = sourceImage.pixels[i * 4 + 0] / 255.0f;
-            float g = sourceImage.pixels[i * 4 + 1] / 255.0f;
-            float b = sourceImage.pixels[i * 4 + 2] / 255.0f;
-
-            float luminance = 0.2126f * r + 0.7152f * g + 0.0722f * b;
-            result.pixels[i] = static_cast<uint8_t>(luminance * 255.0f);
-        }
-
-        return result;
-    }
-
-    Utils::Result<ImageData> TextureLoader::convertRGBtoGrayscale(const ImageData& sourceImage)
-    {
-        ImageData result = sourceImage;
-        result.channels = 1;
-        result.format = TextureFormat::R8_UNORM;
-        result.rowPitch = calculateRowPitch(result.width, result.format);
-        result.slicePitch = calculateSlicePitch(result.rowPitch, result.height);
-
-        size_t pixelCount = sourceImage.width * sourceImage.height;
-        result.pixels.resize(pixelCount);
-
-        for (size_t i = 0; i < pixelCount; ++i)
-        {
-            // 輝度計算
-            float r = sourceImage.pixels[i * 3 + 0] / 255.0f;
-            float g = sourceImage.pixels[i * 3 + 1] / 255.0f;
-            float b = sourceImage.pixels[i * 3 + 2] / 255.0f;
-
-            float luminance = 0.2126f * r + 0.7152f * g + 0.0722f * b;
-            result.pixels[i] = static_cast<uint8_t>(luminance * 255.0f);
-        }
-
-        return result;
-    }
-
-    Utils::Result<ImageData> TextureLoader::convertGrayscaleToRGBA(const ImageData& sourceImage)
-    {
-        ImageData result = sourceImage;
-        result.channels = 4;
-        result.format = TextureFormat::R8G8B8A8_UNORM;
-        result.rowPitch = calculateRowPitch(result.width, result.format);
-        result.slicePitch = calculateSlicePitch(result.rowPitch, result.height);
-
-        size_t pixelCount = sourceImage.width * sourceImage.height;
-        result.pixels.resize(pixelCount * 4);
-
-        for (size_t i = 0; i < pixelCount; ++i)
-        {
-            uint8_t gray = sourceImage.pixels[i];
-            result.pixels[i * 4 + 0] = gray; // R
-            result.pixels[i * 4 + 1] = gray; // G
-            result.pixels[i * 4 + 2] = gray; // B
-            result.pixels[i * 4 + 3] = 255;  // A = 不透明
-        }
-
-        return result;
-    }
-
-    Utils::Result<ImageData> TextureLoader::convertGrayscaleToRGB(const ImageData& sourceImage)
-    {
-        ImageData result = sourceImage;
-        result.channels = 3;
-        result.format = TextureFormat::R8G8B8_UNORM;
-        result.rowPitch = calculateRowPitch(result.width, result.format);
-        result.slicePitch = calculateSlicePitch(result.rowPitch, result.height);
-
-        size_t pixelCount = sourceImage.width * sourceImage.height;
-        result.pixels.resize(pixelCount * 3);
-
-        for (size_t i = 0; i < pixelCount; ++i)
-        {
-            uint8_t gray = sourceImage.pixels[i];
-            result.pixels[i * 3 + 0] = gray; // R
-            result.pixels[i * 3 + 1] = gray; // G
-            result.pixels[i * 3 + 2] = gray; // B
-        }
-
-        return result;
     }
 
     std::string TextureLoader::getFileExtension(const std::string& filePath)

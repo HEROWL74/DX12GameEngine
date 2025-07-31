@@ -1,5 +1,7 @@
 //assets/shaders/Common.hlsli
 //Same struct and constantbuffe
+#ifndef COMMON_HLSLI_INCLUDED
+#define COMMON_HLSLI_INCLUDED
 
 //VertexInput Struct
 struct VertexInput
@@ -28,8 +30,7 @@ cbuffer SceneConstants : register(b0)
     float4x4 projMatrix;
     float3 cameraPos;
     float padding1;
-    
-    //ライティング情報
+
     float3 directionalLightDir;
     float directionalLightIntensity;
     float3 directionalLightColor;
@@ -89,3 +90,5 @@ float3 toSRGB(float3 linearColor)
 {
     return pow(abs(linearColor), 1.0 / 2.2);
 }
+
+#endif // COMMON_HLSLI_INCLUDED

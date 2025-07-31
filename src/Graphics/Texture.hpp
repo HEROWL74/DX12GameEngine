@@ -1,7 +1,6 @@
 //src/Graphics/Texture.hpp
 #pragma once
 
-#define NOMINMAX
 #include <string>
 #include <memory>
 #include <vector>
@@ -11,6 +10,7 @@
 #include <dxgi1_6.h>
 #include "../Utils/Common.hpp"
 #include "Device.hpp"
+
 using Microsoft::WRL::ComPtr;
 
 namespace Engine::Graphics
@@ -36,7 +36,7 @@ namespace Engine::Graphics
     //=========================================================================
     // テクスチャタイプ列挙型
     //=========================================================================
-    enum class TextureType
+    enum class TextureDimension
     {
         Texture2D,
         TextureCube,
@@ -69,7 +69,6 @@ namespace Engine::Graphics
         return static_cast<TextureUsage>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
     }
 
-
     //=========================================================================
     // テクスチャ作成設定
     //=========================================================================
@@ -81,12 +80,11 @@ namespace Engine::Graphics
         uint32_t mipLevels = 1;
         uint32_t arraySize = 1;
         TextureFormat format = TextureFormat::R8G8B8A8_UNORM;
-        TextureType type = TextureType::Texture2D;
+        TextureDimension dimension = TextureDimension::Texture2D;
         TextureUsage usage = TextureUsage::ShaderResource;
         bool generateMips = false;
         std::string debugName;
     };
-
 
     //=========================================================================
     // 画像データ構造体
@@ -101,7 +99,6 @@ namespace Engine::Graphics
         uint32_t rowPitch = 0;      // 1行のバイト数
         uint32_t slicePitch = 0;    // 1スライスのバイト数
     };
-     
 
     //=========================================================================
     // テクスチャクラス
@@ -196,7 +193,7 @@ namespace Engine::Graphics
         [[nodiscard]] static Utils::Result<ImageData> loadJPEG(const std::string& filePath);
         [[nodiscard]] static Utils::Result<ImageData> loadDDS(const std::string& filePath);
         [[nodiscard]] static Utils::Result<ImageData> loadTGA(const std::string& filePath);
-
+        /*
         // ミップマップ生成
         [[nodiscard]] static Utils::Result<std::vector<ImageData>> generateMipmaps(const ImageData& baseImage);
 
@@ -205,19 +202,7 @@ namespace Engine::Graphics
             const ImageData& sourceImage,
             TextureFormat targetFormat
         );
-
-        static Utils::Result<ImageData> convertRGBAtoRGB(const ImageData& sourceImage);
-
-        static Utils::Result<ImageData> convertRGBtoRGBA(const ImageData& sourceImage);
-
-        static Utils::Result<ImageData> convertRGBAtoGrayscale(const ImageData& sourceImage);
-
-        static Utils::Result<ImageData> convertRGBtoGrayscale(const ImageData& sourceImage);
-
-        static Utils::Result<ImageData> convertGrayscaleToRGBA(const ImageData& sourceImage);
-
-        static Utils::Result<ImageData> convertGrayscaleToRGB(const ImageData& sourceImage);
-
+        */
         // ファイル形式の判定
         static std::string getFileExtension(const std::string& filePath);
         static bool isSupportedFormat(const std::string& extension);

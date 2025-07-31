@@ -4,13 +4,14 @@
 
 namespace Engine::Graphics
 {
-    Utils::VoidResult CubeRenderer::initialize(Device* device)
+    Utils::VoidResult CubeRenderer::initialize(Device* device, ShaderManager* shaderManager)
     {
         // デバッグ用: nullチェック
         CHECK_CONDITION(device != nullptr, Utils::ErrorType::Unknown, "Device is null");
         CHECK_CONDITION(device->isValid(), Utils::ErrorType::Unknown, "Device is not valid");
 
         m_device = device;
+        m_shaderManager = shaderManager;
         Utils::log_info("Initializing Cube Renderer...");
 
         // 定数バッファマネージャーを初期化
@@ -164,44 +165,76 @@ namespace Engine::Graphics
 
     Utils::VoidResult CubeRenderer::createShaders()
     {
-        // 既存のシェーダーを再利用（BasicVertex.hlsl, BasicPixel.hlsl）
-        auto vsResult = m_shaderManager.compileFromFile(
-            L"assets/shaders/BasicVertex.hlsl",
-            "main",
-            ShaderType::Vertex
-        );
-        if (!vsResult)
+        // ShaderManager を初期化
+        //auto initResult = m_shaderManager->initialize(m_device);
+        //if (!initResult) return initResult;
+        
+
+        // ShaderCompileDesc を使用してシェーダーをロード
+        ShaderCompileDesc vsDesc;
+        vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
+        vsDesc.entryPoint = "main";
+        vsDesc.type = ShaderType::Vertex;
+        vsDesc.enableDebug = true;
+
+        auto vertexShader = m_shaderManager->loadShader(vsDesc);
+        if (!vertexShader)
         {
-            return std::unexpected(vsResult.error());
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load vertex shader"));
         }
 
-        auto psResult = m_shaderManager.compileFromFile(
-            L"assets/shaders/BasicPixel.hlsl",
-            "main",
-            ShaderType::Pixel
-        );
-        if (!psResult)
-        {
-            return std::unexpected(psResult.error());
-        }
+        ShaderCompileDesc psDesc;
+        psDesc.filePath = "assets/shaders/BasicPixel.hlsl";
+        psDesc.entryPoint = "main";
+        psDesc.type = ShaderType::Pixel;
+        psDesc.enableDebug = true;
 
-        // シェーダーを登録
-        m_shaderManager.registerShader("basic_vertex", vsResult.value());
-        m_shaderManager.registerShader("basic_pixel", psResult.value());
+        auto pixelShader = m_shaderManager->loadShader(psDesc);
+        if (!pixelShader)
+        {
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load pixel shader"));
+        }
 
         return {};
     }
 
     Utils::VoidResult CubeRenderer::createPipelineState()
     {
-        // シェーダーを取得
-        const ShaderInfo* vertexShader = m_shaderManager.getShader("basic_vertex");
-        const ShaderInfo* pixelShader = m_shaderManager.getShader("basic_pixel");
+        // まずシェーダーをロード（キャッシュに存在しない場合のため）
+        ShaderCompileDesc vsDesc;
+        vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
+        vsDesc.entryPoint = "main";
+        vsDesc.type = ShaderType::Vertex;
+        vsDesc.enableDebug = true;
+
+        auto vertexShaderResult = m_shaderManager->loadShader(vsDesc);
+        if (!vertexShaderResult)
+        {
+            Utils::log_warning("Failed to load vertex shader for CubeRenderer");
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load vertex shader"));
+        }
+
+        ShaderCompileDesc psDesc;
+        psDesc.filePath = "assets/shaders/BasicPixel.hlsl";
+        psDesc.entryPoint = "main";
+        psDesc.type = ShaderType::Pixel;
+        psDesc.enableDebug = true;
+
+        auto pixelShaderResult = m_shaderManager->loadShader(psDesc);
+        if (!pixelShaderResult)
+        {
+            Utils::log_warning("Failed to load pixel shader for CubeRenderer");
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load pixel shader"));
+        }
+
+        // ロードされたシェーダーを使用（loadShaderの戻り値を直接使用）
+        auto vertexShader = vertexShaderResult;
+        auto pixelShader = pixelShaderResult;
 
         CHECK_CONDITION(vertexShader != nullptr, Utils::ErrorType::ShaderCompilation,
-            "Vertex shader not found");
+            "Vertex shader is null");
         CHECK_CONDITION(pixelShader != nullptr, Utils::ErrorType::ShaderCompilation,
-            "Pixel shader not found");
+            "Pixel shader is null");
 
         // 入力レイアウトを定義
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
@@ -213,10 +246,10 @@ namespace Engine::Graphics
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
         psoDesc.pRootSignature = m_rootSignature.Get();
-        psoDesc.VS = { vertexShader->blob->GetBufferPointer(), vertexShader->blob->GetBufferSize() };
-        psoDesc.PS = { pixelShader->blob->GetBufferPointer(), pixelShader->blob->GetBufferSize() };
+        psoDesc.VS = { vertexShader->getBytecode(), vertexShader->getBytecodeSize() };
+        psoDesc.PS = { pixelShader->getBytecode(), pixelShader->getBytecodeSize() };
 
-        // ラスタライザーステート
+        // 残りの設定は同じ...
         psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
         psoDesc.RasterizerState.FrontCounterClockwise = FALSE;

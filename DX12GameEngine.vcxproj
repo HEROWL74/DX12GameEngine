@@ -142,8 +142,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="src\Graphics\MaterialSerialization.hpp" />
     <ClInclude Include="src\Graphics\RenderComponent.hpp" />
-    <ClInclude Include="src\Graphics\Shader.hpp" />
     <ClInclude Include="src\Graphics\ShaderManager.hpp" />
     <ClInclude Include="src\Graphics\stb_image.h" />
     <ClInclude Include="src\Graphics\stb_image_resize2.h" />
@@ -163,6 +163,7 @@
     <ClInclude Include="src\UI\imstb_rectpack.h" />
     <ClInclude Include="src\UI\imstb_textedit.h" />
     <ClInclude Include="src\UI\imstb_truetype.h" />
+    <ClInclude Include="src\UI\MaterialEditor.hpp" />
     <ClInclude Include="src\Utils\Common.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -174,9 +175,9 @@
     <ClCompile Include="src\Graphics\CubeRenderer.cpp" />
     <ClCompile Include="src\Graphics\Device.cpp" />
     <ClCompile Include="src\Graphics\Material.cpp" />
+    <ClCompile Include="src\Graphics\MaterialSerialization.cpp" />
     <ClCompile Include="src\Graphics\RenderComponent.cpp" />
-    <ClCompile Include="src\Graphics\Shader.cpp" />
-    <ClCompile Include="src\Graphics\ShaderMamager.cpp" />
+    <ClCompile Include="src\Graphics\ShaderManager.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
@@ -189,6 +190,7 @@
     <ClCompile Include="src\UI\imgui_draw.cpp" />
     <ClCompile Include="src\UI\imgui_tables.cpp" />
     <ClCompile Include="src\UI\imgui_widgets.cpp" />
+    <ClCompile Include="src\UI\MaterialEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="assets\shaders\BasicPixel.hlsl">
@@ -196,24 +198,40 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.1</ShaderModel>
     </FxCompile>
     <FxCompile Include="assets\shaders\BasicVertex.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.1</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.1</ShaderModel>
     </FxCompile>
     <FxCompile Include="assets\shaders\PBR_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.1</ShaderModel>
     </FxCompile>
     <FxCompile Include="assets\shaders\PBR_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.1</ShaderModel>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

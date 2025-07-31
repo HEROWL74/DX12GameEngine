@@ -2,33 +2,58 @@
 #include "TriangleRenderer.hpp"
 #include <format>
 
+using Engine::Graphics::ShaderType;
+
 namespace Engine::Graphics
 {
-    Utils::VoidResult TriangleRenderer::initialize(Device* device)
+    Utils::VoidResult TriangleRenderer::initialize(Device* device, ShaderManager* shaderManager)
     {
+        Utils::log_info("TriangleRenderer::initialize START");
+
+        // より詳細なnullチェック
+        if (!device) {
+            Utils::log_warning("Device is null in TriangleRenderer::initialize");
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Device is null"));
+        }
+
+        if (!device->isValid()) {
+            Utils::log_warning("Device is not valid in TriangleRenderer::initialize");
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Device is not valid"));
+        }
+
+        if (!shaderManager) {
+            Utils::log_warning("ShaderManager is null in TriangleRenderer::initialize");
+            return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null"));
+        }
+
         m_device = device;
+        m_shaderManager = shaderManager;
+
         Utils::log_info("Initializing Triangle Renderer...");
 
         // 定数バッファマネージャーを初期化
+        Utils::log_info("Initializing constant buffer manager...");
         auto constantBufferResult = m_constantBufferManager.initialize(device);
         if (!constantBufferResult) return constantBufferResult;
 
         // 三角形の頂点データを設定
+        Utils::log_info("Setting up triangle vertices...");
         setupTriangleVertices();
 
         // ワールド行列を初期化
+        Utils::log_info("Updating world matrix...");
         updateWorldMatrix();
 
-        // 各コンポーネントを順番に初期化
+        // 各コンポーネントを順次初期化
+        Utils::log_info("Creating root signature...");
         auto rootSigResult = createRootSignature();
         if (!rootSigResult) return rootSigResult;
 
-        auto shaderResult = createShaders();
-        if (!shaderResult) return shaderResult;
-
+        Utils::log_info("Creating pipeline state (with shader loading)...");
         auto pipelineResult = createPipelineState();
         if (!pipelineResult) return pipelineResult;
 
+        Utils::log_info("Creating vertex buffer...");
         auto vertexBufferResult = createVertexBuffer();
         if (!vertexBufferResult) return vertexBufferResult;
 
@@ -158,45 +183,71 @@ namespace Engine::Graphics
 
     Utils::VoidResult TriangleRenderer::createShaders()
     {
-        // ファイルから頂点シェーダーをコンパイル
-        auto vsResult = m_shaderManager.compileFromFile(
-            L"assets/shaders/BasicVertex.hlsl",
-            "main",
-            ShaderType::Vertex
-        );
-        if (!vsResult)
+       
+        // ShaderCompileDesc を使用してシェーダーをロード
+        ShaderCompileDesc vsDesc;
+        vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
+        vsDesc.entryPoint = "main";
+        vsDesc.type = ShaderType::Vertex;
+        vsDesc.enableDebug = true;
+
+        auto vertexShader = m_shaderManager->loadShader(vsDesc);
+        if (!vertexShader)
         {
-            return std::unexpected(vsResult.error());
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load vertex shader"));
         }
 
-        // ファイルからピクセルシェーダーをコンパイル
-        auto psResult = m_shaderManager.compileFromFile(
-            L"assets/shaders/BasicPixel.hlsl",
-            "main",
-            ShaderType::Pixel
-        );
-        if (!psResult)
-        {
-            return std::unexpected(psResult.error());
-        }
+        ShaderCompileDesc psDesc;
+        psDesc.filePath = "assets/shaders/BasicPixel.hlsl";
+        psDesc.entryPoint = "main";
+        psDesc.type = ShaderType::Pixel;
+        psDesc.enableDebug = true;
 
-        // シェーダーを登録
-        m_shaderManager.registerShader("basic_vertex", vsResult.value());
-        m_shaderManager.registerShader("basic_pixel", psResult.value());
+        auto pixelShader = m_shaderManager->loadShader(psDesc);
+        if (!pixelShader)
+        {
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load pixel shader"));
+        }
 
         return {};
     }
-
     Utils::VoidResult TriangleRenderer::createPipelineState()
     {
-        // シェーダーを取得
-        const ShaderInfo* vertexShader = m_shaderManager.getShader("basic_vertex");
-        const ShaderInfo* pixelShader = m_shaderManager.getShader("basic_pixel");
+        // まずシェーダーをロード（キャッシュに存在しない場合のため）
+        ShaderCompileDesc vsDesc;
+        vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
+        vsDesc.entryPoint = "main";
+        vsDesc.type = ShaderType::Vertex;
+        vsDesc.enableDebug = true;
+
+        auto vertexShaderResult = m_shaderManager->loadShader(vsDesc);
+        if (!vertexShaderResult)
+        {
+            Utils::log_warning("Failed to load vertex shader for TriangleRenderer");
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load vertex shader"));
+        }
+
+        ShaderCompileDesc psDesc;
+        psDesc.filePath = "assets/shaders/BasicPixel.hlsl";
+        psDesc.entryPoint = "main";
+        psDesc.type = ShaderType::Pixel;
+        psDesc.enableDebug = true;
+
+        auto pixelShaderResult = m_shaderManager->loadShader(psDesc);
+        if (!pixelShaderResult)
+        {
+            Utils::log_warning("Failed to load pixel shader for TriangleRenderer");
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load pixel shader"));
+        }
+
+        // ロードされたシェーダーを使用（loadShaderの戻り値を直接使用）
+        auto vertexShader = vertexShaderResult;
+        auto pixelShader = pixelShaderResult;
 
         CHECK_CONDITION(vertexShader != nullptr, Utils::ErrorType::ShaderCompilation,
-            "Vertex shader not found");
+            "Vertex shader is null");
         CHECK_CONDITION(pixelShader != nullptr, Utils::ErrorType::ShaderCompilation,
-            "Pixel shader not found");
+            "Pixel shader is null");
 
         // 入力レイアウトを定義
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
@@ -208,10 +259,10 @@ namespace Engine::Graphics
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
         psoDesc.pRootSignature = m_rootSignature.Get();
-        psoDesc.VS = { vertexShader->blob->GetBufferPointer(), vertexShader->blob->GetBufferSize() };
-        psoDesc.PS = { pixelShader->blob->GetBufferPointer(), pixelShader->blob->GetBufferSize() };
+        psoDesc.VS = { vertexShader->getBytecode(), vertexShader->getBytecodeSize() };
+        psoDesc.PS = { pixelShader->getBytecode(), pixelShader->getBytecodeSize() };
 
-        // ラスタライザーステート
+        // 残りの設定は同じ...
         psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
         psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
@@ -239,12 +290,12 @@ namespace Engine::Graphics
             psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
         }
 
-        //深度ステイシルステート
-        psoDesc.DepthStencilState.DepthEnable = TRUE;    //深度テスト有効
-        psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;//深度書き込み有効
+        // 深度ステンシルステート
+        psoDesc.DepthStencilState.DepthEnable = TRUE;
+        psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
         psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
         psoDesc.DepthStencilState.StencilEnable = FALSE;
-        psoDesc.DepthStencilState.StencilReadMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+        psoDesc.DepthStencilState.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
         psoDesc.DepthStencilState.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
 
         const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp = {
@@ -258,7 +309,7 @@ namespace Engine::Graphics
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.NumRenderTargets = 1;
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-        psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT; //深度バッファフォーマット指定
+        psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         psoDesc.SampleDesc.Count = 1;
 
         CHECK_HR(m_device->getDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)),
@@ -266,6 +317,7 @@ namespace Engine::Graphics
 
         return {};
     }
+
 
     Utils::VoidResult TriangleRenderer::createVertexBuffer()
     {
