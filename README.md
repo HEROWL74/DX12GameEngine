@@ -13,7 +13,7 @@ Microsoftのリファレンスページや、サンプルコードを見なが�
 
 ---
 
-## ✨ 現在の進捗  ImGui導入&実装中
+## ✨ 現在の進捗  PBR&テクスチャとProjectWindow作成&統合中
 ![ポリゴン描画](assets/screenshots/Current1.png)
 -✅ 完成済み
 
