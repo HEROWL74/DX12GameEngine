@@ -130,6 +130,9 @@
     <ClInclude Include="src\UI\MaterialEditor.hpp">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClInclude>
+    <ClInclude Include="src\UI\ProjectWindow.hpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -203,6 +206,9 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\ShaderManager.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\ProjectWindow.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
