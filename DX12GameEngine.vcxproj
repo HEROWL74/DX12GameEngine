@@ -164,6 +164,7 @@
     <ClInclude Include="src\UI\imstb_textedit.h" />
     <ClInclude Include="src\UI\imstb_truetype.h" />
     <ClInclude Include="src\UI\MaterialEditor.hpp" />
+    <ClInclude Include="src\UI\ProjectWindow.hpp" />
     <ClInclude Include="src\Utils\Common.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -191,6 +192,7 @@
     <ClCompile Include="src\UI\imgui_tables.cpp" />
     <ClCompile Include="src\UI\imgui_widgets.cpp" />
     <ClCompile Include="src\UI\MaterialEditor.cpp" />
+    <ClCompile Include="src\UI\ProjectWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="assets\shaders\BasicPixel.hlsl">
