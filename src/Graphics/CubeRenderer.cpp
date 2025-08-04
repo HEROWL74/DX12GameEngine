@@ -27,7 +27,7 @@ namespace Engine::Graphics
         // ワールド行列を初期化
         updateWorldMatrix();
 
-        // 各コンポーネントを順番に初期化
+        // 各コンポーネントを順次初期化
         auto rootSigResult = createRootSignature();
         if (!rootSigResult) {
             Utils::log_error(rootSigResult.error());
@@ -64,26 +64,12 @@ namespace Engine::Graphics
 
     void CubeRenderer::render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex)
     {
-        // デバッグ用: nullチェック
-        if (!commandList) {
-            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "CommandList is null"));
-            return;
+        // デフォルトマテリアルがない場合は設定
+        if (!m_material && m_materialManager)
+        {
+            m_material = m_materialManager->getDefaultMaterial();
         }
 
-        if (!m_constantBufferManager.isValid()) {
-            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "ConstantBufferManager is not valid"));
-            return;
-        }
-
-        if (!m_rootSignature) {
-            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "RootSignature is not initialized"));
-            return;
-        }
-
-        if (!m_pipelineState) {
-            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "PipelineState is not initialized"));
-            return;
-        }
         // 定数バッファを更新
         CameraConstants cameraConstants{};
         cameraConstants.viewMatrix = camera.getViewMatrix();
@@ -107,6 +93,13 @@ namespace Engine::Graphics
         commandList->SetGraphicsRootConstantBufferView(0, m_constantBufferManager.getCameraConstantsGPUAddress(frameIndex));
         commandList->SetGraphicsRootConstantBufferView(1, m_constantBufferManager.getObjectConstantsGPUAddress(frameIndex));
 
+        // マテリアル定数バッファをバインド
+        if (m_material && m_material->getConstantBuffer())
+        {
+            commandList->SetGraphicsRootConstantBufferView(2,
+                m_material->getConstantBuffer()->GetGPUVirtualAddress());
+        }
+
         // プリミティブトポロジを設定（三角形リスト）
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -120,26 +113,48 @@ namespace Engine::Graphics
 
     Utils::VoidResult CubeRenderer::createRootSignature()
     {
-        // 2つの定数バッファ用ルートシグネチャ（TriangleRendererと同じ）
-        D3D12_ROOT_PARAMETER rootParameters[2];
+        // 3つの定数バッファ用ルートシグネチャ（Camera, Object, Material）
+        D3D12_ROOT_PARAMETER rootParameters[3];
 
-        // カメラ定数バッファ
+        // カメラ定数バッファ (b0)
         rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[0].Descriptor.ShaderRegister = 0;
         rootParameters[0].Descriptor.RegisterSpace = 0;
         rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // オブジェクト定数バッファ
+        // オブジェクト定数バッファ (b1)
         rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[1].Descriptor.ShaderRegister = 1;
         rootParameters[1].Descriptor.RegisterSpace = 0;
         rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
+        // マテリアル定数バッファ (b2)
+        rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+        rootParameters[2].Descriptor.ShaderRegister = 2;
+        rootParameters[2].Descriptor.RegisterSpace = 0;
+        rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+        // Static Samplerを追加（シェーダーのs0に対応）
+        D3D12_STATIC_SAMPLER_DESC samplerDesc{};
+        samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+        samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        samplerDesc.MipLODBias = 0.0f;
+        samplerDesc.MaxAnisotropy = 1;
+        samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+        samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+        samplerDesc.MinLOD = 0.0f;
+        samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+        samplerDesc.ShaderRegister = 0; // s0
+        samplerDesc.RegisterSpace = 0;
+        samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
         rootSignatureDesc.NumParameters = _countof(rootParameters);
         rootSignatureDesc.pParameters = rootParameters;
-        rootSignatureDesc.NumStaticSamplers = 0;
-        rootSignatureDesc.pStaticSamplers = nullptr;
+        rootSignatureDesc.NumStaticSamplers = 1; // 1つのサンプラーを追加
+        rootSignatureDesc.pStaticSamplers = &samplerDesc;
         rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
         ComPtr<ID3DBlob> signature;
@@ -163,13 +178,88 @@ namespace Engine::Graphics
         return {};
     }
 
+    Utils::VoidResult CubeRenderer::createPBRRootSignature()
+    {
+        // 4つのルートパラメータ: Camera, Object, Material, Textures
+        D3D12_ROOT_PARAMETER rootParameters[4];
+
+        // カメラ定数バッファ (b0)
+        rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+        rootParameters[0].Descriptor.ShaderRegister = 0;
+        rootParameters[0].Descriptor.RegisterSpace = 0;
+        rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+        // オブジェクト定数バッファ (b1)
+        rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+        rootParameters[1].Descriptor.ShaderRegister = 1;
+        rootParameters[1].Descriptor.RegisterSpace = 0;
+        rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+        // マテリアル定数バッファ (b2)
+        rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+        rootParameters[2].Descriptor.ShaderRegister = 2;
+        rootParameters[2].Descriptor.RegisterSpace = 0;
+        rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+        // テクスチャデスクリプタテーブル (t0-t5)
+        static D3D12_DESCRIPTOR_RANGE textureRange{};
+        textureRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+        textureRange.NumDescriptors = 6;
+        textureRange.BaseShaderRegister = 0;
+        textureRange.RegisterSpace = 0;
+        textureRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+        rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+        rootParameters[3].DescriptorTable.NumDescriptorRanges = 1;
+        rootParameters[3].DescriptorTable.pDescriptorRanges = &textureRange;
+        rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+        // スタティックサンプラー
+        D3D12_STATIC_SAMPLER_DESC samplerDesc{};
+        samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+        samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        samplerDesc.MipLODBias = 0.0f;
+        samplerDesc.MaxAnisotropy = 1;
+        samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+        samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+        samplerDesc.MinLOD = 0.0f;
+        samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+        samplerDesc.ShaderRegister = 0;
+        samplerDesc.RegisterSpace = 0;
+        samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+        D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
+        rootSignatureDesc.NumParameters = _countof(rootParameters);
+        rootSignatureDesc.pParameters = rootParameters;
+        rootSignatureDesc.NumStaticSamplers = 1;
+        rootSignatureDesc.pStaticSamplers = &samplerDesc;
+        rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+        ComPtr<ID3DBlob> signature;
+        ComPtr<ID3DBlob> error;
+        HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+
+        if (FAILED(hr))
+        {
+            std::string errorMsg = "Failed to serialize PBR root signature";
+            if (error)
+            {
+                errorMsg += std::format(": {}", static_cast<char*>(error->GetBufferPointer()));
+            }
+            return std::unexpected(Utils::make_error(Utils::ErrorType::ResourceCreation, errorMsg, hr));
+        }
+
+        CHECK_HR(m_device->getDevice()->CreateRootSignature(0, signature->GetBufferPointer(),
+            signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)),
+            Utils::ErrorType::ResourceCreation, "Failed to create PBR root signature");
+
+        return {};
+    }
+
     Utils::VoidResult CubeRenderer::createShaders()
     {
-        // ShaderManager を初期化
-        //auto initResult = m_shaderManager->initialize(m_device);
-        //if (!initResult) return initResult;
-        
-
         // ShaderCompileDesc を使用してシェーダーをロード
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
@@ -249,7 +339,7 @@ namespace Engine::Graphics
         psoDesc.VS = { vertexShader->getBytecode(), vertexShader->getBytecodeSize() };
         psoDesc.PS = { pixelShader->getBytecode(), pixelShader->getBytecodeSize() };
 
-        // 残りの設定は同じ...
+        // 軽りの設定は同じ...
         psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
         psoDesc.RasterizerState.FrontCounterClockwise = FALSE;

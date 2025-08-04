@@ -8,6 +8,7 @@
 #include "Device.hpp"
 #include "ShaderManager.hpp"
 #include "ConstantBuffer.hpp"
+#include "Material.hpp"
 #include "Camera.hpp"
 #include "VertexTypes.hpp"
 #include "../Math/Math.hpp"
@@ -41,6 +42,9 @@ namespace Engine::Graphics
         void setRotation(const Math::Vector3& rotation) { m_rotation = rotation; updateWorldMatrix(); }
         void setScale(const Math::Vector3& scale) { m_scale = scale; updateWorldMatrix(); }
 
+        void setMaterial(std::shared_ptr<Graphics::Material> material) { m_material = material; }
+        void setMaterialManager(Graphics::MaterialManager* manager) { m_materialManager = manager; }
+
         // ゲッター
         const Math::Vector3& getPosition() const { return m_position; }
         const Math::Vector3& getRotation() const { return m_rotation; }
@@ -59,12 +63,17 @@ namespace Engine::Graphics
         Device* m_device = nullptr;
         ShaderManager* m_shaderManager = nullptr;
         ConstantBufferManager m_constantBufferManager;
+        bool m_usePBRPipeline = false;
 
         // 3D変換パラメータ
         Math::Vector3 m_position = Math::Vector3::zero();
         Math::Vector3 m_rotation = Math::Vector3::zero();
         Math::Vector3 m_scale = Math::Vector3::one();
         Math::Matrix4 m_worldMatrix;
+
+        //マテリアル管理ポインタ
+        std::shared_ptr<Graphics::Material> m_material;
+        Graphics::MaterialManager* m_materialManager = nullptr;
 
         // 描画リソース
         ComPtr<ID3D12RootSignature> m_rootSignature;
@@ -82,6 +91,7 @@ namespace Engine::Graphics
 
         // 初期化用メソッド
         [[nodiscard]] Utils::VoidResult createRootSignature();
+        [[nodiscard]] Utils::VoidResult createPBRRootSignature();
         [[nodiscard]] Utils::VoidResult createShaders();
         [[nodiscard]] Utils::VoidResult createPipelineState();
         [[nodiscard]] Utils::VoidResult createVertexBuffer();

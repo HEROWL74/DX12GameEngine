@@ -269,37 +269,41 @@ namespace Engine::Graphics
     {
         Utils::log_info(std::format("Creating descriptors for material '{}'", m_name));
 
-        
-
-        // CBVディスクリプタヒープの作成（マテリアル用）
-        D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc{};
-        cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        cbvHeapDesc.NumDescriptors = 1; // 定数バッファ用に1つ
-        cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        cbvHeapDesc.NodeMask = 0;
+        // CBV + SRV用ディスクリプタヒープの作成
+        D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc{};
+        srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        srvHeapDesc.NumDescriptors = 2; // CBV(1) + SRV(1)
+        srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        srvHeapDesc.NodeMask = 0;
 
         HRESULT hr = m_device->getDevice()->CreateDescriptorHeap(
-            &cbvHeapDesc,
-            IID_PPV_ARGS(&m_cbvDescriptorHeap));
+            &srvHeapDesc,
+            IID_PPV_ARGS(&m_srvDescriptorHeap));
 
         if (FAILED(hr))
         {
             return std::unexpected(Utils::make_error(Utils::ErrorType::ResourceCreation,
-                std::format("Failed to create CBV descriptor heap for material '{}': HRESULT=0x{:X}",
+                std::format("Failed to create SRV descriptor heap for material '{}': HRESULT=0x{:X}",
                     m_name, static_cast<unsigned>(hr)), hr));
         }
 
-        // 定数バッファビューの作成
+        // CBVを作成
         D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
         cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
         cbvDesc.SizeInBytes = (sizeof(MaterialConstantBuffer) + 255) & ~255; // 256バイトアライン
 
-        // CBVを作成
-        D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle = m_cbvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+        D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle = m_srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
         m_device->getDevice()->CreateConstantBufferView(&cbvDesc, cbvHandle);
 
-        // GPUハンドルも保存
-        m_cbvGpuHandle = m_cbvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+        // SRV（テクスチャ）を作成
+        UINT descriptorSize = m_device->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = cbvHandle;
+        srvHandle.ptr += descriptorSize;
+
+        // デフォルトでは白テクスチャのSRVを作成（後でマテリアルマネージャーから取得）
+        // ここでは仮実装
+        m_srvGpuHandle = m_srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+        m_srvGpuHandle.ptr += descriptorSize; // SRVのGPUハンドル
 
         Utils::log_info(std::format("Descriptors created successfully for material '{}'", m_name));
         return {};
@@ -357,14 +361,21 @@ namespace Engine::Graphics
             return nullptr;
         }
 
-        // 既に存在する場合は既存のものを返す
-        if (hasMaterial(name))
+        // 既に存在する場合は新しい名前を生成（共有を避ける）
+        std::string uniqueName = name;
+        int counter = 1;
+        while (hasMaterial(uniqueName))
         {
-            Utils::log_warning(std::format("Material '{}' already exists", name));
-            return getMaterial(name);
+            uniqueName = name + "_" + std::to_string(counter);
+            counter++;
         }
 
-        auto material = std::make_shared<Material>(name);
+        if (uniqueName != name)
+        {
+            Utils::log_info(std::format("Material '{}' already exists, creating '{}' instead", name, uniqueName));
+        }
+
+        auto material = std::make_shared<Material>(uniqueName);
         auto initResult = material->initialize(m_device);
         if (!initResult)
         {
@@ -372,8 +383,8 @@ namespace Engine::Graphics
             return nullptr;
         }
 
-        m_materials[name] = material;
-        Utils::log_info(std::format("Material '{}' created successfully", name));
+        m_materials[uniqueName] = material;
+        Utils::log_info(std::format("Material '{}' created successfully", uniqueName));
         return material;
     }
 

@@ -54,14 +54,39 @@ namespace Engine::Graphics
 			return;
 		}
 
-		//Transformから位置・回転・スケールを取得
+		// Transformから位置・回転・スケールを取得
 		auto* transform = getGameObject()->getTransform();
 		if (!transform)
 		{
 			return;
 		}
 
-		//レンダラーのTransformを更新
+		// デフォルトマテリアルがない場合は設定
+		if (!m_material && m_materialManager)
+		{
+			m_material = m_materialManager->getDefaultMaterial();
+		}
+		/*
+		// マテリアルの色をRenderComponentの色と組み合わせる
+		if (m_material)
+		{
+			auto props = m_material->getProperties();
+
+			// RenderComponentのm_colorをマテリアルのalbedoに反映
+			props.albedo = m_color;
+			m_material->setProperties(props);
+
+			// マテリアルの定数バッファを更新
+			auto updateResult = m_material->updateConstantBuffer();
+			if (!updateResult)
+			{
+				Utils::log_warning(std::format("Failed to update material constant buffer: {}",
+					updateResult.error().message));
+			}
+		}
+		*/
+
+		// レンダラーのTransformを更新
 		switch (m_renderableType)
 		{
 		case RenderableType::Triangle:
@@ -70,15 +95,18 @@ namespace Engine::Graphics
 				m_triangleRenderer->setPosition(transform->getPosition());
 				m_triangleRenderer->setRotation(transform->getRotation());
 				m_triangleRenderer->setScale(transform->getScale());
+				m_triangleRenderer->setMaterial(m_material);
 				m_triangleRenderer->render(commandList, camera, frameIndex);
 			}
 			break;
 
 		case RenderableType::Cube:
-			if (m_cubeRenderer && m_cubeRenderer->isValid()) {
+			if (m_cubeRenderer && m_cubeRenderer->isValid())
+			{
 				m_cubeRenderer->setPosition(transform->getPosition());
 				m_cubeRenderer->setRotation(transform->getRotation());
 				m_cubeRenderer->setScale(transform->getScale());
+				m_cubeRenderer->setMaterial(m_material);
 				m_cubeRenderer->render(commandList, camera, frameIndex);
 			}
 			break;
@@ -127,28 +155,43 @@ namespace Engine::Graphics
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null in RenderComponent"));
 		}
 
+		std::expected<void, Utils::Error> result;
+
 		// 新しいレンダラーを作成・初期化
 		switch (m_renderableType)
 		{
 		case RenderableType::Triangle:
 			m_triangleRenderer = std::make_unique<TriangleRenderer>();
 			if (!m_triangleRenderer) {
-				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to create TriangleRenderer"));
+				result = std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to create TriangleRenderer"));
+				break;
 			}
 			Utils::log_info("Created TriangleRenderer, calling initialize with valid ShaderManager");
-			return m_triangleRenderer->initialize(m_device, m_shaderManager);
+			result = m_triangleRenderer->initialize(m_device, m_shaderManager);
+			if (result && m_materialManager) {
+				m_triangleRenderer->setMaterialManager(m_materialManager);
+			}
+			break;
 
 		case RenderableType::Cube:
 			m_cubeRenderer = std::make_unique<CubeRenderer>();
 			if (!m_cubeRenderer) {
-				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to create CubeRenderer"));
+				result = std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to create CubeRenderer"));
+				break;
 			}
 			Utils::log_info("Created CubeRenderer, calling initialize with valid ShaderManager");
-			return m_cubeRenderer->initialize(m_device, m_shaderManager);
+			result = m_cubeRenderer->initialize(m_device, m_shaderManager);
+			if (result && m_materialManager) {
+				m_cubeRenderer->setMaterialManager(m_materialManager);
+			}
+			break;
 
 		default:
-			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Unknown renderable type"));
+			result = std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Unknown renderable type"));
+			break;
 		}
+
+		return result;
 	}
 
 	//==========================================================================================

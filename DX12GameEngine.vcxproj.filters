@@ -127,9 +127,6 @@
     <ClInclude Include="src\Graphics\MaterialSerialization.hpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\UI\MaterialEditor.hpp">
-      <Filter>ソース ファイル\src\UI</Filter>
-    </ClInclude>
     <ClInclude Include="src\UI\ProjectWindow.hpp">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClInclude>
@@ -200,9 +197,6 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\MaterialSerialization.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UI\MaterialEditor.cpp">
-      <Filter>ソース ファイル\src\UI</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\ShaderManager.cpp">
       <Filter>ソース ファイル\src\Graphics</Filter>

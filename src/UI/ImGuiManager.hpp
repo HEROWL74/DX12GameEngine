@@ -10,6 +10,8 @@
 #include "../Utils/Common.hpp"
 #include "../Core/GameObject.hpp"
 #include "../Graphics/RenderComponent.hpp"
+#include "../Graphics/Material.hpp"
+#include "../Graphics/Texture.hpp"
 
 //ImGui includes
 #include "imgui.h"
@@ -163,11 +165,23 @@ namespace Engine::UI
 		//選択オブジェクトの設定
 		void setSelectedObject(Core::GameObject* object) { m_selectedObject = object; }
 
+		// マテリアル・テクスチャ管理設定
+		void setMaterialManager(Graphics::MaterialManager* manager) { m_materialManager = manager; }
+		void setTextureManager(Graphics::TextureManager* manager) { m_textureManager = manager; }
+
 	private:
 		Core::GameObject* m_selectedObject = nullptr;
+		Graphics::MaterialManager* m_materialManager = nullptr;
+		Graphics::TextureManager* m_textureManager = nullptr;
 
 		void drawTransformComponent(Core::Transform* transform);
 		void drawRenderComponent(Graphics::RenderComponent* renderComponent);
 
+		// マテリアル編集機能
+		void drawMaterialEditor(Graphics::RenderComponent* renderComponent);
+		void drawTextureSlot(const char* name, Graphics::TextureType textureType,
+			std::shared_ptr<Graphics::Material> material);
 	};
+
+
 }

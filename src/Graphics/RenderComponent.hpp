@@ -39,6 +39,7 @@ namespace Engine::Graphics
 
 		void setMaterial(std::shared_ptr<Graphics::Material> material) { m_material = material; }
 		std::shared_ptr<Graphics::Material> getMaterial() const { return m_material; }
+		void setMaterialManager(Graphics::MaterialManager* manager) { m_materialManager = manager; }
 
 		//色の設定TODO:（マテリアルに発展する予定）
 		void setColor(const Math::Vector3& color) { m_color = color; }
@@ -58,6 +59,7 @@ namespace Engine::Graphics
 		Math::Vector3 m_color = Math::Vector3(1.0f, 1.0f, 1.0f);
 		bool m_visible = true;
 		bool m_initialized = false;
+		Graphics::MaterialManager* m_materialManager = nullptr;
 
 		//レンダラー
 		std::unique_ptr<TriangleRenderer> m_triangleRenderer;
