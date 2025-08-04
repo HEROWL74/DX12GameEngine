@@ -1,5 +1,6 @@
 //src/UI/ImGuiManager.cpp
 #include "ImGuiManager.hpp"
+#include "ProjectWindow.hpp"  // AssetInfo使用のため追加
 #include <format>
 
 //外部のWin32 メッセージハンドラー
@@ -93,7 +94,7 @@ namespace Engine::UI
 				IID_PPV_ARGS(&fontCommandList)),
 				Utils::ErrorType::ResourceCreation, "Failed to create font command list");
 
-			// フォントアトラスを手動で構築
+			// フォントアトラスを強制で構築
 			unsigned char* pixels;
 			int width, height;
 			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -371,18 +372,19 @@ namespace Engine::UI
 			}
 		}
 	}
+
 	void InspectorWindow::drawRenderComponent(Graphics::RenderComponent* renderComponent)
 	{
 		if (ImGui::CollapsingHeader("Render Component", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			//表示/非表示
+			// 表示/非表示
 			bool visible = renderComponent->isVisible();
 			if (ImGui::Checkbox("Visible", &visible))
 			{
 				renderComponent->setVisible(visible);
 			}
 
-			//レンダラブルタイプ
+			// レンダラブルタイプ
 			const char* types[] = { "Triangle", "Cube" };
 			int currentType = static_cast<int>(renderComponent->getRenderableType());
 			if (ImGui::Combo("Type", &currentType, types, IM_ARRAYSIZE(types)))
@@ -390,13 +392,244 @@ namespace Engine::UI
 				renderComponent->setRenderableType(static_cast<Graphics::RenderableType>(currentType));
 			}
 
-			//TODO 色（追加予定のマテリアルシステム用）
+			// 色（旧式 - 後で削除予定）
 			auto color = renderComponent->getColor();
 			float colorArray[3] = { color.x, color.y, color.z };
 			if (ImGui::ColorEdit3("Color", colorArray))
 			{
 				renderComponent->setColor(Math::Vector3(colorArray[0], colorArray[1], colorArray[2]));
 			}
+
+			// マテリアルエディタ
+			if (m_materialManager)
+			{
+				drawMaterialEditor(renderComponent);
+			}
 		}
+	}
+
+	void InspectorWindow::drawMaterialEditor(Graphics::RenderComponent* renderComponent)
+	{
+		if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			auto currentMaterial = renderComponent->getMaterial();
+
+			// マテリアル選択
+			static char materialNameBuffer[256] = "";
+			if (currentMaterial)
+			{
+				strncpy_s(materialNameBuffer, currentMaterial->getName().c_str(), sizeof(materialNameBuffer));
+			}
+
+			if (ImGui::InputText("Material Name", materialNameBuffer, sizeof(materialNameBuffer)))
+			{
+				// マテリアル名変更時の処理
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Create New"))
+			{
+				std::string newName = materialNameBuffer;
+				if (newName.empty())
+				{
+					newName = "New Material";
+				}
+
+				auto newMaterial = m_materialManager->createMaterial(newName);
+				if (newMaterial)
+				{
+					renderComponent->setMaterial(newMaterial);
+					currentMaterial = newMaterial;
+				}
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Load Default"))
+			{
+				auto defaultMaterial = m_materialManager->getDefaultMaterial();
+				if (defaultMaterial)
+				{
+					renderComponent->setMaterial(defaultMaterial);
+					currentMaterial = defaultMaterial;
+				}
+			}
+
+			// マテリアルプロパティ編集
+			if (currentMaterial)
+			{
+				ImGui::Separator();
+
+				auto properties = currentMaterial->getProperties();
+				bool changed = false;
+
+				// PBRプロパティ
+				if (ImGui::CollapsingHeader("PBR Properties", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					// アルベド
+					float albedo[3] = { properties.albedo.x, properties.albedo.y, properties.albedo.z };
+					if (ImGui::ColorEdit3("Albedo", albedo))
+					{
+						properties.albedo = Math::Vector3(albedo[0], albedo[1], albedo[2]);
+						changed = true;
+					}
+
+					// メタリック
+					if (ImGui::SliderFloat("Metallic", &properties.metallic, 0.0f, 1.0f))
+					{
+						changed = true;
+					}
+
+					// ラフネス
+					if (ImGui::SliderFloat("Roughness", &properties.roughness, 0.0f, 1.0f))
+					{
+						changed = true;
+					}
+
+					// AO
+					if (ImGui::SliderFloat("AO", &properties.ao, 0.0f, 1.0f))
+					{
+						changed = true;
+					}
+
+					// アルファ
+					if (ImGui::SliderFloat("Alpha", &properties.alpha, 0.0f, 1.0f))
+					{
+						changed = true;
+					}
+				}
+
+				// エミッション
+				if (ImGui::CollapsingHeader("Emission"))
+				{
+					float emissive[3] = { properties.emissive.x, properties.emissive.y, properties.emissive.z };
+					if (ImGui::ColorEdit3("Emissive", emissive))
+					{
+						properties.emissive = Math::Vector3(emissive[0], emissive[1], emissive[2]);
+						changed = true;
+					}
+
+					if (ImGui::SliderFloat("Emissive Strength", &properties.emissiveStrength, 0.0f, 5.0f))
+					{
+						changed = true;
+					}
+				}
+
+				// テクスチャスロット
+				if (ImGui::CollapsingHeader("Textures"))
+				{
+					drawTextureSlot("Albedo", Graphics::TextureType::Albedo, currentMaterial);
+					drawTextureSlot("Normal", Graphics::TextureType::Normal, currentMaterial);
+					drawTextureSlot("Metallic", Graphics::TextureType::Metallic, currentMaterial);
+					drawTextureSlot("Roughness", Graphics::TextureType::Roughness, currentMaterial);
+					drawTextureSlot("AO", Graphics::TextureType::AO, currentMaterial);
+					drawTextureSlot("Emissive", Graphics::TextureType::Emissive, currentMaterial);
+					drawTextureSlot("Height", Graphics::TextureType::Height, currentMaterial);
+				}
+
+				// UV設定
+				if (ImGui::CollapsingHeader("UV Settings"))
+				{
+					float uvScale[2] = { properties.uvScale.x, properties.uvScale.y };
+					if (ImGui::DragFloat2("UV Scale", uvScale, 0.01f))
+					{
+						properties.uvScale = Math::Vector2(uvScale[0], uvScale[1]);
+						changed = true;
+					}
+
+					float uvOffset[2] = { properties.uvOffset.x, properties.uvOffset.y };
+					if (ImGui::DragFloat2("UV Offset", uvOffset, 0.01f))
+					{
+						properties.uvOffset = Math::Vector2(uvOffset[0], uvOffset[1]);
+						changed = true;
+					}
+				}
+
+				if (changed)
+				{
+					currentMaterial->setProperties(properties);
+				}
+			}
+		}
+	}
+
+	void InspectorWindow::drawTextureSlot(const char* name, Graphics::TextureType textureType,
+		std::shared_ptr<Graphics::Material> material)
+	{
+		ImGui::PushID(static_cast<int>(textureType));
+
+		auto currentTexture = material->getTexture(textureType);
+
+		ImGui::Text("%s:", name);
+		ImGui::SameLine(100);
+
+		// テクスチャ表示（サムネイル）
+		if (currentTexture)
+		{
+			// テクスチャ名を表示
+			ImGui::Button(currentTexture->getDesc().debugName.c_str(), ImVec2(150, 30));
+
+			// ツールチップでパス情報を表示
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				ImGui::Text("Texture: %s", currentTexture->getDesc().debugName.c_str());
+				ImGui::Text("Size: %dx%d", currentTexture->getWidth(), currentTexture->getHeight());
+				ImGui::EndTooltip();
+			}
+
+			// ドラッグ&ドロップ受け入れ
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+				{
+					const AssetInfo* droppedAsset = static_cast<const AssetInfo*>(payload->Data);
+					if (droppedAsset->type == AssetInfo::Type::Texture && m_textureManager)
+					{
+						auto texture = m_textureManager->loadTexture(droppedAsset->path.string());
+						if (texture)
+						{
+							material->setTexture(textureType, texture);
+							Utils::log_info(std::format("Texture assigned: {} -> {}",
+								droppedAsset->name, name));
+						}
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Clear"))
+			{
+				material->removeTexture(textureType);
+				Utils::log_info(std::format("Texture cleared from slot: {}", name));
+			}
+		}
+		else
+		{
+			// 空のスロット
+			ImGui::Button("Drag texture here", ImVec2(150, 30));
+
+			// ドラッグ&ドロップ受け入れ
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+				{
+					const AssetInfo* droppedAsset = static_cast<const AssetInfo*>(payload->Data);
+					if (droppedAsset->type == AssetInfo::Type::Texture && m_textureManager)
+					{
+						auto texture = m_textureManager->loadTexture(droppedAsset->path.string());
+						if (texture)
+						{
+							material->setTexture(textureType, texture);
+							Utils::log_info(std::format("Texture assigned: {} -> {}",
+								droppedAsset->name, name));
+						}
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+
+		ImGui::PopID();
 	}
 }

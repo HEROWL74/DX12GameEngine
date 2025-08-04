@@ -141,6 +141,9 @@ namespace Engine::Graphics
 		ComPtr<ID3D12DescriptorHeap> m_cbvDescriptorHeap;
 		D3D12_GPU_DESCRIPTOR_HANDLE m_cbvGpuHandle{};
 
+		ComPtr<ID3D12DescriptorHeap> m_srvDescriptorHeap;  // テクスチャ用SRVヒープ
+
+
 		//初期化ヘルパー
 	    [[nodiscard]] Utils::VoidResult createConstantBuffer();
 		[[nodiscard]] Utils::VoidResult createDescriptors();
