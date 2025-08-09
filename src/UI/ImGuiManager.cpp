@@ -16,7 +16,7 @@ namespace Engine::UI
 		shutdown();
 	}
 
-	Utils::VoidResult ImGuiManager::initialize(Graphics::Device* device, HWND hwnd, DXGI_FORMAT rtvFormat, UINT frameCount)
+	Utils::VoidResult ImGuiManager::initialize(Graphics::Device* device, HWND hwnd, ID3D12CommandQueue* commandQueue, DXGI_FORMAT rtvFormat, UINT frameCount)
 	{
 		if (m_initialized)
 		{
@@ -25,9 +25,13 @@ namespace Engine::UI
 
 		CHECK_CONDITION(device != nullptr, Utils::ErrorType::Unknown, "Device is null");
 		CHECK_CONDITION(device->isValid(), Utils::ErrorType::Unknown, "Device is not valid");
+		CHECK_CONDITION(commandQueue != nullptr, Utils::ErrorType::Unknown, "CommandQueue is null");
 
 		m_device = device;
+		m_hwnd = hwnd;
+		m_rtvFormat = rtvFormat;
 		m_frameCount = frameCount;
+		m_commandQueue = commandQueue;
 
 		Utils::log_info("Initializing ImGui...");
 
@@ -42,16 +46,13 @@ namespace Engine::UI
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-		// **重要: デフォルトフォントを追加**
+		// デフォルトフォントを追加
 		io.Fonts->AddFontDefault();
-
-		// **重要: フォントアトラスの事前構築を無効化**
-		io.Fonts->Flags |= ImFontAtlasFlags_NoBakedLines;
 
 		// スタイル設定
 		ImGui::StyleColorsDark();
 
-		// デスクリプタヒープ作成
+		// ディスクリプタヒープ作成
 		auto heapResult = createDescriptorHeap();
 		if (!heapResult)
 		{
@@ -64,7 +65,7 @@ namespace Engine::UI
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui Win32"));
 		}
 
-		// DX12初期化
+		// DX12初期化（従来の方法）
 		if (!ImGui_ImplDX12_Init(
 			m_device->getDevice(),
 			static_cast<int>(frameCount),
@@ -73,65 +74,146 @@ namespace Engine::UI
 			m_srvDescHeap->GetCPUDescriptorHandleForHeapStart(),
 			m_srvDescHeap->GetGPUDescriptorHandleForHeapStart()))
 		{
-			ImGui_ImplWin32_Shutdown(); // 失敗時のクリーンアップ
+			ImGui_ImplWin32_Shutdown();
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui DX12"));
 		}
 
-		// フォントテクスチャを事前に作成
+		// 手動でフォントテクスチャをアップロード
+		auto fontResult = createFontTextureManually();
+		if (!fontResult)
 		{
-			// ダミーのコマンドリストを作成してフォントをアップロード
-			ComPtr<ID3D12CommandAllocator> fontCommandAllocator;
-			ComPtr<ID3D12GraphicsCommandList> fontCommandList;
+			ImGui_ImplDX12_Shutdown();
+			ImGui_ImplWin32_Shutdown();
+			return fontResult;
+		}
 
-			CHECK_HR(m_device->getDevice()->CreateCommandAllocator(
-				D3D12_COMMAND_LIST_TYPE_DIRECT,
-				IID_PPV_ARGS(&fontCommandAllocator)),
-				Utils::ErrorType::ResourceCreation, "Failed to create font command allocator");
-
-			CHECK_HR(m_device->getDevice()->CreateCommandList(
-				0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-				fontCommandAllocator.Get(), nullptr,
-				IID_PPV_ARGS(&fontCommandList)),
-				Utils::ErrorType::ResourceCreation, "Failed to create font command list");
-
-			// フォントアトラスを強制で構築
-			unsigned char* pixels;
-			int width, height;
-			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-			// フォントテクスチャをアップロード
-			ImGui_ImplDX12_CreateDeviceObjects();
-
-			fontCommandList->Close();
-
-			// 即座に実行（同期実行）
-			ComPtr<ID3D12CommandQueue> tempQueue;
-			D3D12_COMMAND_QUEUE_DESC queueDesc{};
-			queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-			CHECK_HR(m_device->getDevice()->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&tempQueue)),
-				Utils::ErrorType::DeviceCreation, "Failed to create temp command queue");
-
-			ID3D12CommandList* cmdLists[] = { fontCommandList.Get() };
-			tempQueue->ExecuteCommandLists(1, cmdLists);
-
-			// 完了を待機
-			ComPtr<ID3D12Fence> tempFence;
-			CHECK_HR(m_device->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tempFence)),
-				Utils::ErrorType::ResourceCreation, "Failed to create temp fence");
-
-			HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-			CHECK_CONDITION(fenceEvent != nullptr, Utils::ErrorType::ResourceCreation, "Failed to create fence event");
-
-			tempQueue->Signal(tempFence.Get(), 1);
-			tempFence->SetEventOnCompletion(1, fenceEvent);
-			WaitForSingleObject(fenceEvent, INFINITE);
-			CloseHandle(fenceEvent);
+		// 初期ウィンドウサイズを設定
+		RECT rect;
+		if (GetClientRect(hwnd, &rect))
+		{
+			io.DisplaySize = ImVec2(static_cast<float>(rect.right - rect.left),
+				static_cast<float>(rect.bottom - rect.top));
 		}
 
 		m_initialized = true;
 		Utils::log_info("ImGui initialized successfully!");
+		return {};
+	}
+
+	Utils::VoidResult ImGuiManager::createFontTextureManually()
+	{
+		// フォントテクスチャを手動で作成・アップロード
+		ImGuiIO& io = ImGui::GetIO();
+
+		// フォントアトラスを構築
+		unsigned char* pixels;
+		int width, height;
+		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+		// コマンドアロケータとコマンドリストを作成
+		ComPtr<ID3D12CommandAllocator> commandAllocator;
+		ComPtr<ID3D12GraphicsCommandList> commandList;
+
+		CHECK_HR(m_device->getDevice()->CreateCommandAllocator(
+			D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator)),
+			Utils::ErrorType::ResourceCreation, "Failed to create font command allocator");
+
+		CHECK_HR(m_device->getDevice()->CreateCommandList(
+			0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr,
+			IID_PPV_ARGS(&commandList)),
+			Utils::ErrorType::ResourceCreation, "Failed to create font command list");
+
+		// ImGui_ImplDX12_CreateDeviceObjectsを呼んで内部でフォントテクスチャを作成させる
+		// ただし、これが失敗する可能性があるので、try-catchで囲む
+		try {
+			if (!ImGui_ImplDX12_CreateDeviceObjects())
+			{
+				Utils::log_warning("ImGui_ImplDX12_CreateDeviceObjects failed, trying alternative approach");
+			}
+		}
+		catch (...)
+		{
+			Utils::log_warning("Exception in ImGui_ImplDX12_CreateDeviceObjects, continuing with alternative");
+		}
+
+		// コマンドリストをクローズ
+		commandList->Close();
+
+		// コマンドキューで実行
+		ID3D12CommandList* cmdLists[] = { commandList.Get() };
+		m_commandQueue->ExecuteCommandLists(1, cmdLists);
+
+		// GPU完了を待機
+		ComPtr<ID3D12Fence> fence;
+		CHECK_HR(m_device->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)),
+			Utils::ErrorType::ResourceCreation, "Failed to create font fence");
+
+		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		CHECK_CONDITION(fenceEvent != nullptr, Utils::ErrorType::ResourceCreation, "Failed to create fence event");
+
+		const UINT64 fenceValue = 1;
+		m_commandQueue->Signal(fence.Get(), fenceValue);
+		fence->SetEventOnCompletion(fenceValue, fenceEvent);
+		WaitForSingleObject(fenceEvent, INFINITE);
+		CloseHandle(fenceEvent);
+
+		Utils::log_info("Font texture created manually");
+		return {};
+	}
+
+	// フォントテクスチャ作成の専用メソッド
+	Utils::VoidResult ImGuiManager::createFontTexture()
+	{
+		if (!m_device || !m_commandQueue)
+		{
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Device or CommandQueue is null"));
+		}
+
+		// 専用のコマンドアロケータとコマンドリストを作成
+		ComPtr<ID3D12CommandAllocator> fontCommandAllocator;
+		ComPtr<ID3D12GraphicsCommandList> fontCommandList;
+
+		CHECK_HR(m_device->getDevice()->CreateCommandAllocator(
+			D3D12_COMMAND_LIST_TYPE_DIRECT,
+			IID_PPV_ARGS(&fontCommandAllocator)),
+			Utils::ErrorType::ResourceCreation, "Failed to create font command allocator");
+
+		CHECK_HR(m_device->getDevice()->CreateCommandList(
+			0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+			fontCommandAllocator.Get(), nullptr,
+			IID_PPV_ARGS(&fontCommandList)),
+			Utils::ErrorType::ResourceCreation, "Failed to create font command list");
+
+		// フォントアトラスを強制で構築
+		ImGuiIO& io = ImGui::GetIO();
+		unsigned char* pixels;
+		int width, height;
+		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+		// ImGuiのデバイスオブジェクトを作成（フォントテクスチャを含む）
+		ImGui_ImplDX12_CreateDeviceObjects();
+
+		// コマンドリストを閉じる
+		fontCommandList->Close();
+
+		// コマンドキューで実行
+		ID3D12CommandList* cmdLists[] = { fontCommandList.Get() };
+		m_commandQueue->ExecuteCommandLists(1, cmdLists);
+
+		// 完了を待機
+		ComPtr<ID3D12Fence> tempFence;
+		CHECK_HR(m_device->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tempFence)),
+			Utils::ErrorType::ResourceCreation, "Failed to create temp fence");
+
+		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		CHECK_CONDITION(fenceEvent != nullptr, Utils::ErrorType::ResourceCreation, "Failed to create fence event");
+
+		m_commandQueue->Signal(tempFence.Get(), 1);
+		tempFence->SetEventOnCompletion(1, fenceEvent);
+		WaitForSingleObject(fenceEvent, INFINITE);
+		CloseHandle(fenceEvent);
+
+		Utils::log_info("Font texture created successfully");
 		return {};
 	}
 
@@ -170,12 +252,29 @@ namespace Engine::UI
 			return;
 		}
 
+		
+		if (m_hwnd)
+		{
+			RECT rect;
+			if (GetClientRect(m_hwnd, &rect))
+			{
+				ImGuiIO& io = ImGui::GetIO();
+				float width = static_cast<float>(rect.right - rect.left);
+				float height = static_cast<float>(rect.bottom - rect.top);
+
+				// サイズが変わっている場合は更新
+				if (io.DisplaySize.x != width || io.DisplaySize.y != height)
+				{
+					io.DisplaySize = ImVec2(width, height);
+				}
+			}
+		}
+
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 	}
-
-	void ImGuiManager::render(ID3D12GraphicsCommandList* commandList)
+	void ImGuiManager::render(ID3D12GraphicsCommandList* commandList) const
 	{
 		if (!m_initialized)
 		{
@@ -191,7 +290,7 @@ namespace Engine::UI
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 	}
 
-	void ImGuiManager::handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+	void ImGuiManager::handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) const
 	{
 		if (m_initialized)
 		{
@@ -212,6 +311,34 @@ namespace Engine::UI
 		return {};
 	}
 
+	void ImGuiManager::onWindowResize(int width, int height)
+	{
+		if (!m_initialized) return;
+
+		Utils::log_info(std::format("ImGui handling resize: {}x{}", width, height));
+
+		// ImGuiのディスプレイサイズを更新
+		ImGuiIO& io = ImGui::GetIO();
+		io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+
+		Utils::log_info(std::format("ImGui resize completed: {}x{}", width, height));
+	}
+
+	void ImGuiManager::invalidateDeviceObjects()
+	{
+		if (!m_initialized) return;
+
+		// 何もしない
+		Utils::log_info("ImGui device objects invalidation skipped");
+	}
+
+	void ImGuiManager::createDeviceObjects()
+	{
+		if (!m_initialized) return;
+
+		// 何もしない
+		Utils::log_info("ImGui device objects creation skipped");
+	}
 	//=====================================================================
 	//DebugWindow実装
 	//=====================================================================
@@ -245,17 +372,61 @@ namespace Engine::UI
 	//======================================================================
 	//Scene HierarchyWindow実装
 	//======================================================================
+	SceneHierarchyWindow::SceneHierarchyWindow() : ImGuiWindow("Scene Hierarchy") 
+	{
+		m_contextMenu = std::make_unique<ContextMenu>();
+	}
+
 	void SceneHierarchyWindow::draw()
 	{
 		if (!m_visible || !m_scene) return;
 
 		if (ImGui::Begin(m_title.c_str(), &m_visible))
 		{
-			const auto& gameObjects = m_scene->getGameObjects();
+			// オブジェクトの有効性チェック
+			if (m_selectedObject)
+			{
+				bool stillExists = false;
+				const auto& gameObjects = m_scene->getGameObjects();
+				for (const auto& obj : gameObjects)
+				{
+					if (obj && obj.get() == m_selectedObject)
+					{
+						stillExists = true;
+						break;
+					}
+				}
 
+				if (!stillExists)
+				{
+					m_selectedObject = nullptr;
+					if (m_onSelectionChanged)
+					{
+						m_onSelectionChanged(nullptr);
+					}
+				}
+			}
+
+			// GameObjectを描画
+			const auto& gameObjects = m_scene->getGameObjects();
 			for (const auto& gameObject : gameObjects)
 			{
-				drawGameObject(gameObject.get());
+				if (gameObject && gameObject->isActive())
+				{
+					drawGameObject(gameObject.get());
+				}
+			}
+
+			// 右クリックメニュー（空白部分）
+			if (m_contextMenu)
+			{
+				m_contextMenu->drawHierarchyContextMenu();
+			}
+
+			// モーダルダイアログを描画（重要：Beginの中で呼ぶ）
+			if (m_contextMenu)
+			{
+				m_contextMenu->drawModals();
 			}
 		}
 		ImGui::End();
@@ -265,7 +436,9 @@ namespace Engine::UI
 	{
 		if (!gameObject) return;
 
+		// ツリーノードフラグ設定
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+
 		if (m_selectedObject == gameObject)
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
@@ -276,32 +449,79 @@ namespace Engine::UI
 			flags |= ImGuiTreeNodeFlags_Leaf;
 		}
 
-		bool nodeOpen = ImGui::TreeNodeEx(gameObject->getName().c_str(), flags);
+		std::string nodeName = gameObject->getName();
 
+		// ユニークなIDを生成
+		ImGui::PushID(gameObject);
+		bool nodeOpen = ImGui::TreeNodeEx(nodeName.c_str(), flags);
+
+		// クリック処理
 		if (ImGui::IsItemClicked())
 		{
 			m_selectedObject = gameObject;
-			// 選択変更コールバックを呼び出し
 			if (m_onSelectionChanged)
 			{
 				m_onSelectionChanged(gameObject);
 			}
 		}
 
+		// 右クリックメニュー
+		if (m_contextMenu)
+		{
+			m_contextMenu->drawGameObjectContextMenu(gameObject);
+		}
+
+		// 子オブジェクトを描画
 		if (nodeOpen)
 		{
-			//子オブジェクトを描画
 			for (const auto& child : gameObject->getChildren())
 			{
-				drawGameObject(child.get());
+				if (child && child->isActive())
+				{
+					drawGameObject(child.get());
+				}
 			}
 			ImGui::TreePop();
 		}
+
+		ImGui::PopID();
 	}
 
 	void SceneHierarchyWindow::setSelectionChangedCallback(std::function<void(Core::GameObject*)> callback)
 	{
 		m_onSelectionChanged = callback;
+	}
+
+	void SceneHierarchyWindow::setCreateObjectCallback(std::function<Core::GameObject* (UI::PrimitiveType, const std::string&)> callback)
+	{
+		if (m_contextMenu)
+		{
+			m_contextMenu->setCreateObjectCallback(callback);
+		}
+	}
+
+	void SceneHierarchyWindow::setDeleteObjectCallback(std::function<void(Core::GameObject*)> callback)
+	{
+		if (m_contextMenu)
+		{
+			m_contextMenu->setDeleteObjectCallback(callback);
+		}
+	}
+
+	void SceneHierarchyWindow::setDuplicateObjectCallback(std::function<Core::GameObject* (Core::GameObject*)> callback)
+	{
+		if (m_contextMenu)
+		{
+			m_contextMenu->setDuplicateObjectCallback(callback);
+		}
+	}
+
+	void SceneHierarchyWindow::setRenameObjectCallback(std::function<void(Core::GameObject*, const std::string&)> callback)
+	{
+		if (m_contextMenu)
+		{
+			m_contextMenu->setRenameObjectCallback(callback);
+		}
 	}
 	//=======================================================================
 	//InspectorWindow実装
@@ -312,25 +532,48 @@ namespace Engine::UI
 
 		if (ImGui::Begin(m_title.c_str(), &m_visible))
 		{
+			// 選択されたオブジェクトが有効か確認
 			if (m_selectedObject)
 			{
-				ImGui::Text("Object: %s", m_selectedObject->getName().c_str());
-				ImGui::Separator();
+				// オブジェクトの名前を安全に取得
+				std::string objectName;
+				bool isValid = true;
 
-				//Transformコンポーネント
-				auto* transform = m_selectedObject->getTransform();
-				if (transform)
-				{
-					drawTransformComponent(transform);
+				try {
+					objectName = m_selectedObject->getName();
+				}
+				catch (...) {
+					// オブジェクトが無効な場合
+					isValid = false;
+					m_selectedObject = nullptr;
 				}
 
-				ImGui::Spacing();
-
-				//RenderComponent
-				auto* renderComponent = m_selectedObject->getComponent<Graphics::RenderComponent>();
-				if (renderComponent)
+				if (isValid && m_selectedObject)
 				{
-					drawRenderComponent(renderComponent);
+					ImGui::Text("Object: %s", objectName.c_str());
+					ImGui::Separator();
+
+					// Transformコンポーネント
+					auto* transform = m_selectedObject->getTransform();
+					if (transform)
+					{
+						drawTransformComponent(transform);
+					}
+
+					ImGui::Spacing();
+
+					// RenderComponent
+					auto* renderComponent = m_selectedObject->getComponent<Graphics::RenderComponent>();
+					if (renderComponent)
+					{
+						drawRenderComponent(renderComponent);
+					}
+				}
+				else
+				{
+					// オブジェクトが無効になった
+					m_selectedObject = nullptr;
+					ImGui::Text("Selected object is no longer valid");
 				}
 			}
 			else

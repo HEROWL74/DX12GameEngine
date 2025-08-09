@@ -130,6 +130,9 @@
     <ClInclude Include="src\UI\ProjectWindow.hpp">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClInclude>
+    <ClInclude Include="src\UI\ContextMenu.hpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -202,6 +205,9 @@
       <Filter>ソース ファイル\src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\UI\ProjectWindow.cpp">
+      <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\ContextMenu.cpp">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClCompile>
   </ItemGroup>

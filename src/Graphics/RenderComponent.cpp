@@ -155,43 +155,42 @@ namespace Engine::Graphics
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null in RenderComponent"));
 		}
 
-		std::expected<void, Utils::Error> result;
-
-		// 新しいレンダラーを作成・初期化
+		// レンダラータイプに応じて作成
 		switch (m_renderableType)
 		{
 		case RenderableType::Triangle:
-			m_triangleRenderer = std::make_unique<TriangleRenderer>();
-			if (!m_triangleRenderer) {
-				result = std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to create TriangleRenderer"));
-				break;
+		{
+			m_triangleRenderer.reset(new TriangleRenderer());
+			auto result = m_triangleRenderer->initialize(m_device, m_shaderManager);
+			if (!result) {
+				m_triangleRenderer.reset();
+				return result;
 			}
-			Utils::log_info("Created TriangleRenderer, calling initialize with valid ShaderManager");
-			result = m_triangleRenderer->initialize(m_device, m_shaderManager);
-			if (result && m_materialManager) {
+			if (m_materialManager) {
 				m_triangleRenderer->setMaterialManager(m_materialManager);
 			}
-			break;
+		}
+		break;
 
 		case RenderableType::Cube:
-			m_cubeRenderer = std::make_unique<CubeRenderer>();
-			if (!m_cubeRenderer) {
-				result = std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to create CubeRenderer"));
-				break;
+		{
+			m_cubeRenderer.reset(new CubeRenderer());
+			auto result = m_cubeRenderer->initialize(m_device, m_shaderManager);
+			if (!result) {
+				m_cubeRenderer.reset();
+				return result;
 			}
-			Utils::log_info("Created CubeRenderer, calling initialize with valid ShaderManager");
-			result = m_cubeRenderer->initialize(m_device, m_shaderManager);
-			if (result && m_materialManager) {
+			if (m_materialManager) {
 				m_cubeRenderer->setMaterialManager(m_materialManager);
 			}
-			break;
+		}
+		break;
 
 		default:
-			result = std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Unknown renderable type"));
-			break;
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Unknown renderable type"));
 		}
 
-		return result;
+		return {};
 	}
 
 	//==========================================================================================
@@ -217,16 +216,40 @@ namespace Engine::Graphics
 
 	void Scene::destroyGameObject(Core::GameObject* gameObject)
 	{
-		auto it = std::find_if(m_gameObjects.begin(), m_gameObjects.end(),
-			[gameObject](const std::unique_ptr<Core::GameObject>& ptr) {
-				return ptr.get() == gameObject;
-			});
-
-		if (it != m_gameObjects.end())
+		if (!gameObject)
 		{
-			(*it)->destroy();
-			m_gameObjects.erase(it);
+			Utils::log_warning("Attempted to destroy null GameObject");
+			return;
 		}
+
+		// オブジェクト名を保存
+		std::string objectName = gameObject->getName();
+
+		// イテレータで検索
+		auto it = m_gameObjects.begin();
+		while (it != m_gameObjects.end())
+		{
+			if (it->get() == gameObject)
+			{
+				// オブジェクトを非アクティブ化
+				(*it)->setActive(false);
+
+				// 破棄処理を実行
+				(*it)->destroy();
+
+				// vectorから削除
+				it = m_gameObjects.erase(it);
+
+				Utils::log_info(std::format("GameObject '{}' destroyed successfully", objectName));
+				return;
+			}
+			else
+			{
+				++it;
+			}
+		}
+
+		Utils::log_warning(std::format("GameObject '{}' not found in scene", objectName));
 	}
 
 	Core::GameObject* Scene::findGameObject(const std::string& name) const

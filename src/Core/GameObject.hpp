@@ -173,20 +173,21 @@ namespace Engine::Core
 
 		std::type_index typeIndex(typeid(T));
 
-		//既に存在する場合は追加しない
-		if (hasComponent(typeIndex))
+		// 既に存在する場合は既存のものを返す
+		auto it = m_components.find(typeIndex);
+		if (it != m_components.end())
 		{
-			return static_cast<T*>(m_components[typeIndex].get());
+			return static_cast<T*>(it->second.get());
 		}
 
-		auto component = std::make_unique<T>(std::forward<Args>(args)...);
-		T* componentPtr = component.get();
+		// 新しいコンポーネントを作成
+		T* rawPtr = new T(std::forward<Args>(args)...);
+		rawPtr->m_gameObject = this;
 
-		component->m_gameObject = this;
-		m_components[typeIndex] = std::move(component);
+		// unique_ptrに格納
+		m_components[typeIndex] = std::unique_ptr<Component>(rawPtr);
 
-		return componentPtr;
-
+		return rawPtr;
 	}
 
 	template<typename T>

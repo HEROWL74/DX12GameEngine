@@ -12,6 +12,7 @@
 #include "../Graphics/RenderComponent.hpp"
 #include "../Graphics/Material.hpp"
 #include "../Graphics/Texture.hpp"
+#include "ContextMenu.hpp"
 
 //ImGui includes
 #include "imgui.h"
@@ -41,9 +42,12 @@ namespace Engine::UI
 		[[nodiscard]] Utils::VoidResult initialize(
 			Graphics::Device* device,
 			HWND hwnd,
+			ID3D12CommandQueue* commandQueue,  // コマンドキューを3番目に移動
 			DXGI_FORMAT rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM,
 			UINT frameCount = 2
 		);
+
+		Utils::VoidResult createFontTextureManually();
 
 		//終了処理
 		void shutdown();
@@ -52,10 +56,13 @@ namespace Engine::UI
 		void newFrame();
 
 		//描画
-		void render(ID3D12GraphicsCommandList* commandList);
+		void render(ID3D12GraphicsCommandList* commandList) const;
 
 		//Win32メッセージ処理
-		void handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+		void handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) const;
+
+		// リサイズ処理（改善版）
+		void onWindowResize(int width, int height);
 
 		//有効性のチェック
 		[[nodiscard]] bool isInitialized() const { return m_initialized; }
@@ -63,19 +70,28 @@ namespace Engine::UI
 		//ImGuiコンテキスト取得
 		ImGuiContext* getContext() const { return m_context; }
 
+		// リサイズ完了通知（新しく追加）
+		void invalidateDeviceObjects();
+		void createDeviceObjects();
+
 	private:
 		bool m_initialized = false;
 		ImGuiContext* m_context = nullptr;
 		Graphics::Device* m_device = nullptr;
+		HWND m_hwnd = nullptr;
+		DXGI_FORMAT m_rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		//DX12用のディスクリプタヒープ
 		ComPtr<ID3D12DescriptorHeap> m_srvDescHeap;
+		ID3D12CommandQueue* m_commandQueue = nullptr;  // コマンドキューへの参照
 		UINT m_frameCount = 2;
 
 		//初期化ヘルパー
 		[[nodiscard]] Utils::VoidResult createDescriptorHeap();
+		[[nodiscard]] Utils::VoidResult createFontTexture();  // フォント作成専用メソッド
 	};
 
+	// 以下は既存のクラス定義をそのまま維持
 	//======================================================================
 	//ImGuiウィンドウの基底クラス
 	//======================================================================
@@ -130,11 +146,11 @@ namespace Engine::UI
 	class SceneHierarchyWindow : public ImGuiWindow
 	{
 	public:
-		SceneHierarchyWindow() : ImGuiWindow("Scene Hierarchy") {}
+		SceneHierarchyWindow();
 
 		void draw() override;
 
-		//シーンの設定
+		// シーンの設定
 		void setScene(Graphics::Scene* scene) { m_scene = scene; }
 
 		// 選択機能
@@ -144,11 +160,18 @@ namespace Engine::UI
 		// 選択変更コールバック
 		void setSelectionChangedCallback(std::function<void(Core::GameObject*)> callback);
 
+		// コンテキストメニューコールバック
+		void setCreateObjectCallback(std::function<Core::GameObject* (UI::PrimitiveType, const std::string&)> callback);
+		void setDeleteObjectCallback(std::function<void(Core::GameObject*)> callback);
+		void setDuplicateObjectCallback(std::function<Core::GameObject* (Core::GameObject*)> callback);
+		void setRenameObjectCallback(std::function<void(Core::GameObject*, const std::string&)> callback);
+
 	private:
 		Graphics::Scene* m_scene = nullptr;
 		Core::GameObject* m_selectedObject = nullptr;
 		std::function<void(Core::GameObject*)> m_onSelectionChanged;
 
+		std::unique_ptr<ContextMenu> m_contextMenu;
 		void drawGameObject(Core::GameObject* gameObject);
 	};
 
@@ -168,6 +191,7 @@ namespace Engine::UI
 		// マテリアル・テクスチャ管理設定
 		void setMaterialManager(Graphics::MaterialManager* manager) { m_materialManager = manager; }
 		void setTextureManager(Graphics::TextureManager* manager) { m_textureManager = manager; }
+		Core::GameObject* getSelectedObject() const { return m_selectedObject; }
 
 	private:
 		Core::GameObject* m_selectedObject = nullptr;
@@ -182,6 +206,4 @@ namespace Engine::UI
 		void drawTextureSlot(const char* name, Graphics::TextureType textureType,
 			std::shared_ptr<Graphics::Material> material);
 	};
-
-
 }
