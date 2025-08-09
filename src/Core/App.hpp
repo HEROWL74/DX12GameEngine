@@ -7,7 +7,7 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <chrono>
-
+#include <mutex>
 #include "Window.hpp"
 #include "../Graphics/Device.hpp"
 #include "../Graphics/Camera.hpp"
@@ -18,6 +18,7 @@
 #include "../Graphics/MaterialSerialization.hpp"
 #include "../Graphics/ShaderManager.hpp"
 #include "../UI/ProjectWindow.hpp"
+#include "../UI/ContextMenu.hpp"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -78,6 +79,8 @@ namespace Engine::Core
         // 描画関係
         UINT m_frameIndex = 0;              // 現在のフレームインデックス
 
+        bool m_isResizing = false;
+        std::mutex m_resizeMutex;
         // 時間管理
         std::chrono::high_resolution_clock::time_point m_lastFrameTime{};
         float m_deltaTime = 0.0f;
@@ -95,7 +98,17 @@ namespace Engine::Core
         //マテリアル関係
         Graphics::MaterialManager m_materialManager;
         Graphics::TextureManager m_textureManager;
-        std::unique_ptr<Graphics::ShaderManager> m_shaderManager;  // unique_ptrに変更
+        std::unique_ptr<Graphics::ShaderManager> m_shaderManager;
+        
+        //コンテキストメニュー関係
+        Core::GameObject* createPrimitiveObject(UI::PrimitiveType type, const std::string& name);
+        void deleteGameObject(Core::GameObject* object);
+        Core::GameObject* duplicateGameObject(Core::GameObject* original);
+        void renameGameObject(Core::GameObject* object, const std::string& newName);
+        Graphics::RenderableType primitiveToRenderableType(UI::PrimitiveType type);
+        UI::PrimitiveType renderableToPrimitiveType(Graphics::RenderableType renderType);
+        std::string generateUniqueName(const std::string& baseName);
+        // unique_ptrに変更
      
 
         // 初期化処理

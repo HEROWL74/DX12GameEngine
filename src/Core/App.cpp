@@ -107,7 +107,7 @@ namespace Engine::Core
         if (!syncResult) return syncResult;
 
         // ImGui初期化
-        auto imguiResult = m_imguiManager.initialize(&m_device, m_window.getHandle());
+        auto imguiResult = m_imguiManager.initialize(&m_device, m_window.getHandle(), m_commandQueue.Get());
         if (!imguiResult) return imguiResult;
 
         m_window.setImGuiManager(&m_imguiManager);
@@ -250,6 +250,25 @@ namespace Engine::Core
             m_inspectorWindow->setSelectedObject(selectedObject);
             });
 
+        //コンテキストメニューのコールバック設定
+        m_hierarchyWindow->setCreateObjectCallback([this](UI::PrimitiveType type, const std::string& name) -> Core::GameObject* {
+            return createPrimitiveObject(type, name);
+            });
+
+        m_hierarchyWindow->setDeleteObjectCallback([this](Core::GameObject* object) {
+            deleteGameObject(object);
+            });
+
+        // Duplicateコールバックを追加
+        m_hierarchyWindow->setDuplicateObjectCallback([this](Core::GameObject* object) -> Core::GameObject* {
+            return duplicateGameObject(object);
+            });
+
+        // Renameコールバックを追加
+        m_hierarchyWindow->setRenameObjectCallback([this](Core::GameObject* object, const std::string& newName) {
+            renameGameObject(object, newName);
+            });
+
         m_inspectorWindow->setMaterialManager(&m_materialManager);
         m_inspectorWindow->setTextureManager(&m_textureManager);
 
@@ -258,6 +277,7 @@ namespace Engine::Core
         Utils::log_info("DirectX 12 initialization completed successfully!");
         return {};
     }
+
     Utils::VoidResult App::initializeInput()
     {
         Utils::log_info("Initializing input system...");
@@ -270,7 +290,7 @@ namespace Engine::Core
 
         // マウスを相対モードに設定（FPSスタイル）
         #ifdef _DEBUG
-        inputManager->setRelativeMouseMode(true);
+        inputManager->setRelativeMouseMode(false);
         #else
         inputManager->setRelativeMouseMode(true);
         #endif
@@ -514,15 +534,31 @@ namespace Engine::Core
 
     void App::render()
     {
+        // リサイズ中はレンダリングをスキップ
+        {
+            std::lock_guard<std::mutex> lock(m_resizeMutex);
+            if (m_isResizing)
+            {
+                return;
+            }
+        }
+
+        // レンダーターゲットの有効性をチェック
+        if (!m_renderTargets[m_frameIndex] || !m_commandList || !m_swapChain)
+        {
+            Utils::log_warning("Render resources not ready, skipping frame");
+            return;
+        }
+
         // コマンドリストの記録開始
         m_commandAllocator->Reset();
         m_commandList->Reset(m_commandAllocator.Get(), nullptr);
 
+        // ImGui新フレーム
         m_imguiManager.newFrame();
         m_debugWindow->draw();
         m_hierarchyWindow->draw();
         m_inspectorWindow->draw();
-        //m_materialEditor->draw();
         m_projectWindow->draw();
 
         // リソースバリア: バックバッファをレンダーターゲット状態に変更
@@ -548,12 +584,20 @@ namespace Engine::Core
 
         // 画面クリア（濃い青色で塗りつぶし）
         const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-        m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
+        // レンダーターゲットの有効性を再度チェック
+        if (m_renderTargets[m_frameIndex])
+        {
+            m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+        }
 
         // 深度バッファもクリア
-        m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+        if (m_depthStencilBuffer)
+        {
+            m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+        }
 
-        // ビューポートとシザー矩形を設定
+        // ビューポートとシザー矩形を動的に設定（リサイズ対応）
         const auto [clientWidth, clientHeight] = m_window.getClientSize();
         D3D12_VIEWPORT viewport{};
         viewport.TopLeftX = 0.0f;
@@ -572,11 +616,10 @@ namespace Engine::Core
         m_commandList->RSSetViewports(1, &viewport);
         m_commandList->RSSetScissorRects(1, &scissorRect);
 
-        
-        //シーンのレンダリング
+        // シーンのレンダリング
         m_scene.render(m_commandList.Get(), m_camera, m_frameIndex);
 
-        //ImGui描画
+        // ImGui描画
         m_imguiManager.render(m_commandList.Get());
 
         // リソースバリア: バックバッファを表示状態に戻す
@@ -593,7 +636,12 @@ namespace Engine::Core
         m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
         // 画面に表示
-        m_swapChain->Present(1, 0);
+        HRESULT hr = m_swapChain->Present(1, 0);
+        if (FAILED(hr))
+        {
+            Utils::log_warning("Present failed, possibly due to resize");
+            return;
+        }
 
         // フレーム完了待ち
         waitForPreviousFrame();
@@ -634,35 +682,66 @@ namespace Engine::Core
             return;
         }
 
-        // WASDキーでカメラ移動
-        bool forward = inputManager->isKeyDown(Input::KeyCode::W);
-        bool backward = inputManager->isKeyDown(Input::KeyCode::S);
-        bool left = inputManager->isKeyDown(Input::KeyCode::A);
-        bool right = inputManager->isKeyDown(Input::KeyCode::D);
-        bool up = inputManager->isKeyDown(Input::KeyCode::Space);
-        bool down = inputManager->isKeyDown(Input::KeyCode::LeftShift);
+        // ImGuiが入力をキャプチャしている場合は、ゲーム入力を処理しない
+        ImGuiIO& io = ImGui::GetIO();
 
-        // カメラコントローラーに移動情報を渡す
-        m_cameraController->processKeyboard(forward, backward, left, right, up, down, m_deltaTime);
-
-        // マウスによる視点変更
-        if (inputManager->getMouseState().isRelativeMode)
+        // キーボード入力がImGuiにキャプチャされている場合はスキップ
+        if (!io.WantCaptureKeyboard)
         {
-            int deltaX = inputManager->getMouseDeltaX();
-            int deltaY = inputManager->getMouseDeltaY();
-            m_cameraController->processMouseMovement(static_cast<float>(deltaX), static_cast<float>(deltaY));
+            // WASDキーでカメラ移動
+            bool forward = inputManager->isKeyDown(Input::KeyCode::W);
+            bool backward = inputManager->isKeyDown(Input::KeyCode::S);
+            bool left = inputManager->isKeyDown(Input::KeyCode::A);
+            bool right = inputManager->isKeyDown(Input::KeyCode::D);
+            bool up = inputManager->isKeyDown(Input::KeyCode::Space);
+            bool down = inputManager->isKeyDown(Input::KeyCode::LeftShift);
+
+            // カメラコントローラーに移動情報を渡す
+            m_cameraController->processKeyboard(forward, backward, left, right, up, down, m_deltaTime);
+        }
+
+        // マウス入力がImGuiにキャプチャされている場合はスキップ
+        if (!io.WantCaptureMouse)
+        {
+            // マウスによる視点変更
+            if (inputManager->getMouseState().isRelativeMode)
+            {
+                int deltaX = inputManager->getMouseDeltaX();
+                int deltaY = inputManager->getMouseDeltaY();
+                m_cameraController->processMouseMovement(static_cast<float>(deltaX), static_cast<float>(deltaY));
+            }
         }
     }
 
     void App::waitForPreviousFrame()
     {
+        // 必要なオブジェクトが初期化されているかチェック
+        if (!m_commandQueue || !m_fence || !m_fenceEvent)
+        {
+            Utils::log_warning("DirectX objects not initialized in waitForPreviousFrame");
+            return;
+        }
+
         const UINT64 fence = m_fenceValue;
-        m_commandQueue->Signal(m_fence.Get(), fence);
+        HRESULT hr = m_commandQueue->Signal(m_fence.Get(), fence);
+        if (FAILED(hr))
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+                "Failed to signal fence", hr));
+            return;
+        }
+
         m_fenceValue++;
 
         if (m_fence->GetCompletedValue() < fence)
         {
-            m_fence->SetEventOnCompletion(fence, m_fenceEvent);
+            hr = m_fence->SetEventOnCompletion(fence, m_fenceEvent);
+            if (FAILED(hr))
+            {
+                Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+                    "Failed to set fence event", hr));
+                return;
+            }
             WaitForSingleObject(m_fenceEvent, INFINITE);
         }
 
@@ -688,15 +767,110 @@ namespace Engine::Core
     {
         Utils::log_info(std::format("Window resized: {}x{}", width, height));
 
-        // カメラのアスペクト比を更新
-        if (height > 0)
+        if (width <= 0 || height <= 0) return;
+
+        // DirectX 12が初期化されていない場合は何もしない
+        if (!m_commandQueue || !m_swapChain || !m_fence)
         {
-            m_camera.updateAspect(static_cast<float>(width) / height);
+            Utils::log_info("DirectX 12 not initialized yet, skipping resize");
+            if (height > 0)
+            {
+                m_camera.updateAspect(static_cast<float>(width) / height);
+            }
+            return;
         }
 
-        // TODO: スワップチェーンのリサイズ処理を実装
-        // 現在は何もしない
+        // リサイズフラグを設定してレンダリングを停止
+        {
+            std::lock_guard<std::mutex> lock(m_resizeMutex);
+            m_isResizing = true;
+        }
+
+        try
+        {
+            // GPU処理完了を待機
+            waitForPreviousFrame();
+
+            // 既存リソースをリセット
+            for (UINT i = 0; i < 2; i++)
+            {
+                m_renderTargets[i].Reset();
+            }
+            m_depthStencilBuffer.Reset();
+
+            // スワップチェーンをリサイズ
+            HRESULT hr = m_swapChain->ResizeBuffers(
+                2,                              // バッファ数
+                width,                          // 新しい幅
+                height,                         // 新しい高さ
+                DXGI_FORMAT_R8G8B8A8_UNORM,    // フォーマット
+                0                               // フラグ
+            );
+
+            if (FAILED(hr))
+            {
+                Utils::log_error(Utils::make_error(Utils::ErrorType::SwapChainCreation,
+                    "Failed to resize swap chain", hr));
+
+                // リサイズ失敗でもフラグをクリア
+                {
+                    std::lock_guard<std::mutex> lock(m_resizeMutex);
+                    m_isResizing = false;
+                }
+                return;
+            }
+
+            // レンダーターゲットを再作成
+            auto renderTargetResult = createRenderTargets();
+            if (!renderTargetResult)
+            {
+                Utils::log_error(renderTargetResult.error());
+
+                // リサイズ失敗でもフラグをクリア
+                {
+                    std::lock_guard<std::mutex> lock(m_resizeMutex);
+                    m_isResizing = false;
+                }
+                return;
+            }
+
+            // 深度ステンシルバッファを再作成
+            auto depthStencilResult = createDepthStencilBuffer();
+            if (!depthStencilResult)
+            {
+                Utils::log_error(depthStencilResult.error());
+
+                // リサイズ失敗でもフラグをクリア
+                {
+                    std::lock_guard<std::mutex> lock(m_resizeMutex);
+                    m_isResizing = false;
+                }
+                return;
+            }
+
+            // フレームインデックスを更新
+            m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+            // カメラのアスペクト比を更新
+            m_camera.updateAspect(static_cast<float>(width) / height);
+
+            // ImGuiにリサイズを通知
+            m_imguiManager.onWindowResize(width, height);
+
+            Utils::log_info("Window resize completed successfully");
+        }
+        catch (...)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception during resize"));
+        }
+
+        // リサイズ完了、レンダリング再開
+        {
+            std::lock_guard<std::mutex> lock(m_resizeMutex);
+            m_isResizing = false;
+        }
     }
+
 
     void App::onWindowClose()
     {
@@ -706,6 +880,13 @@ namespace Engine::Core
 
     void App::onKeyPressed(Input::KeyCode key)
     {
+        // ImGuiが入力をキャプチャしている場合はスキップ
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureKeyboard)
+        {
+            return;
+        }
+
         // デバッグ用：キー入力のログ出力
         if (key == Input::KeyCode::Escape)
         {
@@ -743,4 +924,209 @@ namespace Engine::Core
             Utils::log_info(std::format("Left mouse button pressed at ({}, {})", x, y));
         }
     }
+
+    Core::GameObject* App::createPrimitiveObject(UI::PrimitiveType type, const std::string& name)
+    {
+        // 新しいGameObjectを作成
+        auto* newObject = m_scene.createGameObject(name);
+        if (!newObject) return nullptr;
+
+        // デフォルト位置設定
+        Math::Vector3 cameraPos = m_camera.getPosition();
+        Math::Vector3 cameraForward = m_camera.getForward();
+        newObject->getTransform()->setPosition(cameraPos + cameraForward * 3.0f);
+
+        // RenderComponentを追加（コンポーネントは生ポインタで作成）
+        Graphics::RenderableType renderType = primitiveToRenderableType(type);
+        auto* renderComponent = newObject->addComponent<Graphics::RenderComponent>(renderType);
+
+        if (!renderComponent)
+        {
+            m_scene.destroyGameObject(newObject);
+            return nullptr;
+        }
+
+        // マテリアルを作成
+        auto material = m_materialManager.createMaterial(name + "_Material");
+        if (material)
+        {
+            Graphics::MaterialProperties props;
+
+            // タイプ別に色を設定
+            switch (type)
+            {
+            case UI::PrimitiveType::Cube:
+                props.albedo = Math::Vector3(0.8f, 0.8f, 0.8f);
+                break;
+            case UI::PrimitiveType::Sphere:
+                props.albedo = Math::Vector3(1.0f, 0.5f, 0.5f);
+                break;
+            case UI::PrimitiveType::Plane:
+                props.albedo = Math::Vector3(0.5f, 1.0f, 0.5f);
+                break;
+            case UI::PrimitiveType::Cylinder:
+                props.albedo = Math::Vector3(0.5f, 0.5f, 1.0f);
+                break;
+            }
+
+            props.metallic = 0.0f;
+            props.roughness = 0.5f;
+            material->setProperties(props);
+            renderComponent->setMaterial(material);
+        }
+
+        // MaterialManagerを設定
+        renderComponent->setMaterialManager(&m_materialManager);
+
+        // ShaderManagerで初期化
+        if (m_shaderManager)
+        {
+            auto initResult = renderComponent->initialize(&m_device, m_shaderManager.get());
+            if (!initResult)
+            {
+                Utils::log_error(initResult.error());
+                m_scene.destroyGameObject(newObject);
+                return nullptr;
+            }
+        }
+
+        Utils::log_info(std::format("Created new object: {}", name));
+        return newObject;
+    }
+
+    void App::deleteGameObject(Core::GameObject* object)
+    {
+        if (!object)
+        {
+            Utils::log_warning("Attempted to delete null object");
+            return;
+        }
+
+        std::string objectName = object->getName();
+        Utils::log_info(std::format("Starting deletion of object: {}", objectName));
+
+        // まずUIの参照をすべてクリア
+        if (m_inspectorWindow)
+        {
+            if (m_inspectorWindow->getSelectedObject() == object)
+            {
+                m_inspectorWindow->setSelectedObject(nullptr);
+            }
+        }
+
+        if (m_hierarchyWindow)
+        {
+            if (m_hierarchyWindow->getSelectedObject() == object)
+            {
+                m_hierarchyWindow->setSelectedObject(nullptr);
+            }
+        }
+
+        // ImGuiのコンテキストをクリア（重要）
+        //ImGui::SetWindowFocus(nullptr);
+
+        // オブジェクトを削除
+        m_scene.destroyGameObject(object);
+
+        // 削除後にnullptrを設定
+        object = nullptr;
+
+        Utils::log_info(std::format("Successfully deleted object: {}", objectName));
+    }
+
+    Core::GameObject* App::duplicateGameObject(Core::GameObject* original)
+    {
+        if (!original) return nullptr;
+
+        // オリジナルの情報を取得
+        auto* originalRender = original->getComponent<Graphics::RenderComponent>();
+        if (!originalRender) return nullptr;
+
+        // 新しい名前を生成
+        std::string newName = generateUniqueName(original->getName() + "_Copy");
+
+        // プリミティブタイプを使用して新規作成
+        UI::PrimitiveType primitiveType = renderableToPrimitiveType(originalRender->getRenderableType());
+        auto* newObject = createPrimitiveObject(primitiveType, newName);
+
+        if (!newObject) return nullptr;
+
+        // Transformをコピー
+        auto* originalTransform = original->getTransform();
+        auto* newTransform = newObject->getTransform();
+        if (originalTransform && newTransform)
+        {
+            newTransform->setPosition(originalTransform->getPosition() + Math::Vector3(1.0f, 0.0f, 0.0f));
+            newTransform->setRotation(originalTransform->getRotation());
+            newTransform->setScale(originalTransform->getScale());
+        }
+
+        return newObject;
+    }
+
+
+    std::string App::generateUniqueName(const std::string& baseName)
+    {
+        std::string candidateName = baseName;
+        int counter = 1;
+
+        // 同じ名前が存在する限りカウンターを増やす
+        while (m_scene.findGameObject(candidateName) != nullptr)
+        {
+            candidateName = baseName + "_" + std::to_string(counter);
+            counter++;
+
+            // 無限ループ防止
+            if (counter > 1000)
+            {
+                candidateName = baseName + "_" + std::to_string(std::time(nullptr));
+                break;
+            }
+        }
+
+        return candidateName;
+    }
+
+    // リネーム機能（簡易版）
+    void App::renameGameObject(Core::GameObject* object, const std::string& newName)
+    {
+        if (!object) return;
+
+        std::string oldName = object->getName();
+        object->setName(newName);
+
+        Utils::log_info(std::format("Renamed object: {} -> {}", oldName, newName));
+    }
+
+    Graphics::RenderableType App::primitiveToRenderableType(UI::PrimitiveType type)
+    {
+        switch (type)
+        {
+        case UI::PrimitiveType::Cube:
+            return Graphics::RenderableType::Cube;
+        case UI::PrimitiveType::Sphere:
+            // 現在はCubeのみ実装されているため、将来的に追加
+            return Graphics::RenderableType::Cube;
+        case UI::PrimitiveType::Plane:
+            return Graphics::RenderableType::Triangle; // 仮実装
+        case UI::PrimitiveType::Cylinder:
+            return Graphics::RenderableType::Cube; // 仮実装
+        default:
+            return Graphics::RenderableType::Cube;
+        }
+    }
+
+    UI::PrimitiveType App::renderableToPrimitiveType(Graphics::RenderableType renderType)
+    {
+        switch (renderType)
+        {
+        case Graphics::RenderableType::Cube:
+            return UI::PrimitiveType::Cube;
+        case Graphics::RenderableType::Triangle:
+            return UI::PrimitiveType::Plane; // 仮実装
+        default:
+            return UI::PrimitiveType::Cube;
+        }
+    }
 }
+

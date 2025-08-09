@@ -207,13 +207,52 @@ namespace Engine::Core {
 
 	LRESULT Window::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
+		// ImGuiにメッセージを転送（ImGuiが処理する場合はtrueを返す）
 		if (m_imguiManager) {
 			m_imguiManager->handleWindowMessage(hWnd, uMsg, wParam, lParam);
+
+			// ImGuiが入力をキャプチャしている場合は、ゲーム入力を処理しない
+			ImGuiIO& io = ImGui::GetIO();
+
+			// キーボードメッセージ
+			if ((uMsg == WM_KEYDOWN || uMsg == WM_KEYUP || uMsg == WM_CHAR) && io.WantCaptureKeyboard)
+			{
+				return 0;  // ImGuiが処理したので、これ以上処理しない
+			}
+
+			// マウスメッセージ
+			if ((uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONUP || uMsg == WM_RBUTTONDOWN ||
+				uMsg == WM_RBUTTONUP || uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONUP ||
+				uMsg == WM_MOUSEWHEEL || uMsg == WM_MOUSEMOVE) && io.WantCaptureMouse)
+			{
+				return 0;  // ImGuiが処理したので、これ以上処理しない
+			}
 		}
-		// 入力システムにメッセージを転送
-		if (m_inputManager && m_inputManager->handleWindowMessage(hWnd, uMsg, wParam, lParam))
+
+		// 入力システムにメッセージを転送（ImGuiがキャプチャしていない場合のみ）
+		if (m_inputManager)
 		{
-			return 0;
+			// ImGuiが入力をキャプチャしていない場合のみ処理
+			ImGuiIO* io = nullptr;
+			if (m_imguiManager && m_imguiManager->getContext())
+			{
+				ImGui::SetCurrentContext(m_imguiManager->getContext());
+				io = &ImGui::GetIO();
+			}
+
+			bool shouldProcessInput = true;
+			if (io)
+			{
+				if ((uMsg == WM_KEYDOWN || uMsg == WM_KEYUP) && io->WantCaptureKeyboard)
+					shouldProcessInput = false;
+				if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && io->WantCaptureMouse)
+					shouldProcessInput = false;
+			}
+
+			if (shouldProcessInput && m_inputManager->handleWindowMessage(hWnd, uMsg, wParam, lParam))
+			{
+				return 0;
+			}
 		}
 
 		switch (uMsg)
@@ -222,6 +261,13 @@ namespace Engine::Core {
 		{
 			const int width = LOWORD(lParam);
 			const int height = HIWORD(lParam);
+
+			// 最小化チェック
+			if (wParam == SIZE_MINIMIZED)
+			{
+				// 最小化時は何もしない
+				return 0;
+			}
 
 			if (m_resizeCallback && width > 0 && height > 0)
 			{

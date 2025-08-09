@@ -149,21 +149,24 @@ namespace Engine::Core
 
 	void GameObject::destroy()
 	{
-		//子オブジェクトを先に破棄
-		for (auto& child : m_children)
-		{
-			child->destroy();
-		}
+		// アクティブフラグを先にfalseに
+		m_active = false;
+
+		// 子オブジェクトを先に破棄
 		m_children.clear();
 
-		//全てのコンポーネントを破棄
+		// コンポーネントを破棄
 		for (auto& [type, component] : m_components)
 		{
-			component->onDestroy();
+			if (component)
+			{
+				component->onDestroy();
+			}
 		}
 		m_components.clear();
 
 		m_transform = nullptr;
+		m_parent = nullptr;
 	}
 
 	bool GameObject::hasComponent(std::type_index type) const
