@@ -207,17 +207,32 @@ namespace Engine::Core {
 
 	LRESULT Window::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		// ImGuiにメッセージを転送（ImGuiが処理する場合はtrueを返す）
+		// デバッグ: 重要なメッセージをログ出力
+		if (uMsg == WM_SIZE || uMsg == WM_SIZING || uMsg == WM_ENTERSIZEMOVE || uMsg == WM_EXITSIZEMOVE)
+		{
+			Utils::log_info(std::format("Window message received: 0x{:04x}", uMsg));
+			if (uMsg == WM_SIZE)
+			{
+				int width = LOWORD(lParam);
+				int height = HIWORD(lParam);
+				Utils::log_info(std::format("WM_SIZE: {}x{}, wParam: {}", width, height, wParam));
+			}
+		}
+
+		// ImGuiにメッセージ転送（ImGui使用時はtrueが返る）
 		if (m_imguiManager) {
+			Utils::log_info(std::format("Forwarding message 0x{:04x} to ImGui", uMsg));
 			m_imguiManager->handleWindowMessage(hWnd, uMsg, wParam, lParam);
 
-			// ImGuiが入力をキャプチャしている場合は、ゲーム入力を処理しない
+			// ImGuiが入力キャプチャ中の場合はゲーム側では処理しない
+			ImGui::SetCurrentContext(m_imguiManager->getContext());
 			ImGuiIO& io = ImGui::GetIO();
 
 			// キーボードメッセージ
 			if ((uMsg == WM_KEYDOWN || uMsg == WM_KEYUP || uMsg == WM_CHAR) && io.WantCaptureKeyboard)
 			{
-				return 0;  // ImGuiが処理したので、これ以上処理しない
+				Utils::log_info("ImGui captured keyboard message");
+				return 0;
 			}
 
 			// マウスメッセージ
@@ -225,16 +240,17 @@ namespace Engine::Core {
 				uMsg == WM_RBUTTONUP || uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONUP ||
 				uMsg == WM_MOUSEWHEEL || uMsg == WM_MOUSEMOVE) && io.WantCaptureMouse)
 			{
-				return 0;  // ImGuiが処理したので、これ以上処理しない
+				Utils::log_info("ImGui captured mouse message");
+				return 0;
 			}
 		}
 
-		// 入力システムにメッセージを転送（ImGuiがキャプチャしていない場合のみ）
+		// 入力システムにメッセージ転送（ImGuiがキャプチャしていない場合のみ）
 		if (m_inputManager)
 		{
-			// ImGuiが入力をキャプチャしていない場合のみ処理
+			// ImGuiが入力キャプチャしていない場合のみ
 			ImGuiIO* io = nullptr;
-			if (m_imguiManager && m_imguiManager->getContext())
+			if (m_imguiManager && m_imguiManager->isInitialized() && m_imguiManager->getContext())
 			{
 				ImGui::SetCurrentContext(m_imguiManager->getContext());
 				io = &ImGui::GetIO();
@@ -251,6 +267,7 @@ namespace Engine::Core {
 
 			if (shouldProcessInput && m_inputManager->handleWindowMessage(hWnd, uMsg, wParam, lParam))
 			{
+				Utils::log_info(std::format("Input manager handled message 0x{:04x}", uMsg));
 				return 0;
 			}
 		}
@@ -262,23 +279,49 @@ namespace Engine::Core {
 			const int width = LOWORD(lParam);
 			const int height = HIWORD(lParam);
 
+			Utils::log_info(std::format("Processing WM_SIZE: {}x{}, wParam: {}", width, height, wParam));
+
 			// 最小化チェック
 			if (wParam == SIZE_MINIMIZED)
 			{
-				// 最小化時は何もしない
+				Utils::log_info("Window minimized, skipping resize");
 				return 0;
 			}
 
+			// ImGuiに先にリサイズを通知
+			if (m_imguiManager && m_imguiManager->isInitialized() && width > 0 && height > 0)
+			{
+				Utils::log_info("Notifying ImGui of resize first");
+				m_imguiManager->onWindowResize(width, height);
+				Utils::log_info("ImGui resize notification completed");
+			}
+
+			// その後にアプリケーションのリサイズコールバック
 			if (m_resizeCallback && width > 0 && height > 0)
 			{
+				Utils::log_info("Calling application resize callback");
 				m_resizeCallback(width, height);
+				Utils::log_info("Application resize callback completed");
 			}
 		}
 		break;
 
+		case WM_ENTERSIZEMOVE:
+			Utils::log_info("WM_ENTERSIZEMOVE received");
+			break;
+
+		case WM_EXITSIZEMOVE:
+			Utils::log_info("WM_EXITSIZEMOVE received");
+			break;
+
+		case WM_SIZING:
+			Utils::log_info("WM_SIZING received");
+			break;
+
 		case WM_ACTIVATE:
 		{
-			// ウィンドウがアクティブでなくなったら相対モードを解除
+			Utils::log_info(std::format("WM_ACTIVATE: wParam = {}", LOWORD(wParam)));
+			// ウィンドウがアクティブでなくなったら相対モード解除
 			if (LOWORD(wParam) == WA_INACTIVE && m_inputManager)
 			{
 				if (m_inputManager->getMouseState().isRelativeMode)
@@ -292,7 +335,8 @@ namespace Engine::Core {
 
 		case WM_KILLFOCUS:
 		{
-			// フォーカスを失った時も相対モードを解除
+			Utils::log_info("WM_KILLFOCUS received");
+			// フォーカス喪失時も相対モード解除
 			if (m_inputManager && m_inputManager->getMouseState().isRelativeMode)
 			{
 				m_inputManager->setRelativeMouseMode(false);
@@ -303,7 +347,8 @@ namespace Engine::Core {
 
 		case WM_CLOSE:
 		{
-			// 終了前に相対モードを解除
+			Utils::log_info("WM_CLOSE received");
+			// 終了時に相対モード解除
 			if (m_inputManager)
 			{
 				m_inputManager->setRelativeMouseMode(false);
@@ -318,6 +363,7 @@ namespace Engine::Core {
 
 		case WM_KEYDOWN:
 		{
+			Utils::log_info(std::format("WM_KEYDOWN: key = {}", wParam));
 			// F1キーでマウス相対モードの切り替え
 			if (wParam == VK_F1)
 			{
@@ -327,45 +373,53 @@ namespace Engine::Core {
 					m_inputManager->setRelativeMouseMode(!currentMode);
 					Utils::log_info(std::format("Mouse relative mode: {}", !currentMode ? "ON" : "OFF"));
 				}
-
-				// Alt+F4での終了も処理
-				if (wParam == VK_F4 && (GetKeyState(VK_MENU) & 0x8000))
-				{
-					if (m_inputManager)
-					{
-						m_inputManager->setRelativeMouseMode(false);
-					}
-					PostQuitMessage(0);
-					return 0;
-				}
-				// ESCキーでの終了
-				else if (wParam == VK_ESCAPE)
-				{
-					if (m_inputManager)
-					{
-						m_inputManager->setRelativeMouseMode(false);
-					}
-					PostQuitMessage(0);
-					return 0;
-				}
 			}
-			break;
+
+			// Alt+F4での終了
+			if (wParam == VK_F4 && (GetKeyState(VK_MENU) & 0x8000))
+			{
+				Utils::log_info("Alt+F4 pressed");
+				if (m_inputManager)
+				{
+					m_inputManager->setRelativeMouseMode(false);
+				}
+				PostQuitMessage(0);
+				return 0;
+			}
+			// ESCキーでの終了
+			else if (wParam == VK_ESCAPE)
+			{
+				Utils::log_info("ESC pressed");
+				if (m_inputManager)
+				{
+					m_inputManager->setRelativeMouseMode(false);
+				}
+				PostQuitMessage(0);
+				return 0;
+			}
+		}
+		break;
 
 		case WM_DESTROY:
 		{
+			Utils::log_info("WM_DESTROY received");
 			PostQuitMessage(0);
 		}
 		break;
 
 		default:
+			// 頻繁なメッセージは除外してログ出力
+			if (uMsg != WM_MOUSEMOVE && uMsg != WM_NCHITTEST && uMsg != WM_SETCURSOR &&
+				uMsg != WM_GETTEXT && uMsg != WM_GETTEXTLENGTH && uMsg != WM_PAINT)
+			{
+				Utils::log_info(std::format("Unhandled message: 0x{:04x}", uMsg));
+			}
 			return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 		}
 
 		return 0;
-		}
-
-
 	}
+
 	void Window::destroy() noexcept {
 		// 入力システムをシャットダウン
 		if (m_inputManager)

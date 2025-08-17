@@ -224,10 +224,10 @@ namespace Engine::UI
 			return;
 		}
 
-		// GPU作業の完了を待つ
-		if (m_device && m_device->isValid())
+		// コンテキストを設定してからシャットダウン
+		if (m_context)
 		{
-			// 必要に応じてGPUの完了を待機
+			ImGui::SetCurrentContext(m_context);
 		}
 
 		ImGui_ImplDX12_Shutdown();
@@ -240,6 +240,7 @@ namespace Engine::UI
 		}
 
 		m_srvDescHeap.Reset();
+		m_commandQueue = nullptr;  // 参照をクリア
 		m_initialized = false;
 
 		Utils::log_info("ImGui shutdown complete");
@@ -247,12 +248,16 @@ namespace Engine::UI
 
 	void ImGuiManager::newFrame()
 	{
-		if (!m_initialized)
+		if (!m_initialized || !m_context)
 		{
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "ImGuiManager not initialized"));
 			return;
 		}
 
-		
+		// 毎フレーム、確実にコンテキストを設定
+		ImGui::SetCurrentContext(m_context);
+
+		// ウィンドウサイズを毎フレーム更新
 		if (m_hwnd)
 		{
 			RECT rect;
@@ -262,10 +267,10 @@ namespace Engine::UI
 				float width = static_cast<float>(rect.right - rect.left);
 				float height = static_cast<float>(rect.bottom - rect.top);
 
-				// サイズが変わっている場合は更新
-				if (io.DisplaySize.x != width || io.DisplaySize.y != height)
+				if (width > 0 && height > 0)
 				{
 					io.DisplaySize = ImVec2(width, height);
+					io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 				}
 			}
 		}
@@ -274,16 +279,27 @@ namespace Engine::UI
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 	}
+
+
+
 	void ImGuiManager::render(ID3D12GraphicsCommandList* commandList) const
 	{
-		if (!m_initialized)
+		if (!m_initialized || !m_context)
 		{
+			Utils::log_warning("ImGuiManager not initialized, skipping render");
 			return;
+		}
+
+		// レンダリング前にコンテキストを確認
+		ImGuiContext* currentContext = ImGui::GetCurrentContext();
+		if (currentContext != m_context)
+		{
+			ImGui::SetCurrentContext(m_context);
 		}
 
 		ImGui::Render();
 
-		//ディスクリプタヒープを設定
+		// デスクリプタヒープを設定
 		ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvDescHeap.Get() };
 		commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
@@ -292,10 +308,21 @@ namespace Engine::UI
 
 	void ImGuiManager::handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) const
 	{
-		if (m_initialized)
+		if (!m_initialized || !m_context)
 		{
-			ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
+			// ImGuiが初期化されていない場合は何もしない
+			return;
 		}
+
+		// 重要: メッセージハンドラーを呼ぶ前に必ずコンテキストを設定
+		ImGuiContext* currentContext = ImGui::GetCurrentContext();
+		if (currentContext != m_context)
+		{
+			ImGui::SetCurrentContext(m_context);
+		}
+
+		// メッセージをImGuiに転送
+		ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
 	}
 
 	Utils::VoidResult ImGuiManager::createDescriptorHeap()
@@ -310,34 +337,83 @@ namespace Engine::UI
 
 		return {};
 	}
-
 	void ImGuiManager::onWindowResize(int width, int height)
 	{
-		if (!m_initialized) return;
+		Utils::log_info(std::format("ImGuiManager::onWindowResize called: {}x{}", width, height));
 
-		Utils::log_info(std::format("ImGui handling resize: {}x{}", width, height));
+		if (!m_initialized || !m_context)
+		{
+			Utils::log_warning("ImGuiManager not initialized, skipping resize");
+			return;
+		}
+
+		if (width <= 0 || height <= 0)
+		{
+			Utils::log_warning(std::format("Invalid resize dimensions: {}x{}", width, height));
+			return;
+		}
+
+		// コンテキストを確実に設定
+		ImGui::SetCurrentContext(m_context);
 
 		// ImGuiのディスプレイサイズを更新
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 
-		Utils::log_info(std::format("ImGui resize completed: {}x{}", width, height));
+		Utils::log_info(std::format("ImGui display size updated to: {}x{}", width, height));
 	}
+
 
 	void ImGuiManager::invalidateDeviceObjects()
 	{
-		if (!m_initialized) return;
-
-		// 何もしない
-		Utils::log_info("ImGui device objects invalidation skipped");
+		// 何もしない - reinitializeForResize()を使用する
+		Utils::log_info("invalidateDeviceObjects called - use reinitializeForResize instead");
 	}
 
 	void ImGuiManager::createDeviceObjects()
 	{
-		if (!m_initialized) return;
+		// 何もしない - reinitializeForResize()を使用する
+		Utils::log_info("createDeviceObjects called - use reinitializeForResize instead");
+	}
+	Utils::VoidResult ImGuiManager::reinitializeForResize()
+	{
+		if (!m_initialized || !m_device || !m_commandQueue)
+		{
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+				"ImGuiManager not properly initialized for reinitialize"));
+		}
 
-		// 何もしない
-		Utils::log_info("ImGui device objects creation skipped");
+		Utils::log_info("Reinitializing ImGui for resize...");
+
+		// 現在のコンテキストを保持
+		ImGui::SetCurrentContext(m_context);
+
+		// DX12バックエンドを完全にシャットダウン
+		ImGui_ImplDX12_Shutdown();
+
+		// DX12バックエンドを再初期化
+		if (!ImGui_ImplDX12_Init(
+			m_device->getDevice(),
+			static_cast<int>(m_frameCount),
+			m_rtvFormat,
+			m_srvDescHeap.Get(),
+			m_srvDescHeap->GetCPUDescriptorHandleForHeapStart(),
+			m_srvDescHeap->GetGPUDescriptorHandleForHeapStart()))
+		{
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+				"Failed to reinitialize ImGui DX12"));
+		}
+
+		// フォントテクスチャを再作成
+		auto fontResult = createFontTextureManually();
+		if (!fontResult)
+		{
+			return fontResult;
+		}
+
+		Utils::log_info("ImGui reininitialized successfully for resize");
+		return {};
 	}
 	//=====================================================================
 	//DebugWindow実装

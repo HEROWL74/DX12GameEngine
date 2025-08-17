@@ -531,19 +531,86 @@ namespace Engine::Core
             }
         }
     }
-
     void App::render()
     {
-        // リサイズ中はレンダリングをスキップ
+        Utils::log_info("App::render() called");
+
+        // リサイズ状態確認
+        bool isResizing = false;
+        {
+            std::lock_guard<std::mutex> lock(m_resizeMutex);
+            isResizing = m_isResizing;
+        }
+
+        if (isResizing)
+        {
+            Utils::log_info("Currently resizing, checking ImGui state");
+        }
+
+        // ImGuiの初期化状態確認
+        if (!m_imguiManager.isInitialized())
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "ImGuiManager not initialized"));
+            return;
+        }
+
+        // ImGuiコンテキスト確認
+        ImGuiContext* context = m_imguiManager.getContext();
+        if (!context)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "ImGui context is null"));
+            return;
+        }
+
+        Utils::log_info("Starting ImGui newFrame");
+        try
+        {
+            m_imguiManager.newFrame();
+            Utils::log_info("ImGui newFrame completed");
+        }
+        catch (...)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception in ImGui newFrame"));
+            return;
+        }
+
+        Utils::log_info("Drawing ImGui windows");
+        try
+        {
+            m_debugWindow->draw();
+            m_hierarchyWindow->draw();
+            m_inspectorWindow->draw();
+            m_projectWindow->draw();
+            Utils::log_info("ImGui windows drawn successfully");
+        }
+        catch (...)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception in ImGui window drawing"));
+            return;
+        }
+
+        // リサイズ中の処理
         {
             std::lock_guard<std::mutex> lock(m_resizeMutex);
             if (m_isResizing)
             {
+                Utils::log_info("Resizing: calling ImGui::Render and returning");
+                try
+                {
+                    ImGui::Render();
+                    Utils::log_info("ImGui::Render completed during resize");
+                }
+                catch (...)
+                {
+                    Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception in ImGui::Render during resize"));
+                }
                 return;
             }
         }
 
-        // レンダーターゲットの有効性をチェック
+        // 3Dレンダリング部分（既存コード）
+        Utils::log_info("Starting 3D rendering");
+
         if (!m_renderTargets[m_frameIndex] || !m_commandList || !m_swapChain)
         {
             Utils::log_warning("Render resources not ready, skipping frame");
@@ -553,13 +620,6 @@ namespace Engine::Core
         // コマンドリストの記録開始
         m_commandAllocator->Reset();
         m_commandList->Reset(m_commandAllocator.Get(), nullptr);
-
-        // ImGui新フレーム
-        m_imguiManager.newFrame();
-        m_debugWindow->draw();
-        m_hierarchyWindow->draw();
-        m_inspectorWindow->draw();
-        m_projectWindow->draw();
 
         // リソースバリア: バックバッファをレンダーターゲット状態に変更
         D3D12_RESOURCE_BARRIER barrier{};
@@ -579,19 +639,17 @@ namespace Engine::Core
 
         D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
 
-        // レンダーターゲットと深度ステンシルを設定
+        // レンダーターゲットと深度ステンシル設定
         m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
-        // 画面クリア（濃い青色で塗りつぶし）
+        // 画面クリア（深青色で塗りつぶし）
         const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 
-        // レンダーターゲットの有効性を再度チェック
         if (m_renderTargets[m_frameIndex])
         {
             m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
         }
 
-        // 深度バッファもクリア
         if (m_depthStencilBuffer)
         {
             m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
@@ -617,10 +675,20 @@ namespace Engine::Core
         m_commandList->RSSetScissorRects(1, &scissorRect);
 
         // シーンのレンダリング
+        Utils::log_info("Rendering scene");
         m_scene.render(m_commandList.Get(), m_camera, m_frameIndex);
 
         // ImGui描画
-        m_imguiManager.render(m_commandList.Get());
+        Utils::log_info("Rendering ImGui");
+        try
+        {
+            m_imguiManager.render(m_commandList.Get());
+            Utils::log_info("ImGui rendering completed");
+        }
+        catch (...)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception in ImGui render"));
+        }
 
         // リソースバリア: バックバッファを表示状態に戻す
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -643,8 +711,10 @@ namespace Engine::Core
             return;
         }
 
-        // フレーム完了待ち
+        // フレーム待機
         waitForPreviousFrame();
+
+        Utils::log_info("App::render() completed");
     }
 
     void App::updateDeltaTime()
@@ -762,14 +832,17 @@ namespace Engine::Core
 
         Utils::log_info("DirectX 12 resources cleaned up.");
     }
-
     void App::onWindowResize(int width, int height)
     {
-        Utils::log_info(std::format("Window resized: {}x{}", width, height));
+        Utils::log_info(std::format("App::onWindowResize called: {}x{}", width, height));
 
-        if (width <= 0 || height <= 0) return;
+        if (width <= 0 || height <= 0)
+        {
+            Utils::log_warning(std::format("Invalid resize dimensions: {}x{}", width, height));
+            return;
+        }
 
-        // DirectX 12が初期化されていない場合は何もしない
+        // DirectX 12が初期化されていない場合
         if (!m_commandQueue || !m_swapChain || !m_fence)
         {
             Utils::log_info("DirectX 12 not initialized yet, skipping resize");
@@ -780,7 +853,7 @@ namespace Engine::Core
             return;
         }
 
-        // リサイズフラグを設定してレンダリングを停止
+        // リサイズフラグ設定
         {
             std::lock_guard<std::mutex> lock(m_resizeMutex);
             m_isResizing = true;
@@ -788,21 +861,21 @@ namespace Engine::Core
 
         try
         {
-            // GPU処理完了を待機
+            // GPU待機
             waitForPreviousFrame();
 
-            // 既存リソースをリセット
+            // リソースリセット
             for (UINT i = 0; i < 2; i++)
             {
                 m_renderTargets[i].Reset();
             }
             m_depthStencilBuffer.Reset();
 
-            // スワップチェーンをリサイズ
+            // スワップチェインリサイズ
             HRESULT hr = m_swapChain->ResizeBuffers(
                 2,                              // バッファ数
-                width,                          // 新しい幅
-                height,                         // 新しい高さ
+                width,                          // 新幅
+                height,                         // 新高さ
                 DXGI_FORMAT_R8G8B8A8_UNORM,    // フォーマット
                 0                               // フラグ
             );
@@ -812,7 +885,6 @@ namespace Engine::Core
                 Utils::log_error(Utils::make_error(Utils::ErrorType::SwapChainCreation,
                     "Failed to resize swap chain", hr));
 
-                // リサイズ失敗でもフラグをクリア
                 {
                     std::lock_guard<std::mutex> lock(m_resizeMutex);
                     m_isResizing = false;
@@ -820,13 +892,12 @@ namespace Engine::Core
                 return;
             }
 
-            // レンダーターゲットを再作成
+            // レンダーターゲット再作成
             auto renderTargetResult = createRenderTargets();
             if (!renderTargetResult)
             {
                 Utils::log_error(renderTargetResult.error());
 
-                // リサイズ失敗でもフラグをクリア
                 {
                     std::lock_guard<std::mutex> lock(m_resizeMutex);
                     m_isResizing = false;
@@ -834,13 +905,12 @@ namespace Engine::Core
                 return;
             }
 
-            // 深度ステンシルバッファを再作成
+            // 深度ステンシルバッファ再作成
             auto depthStencilResult = createDepthStencilBuffer();
             if (!depthStencilResult)
             {
                 Utils::log_error(depthStencilResult.error());
 
-                // リサイズ失敗でもフラグをクリア
                 {
                     std::lock_guard<std::mutex> lock(m_resizeMutex);
                     m_isResizing = false;
@@ -848,23 +918,32 @@ namespace Engine::Core
                 return;
             }
 
-            // フレームインデックスを更新
+            // フレームインデックス更新
             m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-            // カメラのアスペクト比を更新
+            // カメラのアスペクト更新
             m_camera.updateAspect(static_cast<float>(width) / height);
 
-            // ImGuiにリサイズを通知
-            m_imguiManager.onWindowResize(width, height);
+            // ImGuiにリサイズを通知（シンプルにサイズ更新のみ）
+            if (m_imguiManager.isInitialized())
+            {
+                m_imguiManager.onWindowResize(width, height);
+            }
 
             Utils::log_info("Window resize completed successfully");
         }
+        catch (const std::exception& e)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+                std::format("Exception during resize: {}", e.what())));
+        }
         catch (...)
         {
-            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception during resize"));
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+                "Unknown exception during resize"));
         }
 
-        // リサイズ完了、レンダリング再開
+        // リサイズフラグ解除
         {
             std::lock_guard<std::mutex> lock(m_resizeMutex);
             m_isResizing = false;
