@@ -14,7 +14,8 @@ Microsoftのリファレンスページや、サンプルコードを見なが�
 ---
 
 ## ✨ 現在の進捗 ImGuiのリサイズ機能修正中
-![現在の進捗動画]([assets/screenshots/Current1.png](https://github.com/user-attachments/assets/67b723f9-b30c-4d80-b03f-ac0f9ed8625e))
+![現在の進捗動画]
+https://github.com/user-attachments/assets/67b723f9-b30c-4d80-b03f-ac0f9ed8625e
 -✅ 完成済み
 
 - レンダリング基盤
