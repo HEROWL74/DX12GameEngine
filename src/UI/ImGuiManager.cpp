@@ -20,242 +20,240 @@ namespace Engine::UI
 	{
 		if (m_initialized)
 		{
+			Utils::log_warning("ImGuiManager already initialized");
 			return {};
 		}
 
+		// 入力パラメータの厳密なチェック
 		CHECK_CONDITION(device != nullptr, Utils::ErrorType::Unknown, "Device is null");
 		CHECK_CONDITION(device->isValid(), Utils::ErrorType::Unknown, "Device is not valid");
 		CHECK_CONDITION(commandQueue != nullptr, Utils::ErrorType::Unknown, "CommandQueue is null");
+		CHECK_CONDITION(hwnd != nullptr, Utils::ErrorType::Unknown, "HWND is null");
 
+		// メンバー変数を先に設定
 		m_device = device;
 		m_hwnd = hwnd;
 		m_rtvFormat = rtvFormat;
 		m_frameCount = frameCount;
-		m_commandQueue = commandQueue;
+		m_commandQueue = commandQueue;  // ← 重要：必ずnullptrチェック後に設定
 
 		Utils::log_info("Initializing ImGui...");
 
-		// ImGuiコンテキスト作成
-		IMGUI_CHECKVERSION();
-		m_context = ImGui::CreateContext();
-		ImGui::SetCurrentContext(m_context);
-
-		// 設定
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-		// デフォルトフォントを追加
-		io.Fonts->AddFontDefault();
-
-		// スタイル設定
-		ImGui::StyleColorsDark();
-
-		// ディスクリプタヒープ作成
-		auto heapResult = createDescriptorHeap();
-		if (!heapResult)
+		try
 		{
-			return heapResult;
-		}
-
-		// Win32初期化
-		if (!ImGui_ImplWin32_Init(hwnd))
-		{
-			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui Win32"));
-		}
-
-		// DX12初期化（従来の方法）
-		if (!ImGui_ImplDX12_Init(
-			m_device->getDevice(),
-			static_cast<int>(frameCount),
-			rtvFormat,
-			m_srvDescHeap.Get(),
-			m_srvDescHeap->GetCPUDescriptorHandleForHeapStart(),
-			m_srvDescHeap->GetGPUDescriptorHandleForHeapStart()))
-		{
-			ImGui_ImplWin32_Shutdown();
-			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui DX12"));
-		}
-
-		// 手動でフォントテクスチャをアップロード
-		auto fontResult = createFontTextureManually();
-		if (!fontResult)
-		{
-			ImGui_ImplDX12_Shutdown();
-			ImGui_ImplWin32_Shutdown();
-			return fontResult;
-		}
-
-		// 初期ウィンドウサイズを設定
-		RECT rect;
-		if (GetClientRect(hwnd, &rect))
-		{
-			io.DisplaySize = ImVec2(static_cast<float>(rect.right - rect.left),
-				static_cast<float>(rect.bottom - rect.top));
-		}
-
-		m_initialized = true;
-		Utils::log_info("ImGui initialized successfully!");
-		return {};
-	}
-
-	Utils::VoidResult ImGuiManager::createFontTextureManually()
-	{
-		// フォントテクスチャを手動で作成・アップロード
-		ImGuiIO& io = ImGui::GetIO();
-
-		// フォントアトラスを構築
-		unsigned char* pixels;
-		int width, height;
-		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-		// コマンドアロケータとコマンドリストを作成
-		ComPtr<ID3D12CommandAllocator> commandAllocator;
-		ComPtr<ID3D12GraphicsCommandList> commandList;
-
-		CHECK_HR(m_device->getDevice()->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator)),
-			Utils::ErrorType::ResourceCreation, "Failed to create font command allocator");
-
-		CHECK_HR(m_device->getDevice()->CreateCommandList(
-			0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr,
-			IID_PPV_ARGS(&commandList)),
-			Utils::ErrorType::ResourceCreation, "Failed to create font command list");
-
-		// ImGui_ImplDX12_CreateDeviceObjectsを呼んで内部でフォントテクスチャを作成させる
-		// ただし、これが失敗する可能性があるので、try-catchで囲む
-		try {
-			if (!ImGui_ImplDX12_CreateDeviceObjects())
+			// ImGuiコンテキスト作成
+			IMGUI_CHECKVERSION();
+			m_context = ImGui::CreateContext();
+			if (!m_context)
 			{
-				Utils::log_warning("ImGui_ImplDX12_CreateDeviceObjects failed, trying alternative approach");
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to create ImGui context"));
 			}
+
+			ImGui::SetCurrentContext(m_context);
+
+			// 設定
+			ImGuiIO& io = ImGui::GetIO();
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+			// デフォルトフォントを追加
+			io.Fonts->AddFontDefault();
+
+			// スタイル設定
+			ImGui::StyleColorsDark();
+
+			// ディスクリプタヒープ作成
+			auto heapResult = createDescriptorHeap();
+			if (!heapResult)
+			{
+				ImGui::DestroyContext(m_context);
+				m_context = nullptr;
+				return heapResult;
+			}
+
+			// Win32初期化
+			if (!ImGui_ImplWin32_Init(hwnd))
+			{
+				ImGui::DestroyContext(m_context);
+				m_context = nullptr;
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui Win32"));
+			}
+
+			// DX12初期化 - commandQueueが有効であることを再確認
+			if (!m_commandQueue)
+			{
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext(m_context);
+				m_context = nullptr;
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "CommandQueue became null before DX12 init"));
+			}
+
+			if (!ImGui_ImplDX12_Init(
+				m_device->getDevice(),
+				static_cast<int>(frameCount),
+				rtvFormat,
+				m_srvDescHeap.Get(),
+				m_srvDescHeap->GetCPUDescriptorHandleForHeapStart(),
+				m_srvDescHeap->GetGPUDescriptorHandleForHeapStart()))
+			{
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext(m_context);
+				m_context = nullptr;
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui DX12"));
+			}
+
+			// フォントテクスチャを手動作成
+			auto fontResult = createFontTextureManually();
+			if (!fontResult)
+			{
+				ImGui_ImplDX12_Shutdown();
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext(m_context);
+				m_context = nullptr;
+				return fontResult;
+			}
+
+			// 初期ウィンドウサイズを設定
+			RECT rect;
+			if (GetClientRect(hwnd, &rect))
+			{
+				io.DisplaySize = ImVec2(static_cast<float>(rect.right - rect.left),
+					static_cast<float>(rect.bottom - rect.top));
+			}
+
+			m_initialized = true;
+			Utils::log_info("ImGui initialized successfully!");
+			return {};
+		}
+		catch (const std::exception& e)
+		{
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+				std::format("Exception during ImGui initialization: {}", e.what())));
+			shutdown(); // 部分的に初期化されたリソースをクリーンアップ
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ImGui initialization failed"));
 		}
 		catch (...)
 		{
-			Utils::log_warning("Exception in ImGui_ImplDX12_CreateDeviceObjects, continuing with alternative");
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Unknown exception during ImGui initialization"));
+			shutdown();
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ImGui initialization failed"));
 		}
-
-		// コマンドリストをクローズ
-		commandList->Close();
-
-		// コマンドキューで実行
-		ID3D12CommandList* cmdLists[] = { commandList.Get() };
-		m_commandQueue->ExecuteCommandLists(1, cmdLists);
-
-		// GPU完了を待機
-		ComPtr<ID3D12Fence> fence;
-		CHECK_HR(m_device->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)),
-			Utils::ErrorType::ResourceCreation, "Failed to create font fence");
-
-		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		CHECK_CONDITION(fenceEvent != nullptr, Utils::ErrorType::ResourceCreation, "Failed to create fence event");
-
-		const UINT64 fenceValue = 1;
-		m_commandQueue->Signal(fence.Get(), fenceValue);
-		fence->SetEventOnCompletion(fenceValue, fenceEvent);
-		WaitForSingleObject(fenceEvent, INFINITE);
-		CloseHandle(fenceEvent);
-
-		Utils::log_info("Font texture created manually");
-		return {};
 	}
 
 	// フォントテクスチャ作成の専用メソッド
-	Utils::VoidResult ImGuiManager::createFontTexture()
+	Utils::VoidResult ImGuiManager::createFontTextureManually()
 	{
-		if (!m_device || !m_commandQueue)
+		// commandQueueの有効性を再確認
+		if (!m_commandQueue)
 		{
-			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Device or CommandQueue is null"));
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "CommandQueue is null in createFontTextureManually"));
 		}
 
-		// 専用のコマンドアロケータとコマンドリストを作成
-		ComPtr<ID3D12CommandAllocator> fontCommandAllocator;
-		ComPtr<ID3D12GraphicsCommandList> fontCommandList;
-
-		CHECK_HR(m_device->getDevice()->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(&fontCommandAllocator)),
-			Utils::ErrorType::ResourceCreation, "Failed to create font command allocator");
-
-		CHECK_HR(m_device->getDevice()->CreateCommandList(
-			0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-			fontCommandAllocator.Get(), nullptr,
-			IID_PPV_ARGS(&fontCommandList)),
-			Utils::ErrorType::ResourceCreation, "Failed to create font command list");
-
-		// フォントアトラスを強制で構築
-		ImGuiIO& io = ImGui::GetIO();
-		unsigned char* pixels;
-		int width, height;
-		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-		// ImGuiのデバイスオブジェクトを作成（フォントテクスチャを含む）
-		ImGui_ImplDX12_CreateDeviceObjects();
-
-		// コマンドリストを閉じる
-		fontCommandList->Close();
-
-		// コマンドキューで実行
-		ID3D12CommandList* cmdLists[] = { fontCommandList.Get() };
-		m_commandQueue->ExecuteCommandLists(1, cmdLists);
-
-		// 完了を待機
-		ComPtr<ID3D12Fence> tempFence;
-		CHECK_HR(m_device->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tempFence)),
-			Utils::ErrorType::ResourceCreation, "Failed to create temp fence");
-
-		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		CHECK_CONDITION(fenceEvent != nullptr, Utils::ErrorType::ResourceCreation, "Failed to create fence event");
-
-		m_commandQueue->Signal(tempFence.Get(), 1);
-		tempFence->SetEventOnCompletion(1, fenceEvent);
-		WaitForSingleObject(fenceEvent, INFINITE);
-		CloseHandle(fenceEvent);
-
-		Utils::log_info("Font texture created successfully");
-		return {};
-	}
-
-	void ImGuiManager::shutdown()
-	{
-		if (!m_initialized)
+		if (!m_device || !m_device->getDevice())
 		{
-			return;
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Device is null in createFontTextureManually"));
 		}
 
-		// コンテキストを設定してからシャットダウン
-		if (m_context)
+		Utils::log_info("Creating font texture manually...");
+
+		try
 		{
-			ImGui::SetCurrentContext(m_context);
+			// フォントアトラスを構築
+			ImGuiIO& io = ImGui::GetIO();
+			unsigned char* pixels;
+			int width, height;
+			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+			// コマンドアロケータとコマンドリストを作成
+			ComPtr<ID3D12CommandAllocator> commandAllocator;
+			ComPtr<ID3D12GraphicsCommandList> commandList;
+
+			CHECK_HR(m_device->getDevice()->CreateCommandAllocator(
+				D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator)),
+				Utils::ErrorType::ResourceCreation, "Failed to create font command allocator");
+
+			CHECK_HR(m_device->getDevice()->CreateCommandList(
+				0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr,
+				IID_PPV_ARGS(&commandList)),
+				Utils::ErrorType::ResourceCreation, "Failed to create font command list");
+
+			// ImGuiのデバイスオブジェクトを作成
+			// ここでcommandQueueが使用される可能性があるので、事前にチェック
+			if (!m_commandQueue)
+			{
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "CommandQueue became null before CreateDeviceObjects"));
+			}
+
+			if (!ImGui_ImplDX12_CreateDeviceObjects())
+			{
+				Utils::log_warning("ImGui_ImplDX12_CreateDeviceObjects failed, but continuing");
+			}
+
+			// コマンドリストをクローズ
+			commandList->Close();
+
+			// commandQueueが依然として有効であることを確認
+			if (!m_commandQueue)
+			{
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "CommandQueue became null before execution"));
+			}
+
+			// コマンドキューで実行
+			ID3D12CommandList* cmdLists[] = { commandList.Get() };
+			m_commandQueue->ExecuteCommandLists(1, cmdLists);
+
+			// GPU完了を待機
+			ComPtr<ID3D12Fence> fence;
+			CHECK_HR(m_device->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)),
+				Utils::ErrorType::ResourceCreation, "Failed to create font fence");
+
+			HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+			CHECK_CONDITION(fenceEvent != nullptr, Utils::ErrorType::ResourceCreation, "Failed to create fence event");
+
+			const UINT64 fenceValue = 1;
+
+			// 最終チェック
+			if (!m_commandQueue)
+			{
+				CloseHandle(fenceEvent);
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "CommandQueue became null before signal"));
+			}
+
+			m_commandQueue->Signal(fence.Get(), fenceValue);
+			fence->SetEventOnCompletion(fenceValue, fenceEvent);
+			WaitForSingleObject(fenceEvent, INFINITE);
+			CloseHandle(fenceEvent);
+
+			Utils::log_info("Font texture created manually successfully");
+			return {};
 		}
-
-		ImGui_ImplDX12_Shutdown();
-		ImGui_ImplWin32_Shutdown();
-
-		if (m_context)
+		catch (const std::exception& e)
 		{
-			ImGui::DestroyContext(m_context);
-			m_context = nullptr;
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+				std::format("Exception in createFontTextureManually: {}", e.what())));
 		}
-
-		m_srvDescHeap.Reset();
-		m_commandQueue = nullptr;  // 参照をクリア
-		m_initialized = false;
-
-		Utils::log_info("ImGui shutdown complete");
+		catch (...)
+		{
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Unknown exception in createFontTextureManually"));
+		}
 	}
 
 	void ImGuiManager::newFrame()
 	{
 		if (!m_initialized || !m_context)
 		{
-			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "ImGuiManager not initialized"));
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "ImGuiManager not initialized in newFrame"));
 			return;
 		}
 
 		// 毎フレーム、確実にコンテキストを設定
-		ImGui::SetCurrentContext(m_context);
+		ImGuiContext* currentContext = ImGui::GetCurrentContext();
+		if (currentContext != m_context)
+		{
+			Utils::log_info("Setting ImGui context in newFrame");
+			ImGui::SetCurrentContext(m_context);
+		}
 
 		// ウィンドウサイズを毎フレーム更新
 		if (m_hwnd)
@@ -275,9 +273,77 @@ namespace Engine::UI
 			}
 		}
 
-		ImGui_ImplDX12_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
+		try
+		{
+			ImGui_ImplDX12_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+		}
+		catch (const std::exception& e)
+		{
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+				std::format("Exception in ImGui newFrame: {}", e.what())));
+			throw; // 再投げして上位で処理
+		}
+		catch (...)
+		{
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+				"Unknown exception in ImGui newFrame"));
+			throw; // 再投げして上位で処理
+		}
+	}
+
+
+	void ImGuiManager::shutdown()
+	{
+		if (!m_initialized)
+		{
+			return;
+		}
+
+		Utils::log_info("Shutting down ImGui...");
+
+		// コンテキストを設定してからシャットダウン
+		if (m_context)
+		{
+			ImGui::SetCurrentContext(m_context);
+		}
+
+		// DX12バックエンドをシャットダウン
+		try
+		{
+			ImGui_ImplDX12_Shutdown();
+		}
+		catch (...)
+		{
+			Utils::log_warning("Exception during ImGui_ImplDX12_Shutdown");
+		}
+
+		// Win32バックエンドをシャットダウン
+		try
+		{
+			ImGui_ImplWin32_Shutdown();
+		}
+		catch (...)
+		{
+			Utils::log_warning("Exception during ImGui_ImplWin32_Shutdown");
+		}
+
+		// コンテキストを破棄
+		if (m_context)
+		{
+			ImGui::DestroyContext(m_context);
+			m_context = nullptr;
+		}
+
+		// リソースをクリア
+		m_srvDescHeap.Reset();
+		m_commandQueue = nullptr;  // 参照をクリア
+		m_device = nullptr;
+		m_hwnd = nullptr;
+		m_initialized = false;
+
+		Utils::log_info("ImGui shutdown completed");
 	}
 
 
@@ -339,29 +405,47 @@ namespace Engine::UI
 	}
 	void ImGuiManager::onWindowResize(int width, int height)
 	{
-		Utils::log_info(std::format("ImGuiManager::onWindowResize called: {}x{}", width, height));
+		Utils::log_info(std::format("ImGuiManager::onWindowResize: {}x{}", width, height));
 
 		if (!m_initialized || !m_context)
 		{
-			Utils::log_warning("ImGuiManager not initialized, skipping resize");
+			Utils::log_warning("ImGuiManager not properly initialized");
 			return;
 		}
 
 		if (width <= 0 || height <= 0)
 		{
-			Utils::log_warning(std::format("Invalid resize dimensions: {}x{}", width, height));
+			Utils::log_warning(std::format("Invalid ImGui resize dimensions: {}x{}", width, height));
 			return;
 		}
 
-		// コンテキストを確実に設定
+		// 安全なコンテキスト管理
+		ImGuiContext* savedContext = ImGui::GetCurrentContext();
 		ImGui::SetCurrentContext(m_context);
 
-		// ImGuiのディスプレイサイズを更新
-		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
-		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+		try
+		{
+			ImGuiIO& io = ImGui::GetIO();
 
-		Utils::log_info(std::format("ImGui display size updated to: {}x{}", width, height));
+			// サイズが実際に変わった場合のみ更新
+			if (std::abs(io.DisplaySize.x - width) > 1.0f || std::abs(io.DisplaySize.y - height) > 1.0f)
+			{
+				io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+				io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+
+				Utils::log_info(std::format("ImGui display size updated to: {}x{}", width, height));
+			}
+		}
+		catch (...)
+		{
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception in ImGui resize"));
+		}
+
+		// コンテキストを復元
+		if (savedContext)
+		{
+			ImGui::SetCurrentContext(savedContext);
+		}
 	}
 
 
@@ -712,7 +796,7 @@ namespace Engine::UI
 			}
 
 			// 色（旧式 - 後で削除予定）
-			auto color = renderComponent->getColor();
+			auto& color = renderComponent->getColor();
 			float colorArray[3] = { color.x, color.y, color.z };
 			if (ImGui::ColorEdit3("Color", colorArray))
 			{

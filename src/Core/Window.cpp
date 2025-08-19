@@ -279,30 +279,36 @@ namespace Engine::Core {
 			const int width = LOWORD(lParam);
 			const int height = HIWORD(lParam);
 
-			Utils::log_info(std::format("Processing WM_SIZE: {}x{}, wParam: {}", width, height, wParam));
+			Utils::log_info(std::format("WM_SIZE received: {}x{}, wParam: {}", width, height, wParam));
 
-			// 最小化チェック
-			if (wParam == SIZE_MINIMIZED)
+			// 最小化や無効なサイズをスキップ
+			if (wParam == SIZE_MINIMIZED || width <= 0 || height <= 0)
 			{
-				Utils::log_info("Window minimized, skipping resize");
+				Utils::log_info("Skipping resize (minimized or invalid size)");
 				return 0;
 			}
 
-			// ImGuiに先にリサイズを通知
-			if (m_imguiManager && m_imguiManager->isInitialized() && width > 0 && height > 0)
+			// リサイズ処理中の重複呼び出しを防ぐ
+			static bool isResizing = false;
+			if (isResizing)
 			{
-				Utils::log_info("Notifying ImGui of resize first");
-				m_imguiManager->onWindowResize(width, height);
-				Utils::log_info("ImGui resize notification completed");
+				Utils::log_info("Resize already in progress, skipping");
+				return 0;
 			}
 
-			// その後にアプリケーションのリサイズコールバック
-			if (m_resizeCallback && width > 0 && height > 0)
+			isResizing = true;
+
+			// アプリケーションのリサイズコールバックのみ呼ぶ
+			// ImGuiの処理はApp側で行う
+			if (m_resizeCallback)
 			{
 				Utils::log_info("Calling application resize callback");
 				m_resizeCallback(width, height);
 				Utils::log_info("Application resize callback completed");
 			}
+
+			isResizing = false;
+			return 0;
 		}
 		break;
 

@@ -845,7 +845,7 @@ namespace Engine::Core
         // DirectX 12が初期化されていない場合
         if (!m_commandQueue || !m_swapChain || !m_fence)
         {
-            Utils::log_info("DirectX 12 not initialized yet, skipping resize");
+            Utils::log_info("DirectX 12 not initialized yet");
             if (height > 0)
             {
                 m_camera.updateAspect(static_cast<float>(width) / height);
@@ -853,84 +853,94 @@ namespace Engine::Core
             return;
         }
 
-        // リサイズフラグ設定
-        {
-            std::lock_guard<std::mutex> lock(m_resizeMutex);
-            m_isResizing = true;
-        }
+        Utils::log_info("Starting safe DirectX resize process...");
 
         try
         {
-            // GPU待機
+            // 1. ImGuiの安全なシャットダウン
+            if (m_imguiManager.isInitialized())
+            {
+                Utils::log_info("Safely shutting down ImGui for resize");
+                m_imguiManager.shutdown();
+            }
+
+            // 2. 完全なGPU同期
+            Utils::log_info("Complete GPU synchronization");
             waitForPreviousFrame();
 
-            // リソースリセット
+            // 追加同期
+            const UINT64 flushFence = m_fenceValue;
+            m_commandQueue->Signal(m_fence.Get(), flushFence);
+            m_fenceValue++;
+
+            if (m_fence->GetCompletedValue() < flushFence)
+            {
+                m_fence->SetEventOnCompletion(flushFence, m_fenceEvent);
+                WaitForSingleObject(m_fenceEvent, INFINITE);
+            }
+
+            // 3. リソースクリア
+            Utils::log_info("Clearing DirectX resources");
             for (UINT i = 0; i < 2; i++)
             {
-                m_renderTargets[i].Reset();
+                if (m_renderTargets[i])
+                {
+                    m_renderTargets[i].Reset();
+                }
             }
-            m_depthStencilBuffer.Reset();
 
-            // スワップチェインリサイズ
-            HRESULT hr = m_swapChain->ResizeBuffers(
-                2,                              // バッファ数
-                width,                          // 新幅
-                height,                         // 新高さ
-                DXGI_FORMAT_R8G8B8A8_UNORM,    // フォーマット
-                0                               // フラグ
-            );
+            if (m_depthStencilBuffer)
+            {
+                m_depthStencilBuffer.Reset();
+            }
+
+            // 4. スワップチェインリサイズ
+            Utils::log_info("Resizing swap chain");
+            HRESULT hr = m_swapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
             if (FAILED(hr))
             {
                 Utils::log_error(Utils::make_error(Utils::ErrorType::SwapChainCreation,
-                    "Failed to resize swap chain", hr));
-
-                {
-                    std::lock_guard<std::mutex> lock(m_resizeMutex);
-                    m_isResizing = false;
-                }
+                    std::format("Failed to resize swap chain: 0x{:08x}", static_cast<unsigned>(hr)), hr));
                 return;
             }
 
-            // レンダーターゲット再作成
+            // 5. リソース再作成
             auto renderTargetResult = createRenderTargets();
             if (!renderTargetResult)
             {
                 Utils::log_error(renderTargetResult.error());
-
-                {
-                    std::lock_guard<std::mutex> lock(m_resizeMutex);
-                    m_isResizing = false;
-                }
                 return;
             }
 
-            // 深度ステンシルバッファ再作成
             auto depthStencilResult = createDepthStencilBuffer();
             if (!depthStencilResult)
             {
                 Utils::log_error(depthStencilResult.error());
-
-                {
-                    std::lock_guard<std::mutex> lock(m_resizeMutex);
-                    m_isResizing = false;
-                }
                 return;
             }
 
-            // フレームインデックス更新
+            // 6. フレームインデックス更新
             m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-            // カメラのアスペクト更新
+            // 7. カメラ更新
             m_camera.updateAspect(static_cast<float>(width) / height);
 
-            // ImGuiにリサイズを通知（シンプルにサイズ更新のみ）
-            if (m_imguiManager.isInitialized())
+            // 8. ImGuiの安全な再初期化
+            Utils::log_info("Safely reinitializing ImGui after resize");
+            auto imguiResult = m_imguiManager.initialize(&m_device, m_window.getHandle(), m_commandQueue.Get());
+            if (!imguiResult)
             {
-                m_imguiManager.onWindowResize(width, height);
+                Utils::log_error(imguiResult.error());
+                Utils::log_warning("ImGui reinitialization failed, continuing without ImGui");
+            }
+            else
+            {
+                m_window.setImGuiManager(&m_imguiManager);
+                Utils::log_info("ImGui reinitialized successfully");
             }
 
-            Utils::log_info("Window resize completed successfully");
+            Utils::log_info("DirectX resize completed successfully");
         }
         catch (const std::exception& e)
         {
@@ -939,14 +949,7 @@ namespace Engine::Core
         }
         catch (...)
         {
-            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
-                "Unknown exception during resize"));
-        }
-
-        // リサイズフラグ解除
-        {
-            std::lock_guard<std::mutex> lock(m_resizeMutex);
-            m_isResizing = false;
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Unknown exception during resize"));
         }
     }
 
