@@ -1,11 +1,11 @@
-//src/Graphics/MaterialSerialization.cpp
+﻿//src/Graphics/MaterialSerialization.cpp
 #include "MaterialSerialization.hpp"
 #include <format>
 
 namespace Engine::Graphics
 {
     //=========================================================================
-    // MaterialSerializer実装
+    // MaterialSerializer螳溯｣・
     //=========================================================================
 
     Utils::VoidResult MaterialSerializer::saveMaterial(
@@ -22,7 +22,7 @@ namespace Engine::Graphics
 
         try
         {
-            // ディレクトリが存在しない場合は作成
+            // 繝・ぅ繝ｬ繧ｯ繝医Μ縺悟ｭ伜惠縺励↑縺・ｴ蜷医・菴懈・
             std::filesystem::path path(filePath);
             std::filesystem::create_directories(path.parent_path());
 
@@ -33,7 +33,7 @@ namespace Engine::Graphics
                     std::format("Cannot open file for writing: {}", filePath)));
             }
 
-            file << jsonResult->dump(4); // 4スペースインデント
+            file << jsonResult->dump(4); // 4繧ｹ繝壹・繧ｹ繧､繝ｳ繝・Φ繝・
             file.close();
 
             Utils::log_info(std::format("Material saved: {}", filePath));
@@ -101,7 +101,7 @@ namespace Engine::Graphics
             j["name"] = material->getName();
             j["properties"] = material->getProperties();
 
-            // テクスチャ情報
+            // 繝・け繧ｹ繝√Ε諠・ｱ
             json textures = json::object();
             for (int i = 0; i < static_cast<int>(TextureType::Count); ++i)
             {
@@ -111,7 +111,7 @@ namespace Engine::Graphics
                 {
                     std::string typeName = textureTypeToString(type);
                     json textureInfo;
-                    textureInfo["path"] = texture->getDesc().debugName; // 相対パスに変換予定
+                    textureInfo["path"] = texture->getDesc().debugName; // 逶ｸ蟇ｾ繝代せ縺ｫ螟画鋤莠亥ｮ・
                     textureInfo["width"] = texture->getWidth();
                     textureInfo["height"] = texture->getHeight();
                     textureInfo["format"] = static_cast<int>(texture->getFormat());
@@ -120,7 +120,7 @@ namespace Engine::Graphics
             }
             j["textures"] = textures;
 
-            // メタデータ
+            // 繝｡繧ｿ繝・・繧ｿ
             j["metadata"] = {
                 {"created", std::time(nullptr)},
                 {"engine", "DX12GameEngine"},
@@ -143,13 +143,13 @@ namespace Engine::Graphics
     {
         try
         {
-            // バリデーション
+            // 繝舌Μ繝・・繧ｷ繝ｧ繝ｳ
             if (!validateMaterialJson(j))
             {
                 return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Invalid material JSON"));
             }
 
-            // マテリアル作成
+            // 繝槭ユ繝ｪ繧｢繝ｫ菴懈・
             std::string name = j.at("name").get<std::string>();
             auto material = materialManager->createMaterial(name);
             if (!material)
@@ -158,11 +158,11 @@ namespace Engine::Graphics
                     std::format("Failed to create material: {}", name)));
             }
 
-            // プロパティ設定
+            // 繝励Ο繝代ユ繧｣險ｭ螳・
             MaterialProperties props = j.at("properties").get<MaterialProperties>();
             material->setProperties(props);
 
-            // テクスチャ読み込み
+            // 繝・け繧ｹ繝√Ε隱ｭ縺ｿ霎ｼ縺ｿ
             if (j.contains("textures"))
             {
                 const auto& texturesJson = j.at("textures");
@@ -210,11 +210,11 @@ namespace Engine::Graphics
     bool MaterialSerializer::validateVersion(const json& j)
     {
         std::string version = j.at("version").get<std::string>();
-        return version == "1.0"; // 現在サポートしているバージョン
+        return version == "1.0"; // 迴ｾ蝨ｨ繧ｵ繝昴・繝医＠縺ｦ縺・ｋ繝舌・繧ｸ繝ｧ繝ｳ
     }
 
     //=========================================================================
-    // MaterialPresetManager実装
+    // MaterialPresetManager螳溯｣・
     //=========================================================================
 
     Utils::VoidResult MaterialPresetManager::initialize(
@@ -226,17 +226,17 @@ namespace Engine::Graphics
         m_textureManager = textureManager;
         m_presetDirectory = presetDirectory;
 
-        // プリセットディレクトリを作成
+        // 繝励Μ繧ｻ繝・ヨ繝・ぅ繝ｬ繧ｯ繝医Μ繧剃ｽ懈・
         std::filesystem::create_directories(m_presetDirectory);
 
-        // 既存プリセットをスキャン
+        // 譌｢蟄倥・繝ｪ繧ｻ繝・ヨ繧偵せ繧ｭ繝｣繝ｳ
         auto scanResult = scanPresetDirectory();
         if (!scanResult)
         {
             return scanResult;
         }
 
-        // 内蔵プリセットを作成
+        // 蜀・鳩繝励Μ繧ｻ繝・ヨ繧剃ｽ懈・
         auto builtInResult = createBuiltInPresets();
         if (!builtInResult)
         {
@@ -256,7 +256,7 @@ namespace Engine::Graphics
 
         std::string filePath = getPresetFilePath(presetName);
 
-        // マテリアルのコピーを作成（名前をプリセット名に変更）
+        // 繝槭ユ繝ｪ繧｢繝ｫ縺ｮ繧ｳ繝斐・繧剃ｽ懈・・亥錐蜑阪ｒ繝励Μ繧ｻ繝・ヨ蜷阪↓螟画峩・・
         auto presetMaterial = m_materialManager->createMaterial(presetName);
         if (!presetMaterial)
         {
@@ -266,7 +266,7 @@ namespace Engine::Graphics
 
         presetMaterial->setProperties(material->getProperties());
 
-        // テクスチャもコピー
+        // 繝・け繧ｹ繝√Ε繧ゅさ繝斐・
         for (int i = 0; i < static_cast<int>(TextureType::Count); ++i)
         {
             TextureType type = static_cast<TextureType>(i);
@@ -296,7 +296,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult MaterialPresetManager::createBuiltInPresets()
     {
-        // メタルプリセット
+        // 繝｡繧ｿ繝ｫ繝励Μ繧ｻ繝・ヨ
         {
             auto metal = m_materialManager->createMaterial("Metal");
             MaterialProperties metalProps;
@@ -307,7 +307,7 @@ namespace Engine::Graphics
             savePreset(metal, "Metal", "Shiny metallic surface");
         }
 
-        // プラスチックプリセット
+        // 繝励Λ繧ｹ繝√ャ繧ｯ繝励Μ繧ｻ繝・ヨ
         {
             auto plastic = m_materialManager->createMaterial("Plastic");
             MaterialProperties plasticProps;
@@ -318,7 +318,7 @@ namespace Engine::Graphics
             savePreset(plastic, "Plastic", "Colored plastic material");
         }
 
-        // ガラスプリセット
+        // 繧ｬ繝ｩ繧ｹ繝励Μ繧ｻ繝・ヨ
         {
             auto glass = m_materialManager->createMaterial("Glass");
             MaterialProperties glassProps;
@@ -370,9 +370,9 @@ namespace Engine::Graphics
             {
                 if (entry.path().extension() == ".json")
                 {
-                    // プリセット説明を読み込み（メタデータから）
+                    // 繝励Μ繧ｻ繝・ヨ隱ｬ譏弱ｒ隱ｭ縺ｿ霎ｼ縺ｿ・医Γ繧ｿ繝・・繧ｿ縺九ｉ・・
                     std::string presetName = entry.path().stem().string();
-                    m_presetDescriptions[presetName] = ""; // デフォルト空
+                    m_presetDescriptions[presetName] = ""; // 繝・ヵ繧ｩ繝ｫ繝育ｩｺ
                 }
             }
 
@@ -406,7 +406,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // MaterialImporter実装
+    // MaterialImporter螳溯｣・
     //=========================================================================
 
     Utils::Result<std::shared_ptr<Material>> MaterialImporter::importMaterial(
@@ -440,7 +440,7 @@ namespace Engine::Graphics
         if (extension == ".mtl") return ImportFormat::MTL;
         if (extension == ".gltf" || extension == ".glb") return ImportFormat::GLTF;
 
-        return ImportFormat::JSON; // デフォルト
+        return ImportFormat::JSON; // 繝・ヵ繧ｩ繝ｫ繝・
     }
 
     bool MaterialImporter::isFormatSupported(ImportFormat format)
@@ -452,7 +452,7 @@ namespace Engine::Graphics
             return true;
         case ImportFormat::GLTF:
         case ImportFormat::FBX:
-            return false; // 現在未実装
+            return false; // 迴ｾ蝨ｨ譛ｪ螳溯｣・
         default:
             return false;
         }
@@ -490,40 +490,40 @@ namespace Engine::Graphics
                 std::string command;
                 iss >> command;
 
-                if (command == "Ka") // アンビエント色
+                if (command == "Ka") // 繧｢繝ｳ繝薙お繝ｳ繝郁牡
                 {
                     float r, g, b;
                     iss >> r >> g >> b;
-                    // アンビエント色は現在未使用
+                    // 繧｢繝ｳ繝薙お繝ｳ繝郁牡縺ｯ迴ｾ蝨ｨ譛ｪ菴ｿ逕ｨ
                 }
-                else if (command == "Kd") // ディフューズ色
+                else if (command == "Kd") // 繝・ぅ繝輔Η繝ｼ繧ｺ濶ｲ
                 {
                     float r, g, b;
                     iss >> r >> g >> b;
                     props.albedo = Math::Vector3(r, g, b);
                 }
-                else if (command == "Ks") // スペキュラー色
+                else if (command == "Ks") // 繧ｹ繝壹く繝･繝ｩ繝ｼ濶ｲ
                 {
                     float r, g, b;
                     iss >> r >> g >> b;
-                    // PBRではメタリック値として近似
+                    // PBR縺ｧ縺ｯ繝｡繧ｿ繝ｪ繝・け蛟､縺ｨ縺励※霑台ｼｼ
                     float luminance = 0.299f * r + 0.587f * g + 0.114f * b;
                     props.metallic = luminance;
                 }
-                else if (command == "Ns") // スペキュラー指数
+                else if (command == "Ns") // 繧ｹ繝壹く繝･繝ｩ繝ｼ謖・焚
                 {
                     float ns;
                     iss >> ns;
-                    // スペキュラー指数をラフネスに変換（近似）
+                    // 繧ｹ繝壹く繝･繝ｩ繝ｼ謖・焚繧偵Λ繝輔ロ繧ｹ縺ｫ螟画鋤・郁ｿ台ｼｼ・・
                     props.roughness = std::sqrt(2.0f / (ns + 2.0f));
                 }
-                else if (command == "d" || command == "Tr") // 透明度
+                else if (command == "d" || command == "Tr") // 騾乗・蠎ｦ
                 {
                     float alpha;
                     iss >> alpha;
                     props.alpha = (command == "Tr") ? (1.0f - alpha) : alpha;
                 }
-                else if (command == "map_Kd") // ディフューズマップ
+                else if (command == "map_Kd") // 繝・ぅ繝輔Η繝ｼ繧ｺ繝槭ャ繝・
                 {
                     std::string texturePath;
                     iss >> texturePath;
@@ -533,7 +533,7 @@ namespace Engine::Graphics
                         material->setTexture(TextureType::Albedo, texture);
                     }
                 }
-                else if (command == "map_bump" || command == "bump") // 法線マップ
+                else if (command == "map_bump" || command == "bump") // 豕慕ｷ壹・繝・・
                 {
                     std::string texturePath;
                     iss >> texturePath;
@@ -561,12 +561,12 @@ namespace Engine::Graphics
         MaterialManager* materialManager,
         TextureManager* textureManager)
     {
-        // glTFインポートは複雑なため、現在は未実装
+        // glTF繧､繝ｳ繝昴・繝医・隍・尅縺ｪ縺溘ａ縲∫樟蝨ｨ縺ｯ譛ｪ螳溯｣・
         return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "GLTF import not implemented yet"));
     }
 
     //=========================================================================
-    // MaterialExporter実装
+    // MaterialExporter螳溯｣・
     //=========================================================================
 
     Utils::VoidResult MaterialExporter::exportMaterial(
@@ -595,7 +595,7 @@ namespace Engine::Graphics
         case ExportFormat::MTL:
             return true;
         case ExportFormat::GLTF:
-            return false; // 現在未実装
+            return false; // 迴ｾ蝨ｨ譛ｪ螳溯｣・
         default:
             return false;
         }
@@ -619,23 +619,23 @@ namespace Engine::Graphics
             file << "# Material exported from DX12GameEngine\n";
             file << "newmtl " << material->getName() << "\n";
 
-            // アンビエント色（固定値）
+            // 繧｢繝ｳ繝薙お繝ｳ繝郁牡・亥崋螳壼､・・
             file << "Ka 0.1 0.1 0.1\n";
 
-            // ディフューズ色
+            // 繝・ぅ繝輔Η繝ｼ繧ｺ濶ｲ
             file << std::format("Kd {:.3f} {:.3f} {:.3f}\n", props.albedo.x, props.albedo.y, props.albedo.z);
 
-            // スペキュラー色（メタリック値から近似）
+            // 繧ｹ繝壹く繝･繝ｩ繝ｼ濶ｲ・医Γ繧ｿ繝ｪ繝・け蛟､縺九ｉ霑台ｼｼ・・
             file << std::format("Ks {:.3f} {:.3f} {:.3f}\n", props.metallic, props.metallic, props.metallic);
 
-            // スペキュラー指数（ラフネスから変換）
+            // 繧ｹ繝壹く繝･繝ｩ繝ｼ謖・焚・医Λ繝輔ロ繧ｹ縺九ｉ螟画鋤・・
             float ns = 2.0f / (props.roughness * props.roughness) - 2.0f;
             file << std::format("Ns {:.1f}\n", ns);
 
-            // 透明度
+            // 騾乗・蠎ｦ
             file << std::format("d {:.3f}\n", props.alpha);
 
-            // テクスチャマップ
+            // 繝・け繧ｹ繝√Ε繝槭ャ繝・
             auto albedoTexture = material->getTexture(TextureType::Albedo);
             if (albedoTexture)
             {
@@ -663,12 +663,12 @@ namespace Engine::Graphics
         std::shared_ptr<Material> material,
         const std::string& filePath)
     {
-        // glTFエクスポートは複雑なため、現在は未実装
+        // glTF繧ｨ繧ｯ繧ｹ繝昴・繝医・隍・尅縺ｪ縺溘ａ縲∫樟蝨ｨ縺ｯ譛ｪ螳溯｣・
         return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "GLTF export not implemented yet"));
     }
 
     //=========================================================================
-    // バッチ操作実装
+    // 繝舌ャ繝∵桃菴懷ｮ溯｣・
     //=========================================================================
 
     Utils::VoidResult MaterialSerializer::saveMaterialLibrary(

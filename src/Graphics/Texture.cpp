@@ -1,11 +1,11 @@
-//src/Graphics/Texture.cpp
+﻿//src/Graphics/Texture.cpp
 #include "Texture.hpp"
 #include <format>
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
 
-// STB画像ライブラリ（ヘッダーオンリーライブラリ）
+// STB逕ｻ蜒上Λ繧､繝悶Λ繝ｪ・医・繝・ム繝ｼ繧ｪ繝ｳ繝ｪ繝ｼ繝ｩ繧､繝悶Λ繝ｪ・・
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image.h"
@@ -14,7 +14,7 @@
 namespace Engine::Graphics
 {
     //=========================================================================
-    // Texture実装
+    // Texture螳溯｣・
     //=========================================================================
 
     Utils::Result<std::shared_ptr<Texture>> Texture::createFromFile(
@@ -23,20 +23,20 @@ namespace Engine::Graphics
         bool generateMips,
         bool sRGB)
     {
-        // 画像データを読み込み
+        // 逕ｻ蜒上ョ繝ｼ繧ｿ繧定ｪｭ縺ｿ霎ｼ縺ｿ
         auto imageResult = TextureLoader::loadFromFile(filePath);
         if (!imageResult)
         {
             return std::unexpected(imageResult.error());
         }
 
-        // テクスチャ設定を作成
+        // 繝・け繧ｹ繝√Ε險ｭ螳壹ｒ菴懈・
         TextureDesc desc;
         desc.width = imageResult->width;
         desc.height = imageResult->height;
         desc.format = sRGB ? TextureFormat::R8G8B8A8_SRGB : imageResult->format;
         desc.generateMips = generateMips;
-        desc.mipLevels = generateMips ? 0 : 1; // 0 = 自動計算
+        desc.mipLevels = generateMips ? 0 : 1; // 0 = 閾ｪ蜍戊ｨ育ｮ・
         desc.usage = TextureUsage::ShaderResource;
         desc.debugName = std::filesystem::path(filePath).filename().string();
 
@@ -98,7 +98,7 @@ namespace Engine::Graphics
         m_device = device;
         m_desc = desc;
 
-        // ミップレベルの自動計算
+        // 繝溘ャ繝励Ξ繝吶Ν縺ｮ閾ｪ蜍戊ｨ育ｮ・
         if (m_desc.mipLevels == 0)
         {
             m_desc.mipLevels = static_cast<uint32_t>(std::floor(std::log2(max(m_desc.width, m_desc.height)))) + 1;
@@ -159,7 +159,7 @@ namespace Engine::Graphics
         D3D12_CLEAR_VALUE* clearValue = nullptr;
         D3D12_CLEAR_VALUE optimizedClearValue{};
 
-        // レンダーターゲットまたは深度ステンシルの場合、最適化クリア値を設定
+        // 繝ｬ繝ｳ繝繝ｼ繧ｿ繝ｼ繧ｲ繝・ヨ縺ｾ縺溘・豺ｱ蠎ｦ繧ｹ繝・Φ繧ｷ繝ｫ縺ｮ蝣ｴ蜷医∵怙驕ｩ蛹悶け繝ｪ繧｢蛟､繧定ｨｭ螳・
         if ((m_desc.usage & TextureUsage::RenderTarget) != TextureUsage::None)
         {
             optimizedClearValue.Format = resourceDesc.Format;
@@ -192,20 +192,20 @@ namespace Engine::Graphics
 
     Utils::VoidResult Texture::createViews()
     {
-        // 現在は基本的な実装のみ
-        // 完全なデスクリプタ管理は後で実装
+        // 迴ｾ蝨ｨ縺ｯ蝓ｺ譛ｬ逧・↑螳溯｣・・縺ｿ
+        // 螳悟・縺ｪ繝・せ繧ｯ繝ｪ繝励ち邂｡逅・・蠕後〒螳溯｣・
         return {};
     }
 
     Utils::VoidResult Texture::uploadData(const ImageData& imageData)
     {
-        // 現在は簡易実装
-        // 完全なアップロード機能は後で実装
+        // 迴ｾ蝨ｨ縺ｯ邁｡譏灘ｮ溯｣・
+        // 螳悟・縺ｪ繧｢繝・・繝ｭ繝ｼ繝画ｩ溯・縺ｯ蠕後〒螳溯｣・
         return {};
     }
 
     //=========================================================================
-    // TextureLoader実装
+    // TextureLoader螳溯｣・
     //=========================================================================
 
     Utils::Result<ImageData> TextureLoader::loadFromFile(const std::string& filePath)
@@ -256,7 +256,7 @@ namespace Engine::Graphics
         ImageData imageData;
         imageData.width = static_cast<uint32_t>(width);
         imageData.height = static_cast<uint32_t>(height);
-        imageData.channels = 4; // STBI_rgb_alphaで強制的に4チャンネル
+        imageData.channels = 4; // STBI_rgb_alpha縺ｧ蠑ｷ蛻ｶ逧・↓4繝√Ε繝ｳ繝阪Ν
         imageData.format = TextureFormat::R8G8B8A8_UNORM;
 
         size_t dataSize = width * height * 4;
@@ -300,7 +300,7 @@ namespace Engine::Graphics
 
     Utils::Result<ImageData> TextureLoader::loadDDS(const std::string& filePath)
     {
-        // DDS読み込みは複雑なので、現在は未実装
+        // DDS隱ｭ縺ｿ霎ｼ縺ｿ縺ｯ隍・尅縺ｪ縺ｮ縺ｧ縲∫樟蝨ｨ縺ｯ譛ｪ螳溯｣・
         return std::unexpected(Utils::make_error(Utils::ErrorType::FileI0, "DDS format not implemented yet"));
     }
 
@@ -362,7 +362,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // TextureManager実装
+    // TextureManager螳溯｣・
     //=========================================================================
 
     Utils::VoidResult TextureManager::initialize(Device* device)
@@ -394,19 +394,19 @@ namespace Engine::Graphics
             return nullptr;
         }
 
-        // キャッシュチェック
+        // 繧ｭ繝｣繝・す繝･繝√ぉ繝・け
         std::string key = filePath;
         if (hasTexture(key))
         {
             return getTexture(key);
         }
 
-        // テクスチャを読み込み
+        // 繝・け繧ｹ繝√Ε繧定ｪｭ縺ｿ霎ｼ縺ｿ
         auto textureResult = Texture::createFromFile(m_device, filePath, generateMips, sRGB);
         if (!textureResult)
         {
             Utils::log_warning(std::format("Failed to load texture '{}': {}", filePath, textureResult.error().message));
-            return getWhiteTexture(); // フォールバック
+            return getWhiteTexture(); // 繝輔か繝ｼ繝ｫ繝舌ャ繧ｯ
         }
 
         m_textures[key] = *textureResult;
@@ -436,13 +436,13 @@ namespace Engine::Graphics
 
     size_t TextureManager::getTotalMemoryUsage() const
     {
-        // 簡易実装
-        return m_textures.size() * 1024 * 1024; // 仮の値
+        // 邁｡譏灘ｮ溯｣・
+        return m_textures.size() * 1024 * 1024; // 莉ｮ縺ｮ蛟､
     }
 
     void TextureManager::clearCache()
     {
-        // デフォルトテクスチャ以外をクリア
+        // 繝・ヵ繧ｩ繝ｫ繝医ユ繧ｯ繧ｹ繝√Ε莉･螟悶ｒ繧ｯ繝ｪ繧｢
         auto whiteTexture = m_whiteTexture;
         auto blackTexture = m_blackTexture;
         auto defaultNormalTexture = m_defaultNormalTexture;
@@ -456,28 +456,28 @@ namespace Engine::Graphics
 
     Utils::VoidResult TextureManager::createDefaultTextures()
     {
-        // 白テクスチャ（1x1）
+        // 逋ｽ繝・け繧ｹ繝√Ε・・x1・・
         auto whiteResult = createSolidColorTexture(m_whiteTexture, 0xFFFFFFFF, "DefaultWhite");
         if (!whiteResult)
         {
             return whiteResult;
         }
 
-        // 黒テクスチャ（1x1）
+        // 鮟偵ユ繧ｯ繧ｹ繝√Ε・・x1・・
         auto blackResult = createSolidColorTexture(m_blackTexture, 0xFF000000, "DefaultBlack");
         if (!blackResult)
         {
             return blackResult;
         }
 
-        // デフォルト法線マップ（1x1、法線が上向き）
+        // 繝・ヵ繧ｩ繝ｫ繝域ｳ慕ｷ壹・繝・・・・x1縲∵ｳ慕ｷ壹′荳雁髄縺搾ｼ・
         auto normalResult = createSolidColorTexture(m_defaultNormalTexture, 0xFFFF8080, "DefaultNormal");
         if (!normalResult)
         {
             return normalResult;
         }
 
-        // キャッシュに登録
+        // 繧ｭ繝｣繝・す繝･縺ｫ逋ｻ骭ｲ
         m_textures["__white__"] = m_whiteTexture;
         m_textures["__black__"] = m_blackTexture;
         m_textures["__default_normal__"] = m_defaultNormalTexture;
@@ -490,7 +490,7 @@ namespace Engine::Graphics
         uint32_t color,
         const std::string& name)
     {
-        // 1x1のイメージデータを作成
+        // 1x1縺ｮ繧､繝｡繝ｼ繧ｸ繝・・繧ｿ繧剃ｽ懈・
         ImageData imageData;
         imageData.width = 1;
         imageData.height = 1;
@@ -498,7 +498,7 @@ namespace Engine::Graphics
         imageData.format = TextureFormat::R8G8B8A8_UNORM;
         imageData.pixels.resize(4);
 
-        // カラーデータを設定（RGBA）
+        // 繧ｫ繝ｩ繝ｼ繝・・繧ｿ繧定ｨｭ螳夲ｼ・GBA・・
         imageData.pixels[0] = (color >> 16) & 0xFF; // R
         imageData.pixels[1] = (color >> 8) & 0xFF;  // G
         imageData.pixels[2] = color & 0xFF;         // B
@@ -525,7 +525,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // ユーティリティ関数実装
+    // 繝ｦ繝ｼ繝・ぅ繝ｪ繝・ぅ髢｢謨ｰ螳溯｣・
     //=========================================================================
 
     uint32_t getBytesPerPixel(TextureFormat format)
@@ -546,12 +546,12 @@ namespace Engine::Graphics
         case TextureFormat::D24_UNORM_S8_UINT:
             return 4;
         case TextureFormat::BC1_UNORM:
-            return 0; // 圧縮フォーマットは特別計算
+            return 0; // 蝨ｧ邵ｮ繝輔か繝ｼ繝槭ャ繝医・迚ｹ蛻･險育ｮ・
         case TextureFormat::BC3_UNORM:
         case TextureFormat::BC7_UNORM:
-            return 0; // 圧縮フォーマットは特別計算
+            return 0; // 蝨ｧ邵ｮ繝輔か繝ｼ繝槭ャ繝医・迚ｹ蛻･險育ｮ・
         default:
-            return 4; // デフォルト
+            return 4; // 繝・ヵ繧ｩ繝ｫ繝・
         }
     }
 
@@ -584,7 +584,7 @@ namespace Engine::Graphics
         {
         case TextureFormat::R8G8B8A8_UNORM:  return DXGI_FORMAT_R8G8B8A8_UNORM;
         case TextureFormat::R8G8B8A8_SRGB:   return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        case TextureFormat::R8G8B8_UNORM:    return DXGI_FORMAT_R8G8B8A8_UNORM; // 3チャンネルは4チャンネルとして扱う
+        case TextureFormat::R8G8B8_UNORM:    return DXGI_FORMAT_R8G8B8A8_UNORM; // 3繝√Ε繝ｳ繝阪Ν縺ｯ4繝√Ε繝ｳ繝阪Ν縺ｨ縺励※謇ｱ縺・
         case TextureFormat::R8_UNORM:        return DXGI_FORMAT_R8_UNORM;
         case TextureFormat::R16G16B16A16_FLOAT: return DXGI_FORMAT_R16G16B16A16_FLOAT;
         case TextureFormat::BC1_UNORM:       return DXGI_FORMAT_BC1_UNORM;
@@ -637,7 +637,7 @@ namespace Engine::Graphics
 
     D3D12_RESOURCE_STATES textureUsageToD3D12State(TextureUsage usage)
     {
-        // 最も一般的な初期状態を返す
+        // 譛繧ゆｸ闊ｬ逧・↑蛻晄悄迥ｶ諷九ｒ霑斐☆
         if ((usage & TextureUsage::RenderTarget) != TextureUsage::None)
         {
             return D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -653,7 +653,7 @@ namespace Engine::Graphics
             return D3D12_RESOURCE_STATE_COPY_DEST;
         }
 
-        // デフォルトはシェーダーリソース
+        // 繝・ヵ繧ｩ繝ｫ繝医・繧ｷ繧ｧ繝ｼ繝繝ｼ繝ｪ繧ｽ繝ｼ繧ｹ
         return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     }
 }

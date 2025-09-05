@@ -1,4 +1,4 @@
-// src/Core/Window.hpp
+ï»¿// src/Core/Window.hpp
 #pragma once
 
 #include <Windows.h>
@@ -13,69 +13,69 @@ namespace Engine::UI {
 
 namespace Engine::Core {
     // =============================================================================
-   // ƒEƒBƒ“ƒhƒEİ’è\‘¢‘Ì
+   // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¨­å®šæ§‹é€ ä½“
    // =============================================================================
 
-    // ƒEƒBƒ“ƒhƒE‚Ìì¬İ’è
+    // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ä½œæˆè¨­å®š
     struct WindowSettings
     {
-        std::wstring title = L"Game Engine"; // ƒEƒBƒ“ƒhƒEƒ^ƒCƒgƒ‹
-        int width = 1280;// •
-        int height = 720;// ‚‚³
-        int x = CW_USEDEFAULT; // xÀ•W
-        int y = CW_USEDEFAULT;// yÀ•W
-        bool resizable = true; // ƒŠƒTƒCƒY‚Å‚«‚é‚©‚Å‚«‚È‚¢‚©
-        bool fullScreen = false; // ƒtƒ‹ƒXƒNƒŠ[ƒ“‚©‚»‚¤‚Å‚Í‚È‚¢‚©
+        std::wstring title = L"Game Engine"; // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¿ã‚¤ãƒˆãƒ«
+        int width = 1280;// å¹…
+        int height = 720;// é«˜ã•
+        int x = CW_USEDEFAULT; // xåº§æ¨™
+        int y = CW_USEDEFAULT;// yåº§æ¨™
+        bool resizable = true; // ãƒªã‚µã‚¤ã‚ºã§ãã‚‹ã‹ã§ããªã„ã‹
+        bool fullScreen = false; // ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‹ãã†ã§ã¯ãªã„ã‹
     };
 
     // =============================================================================
- // ƒEƒBƒ“ƒhƒEƒCƒxƒ“ƒg‚ÌƒR[ƒ‹ƒoƒbƒNŒ^
+ // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¤ãƒ™ãƒ³ãƒˆã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯å‹
  // =============================================================================
 
-    // ƒEƒBƒ“ƒhƒE‚ªƒŠƒTƒCƒY‚³‚ê‚½‚ÌƒR[ƒ‹ƒoƒbƒN
+    // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒãƒªã‚µã‚¤ã‚ºã•ã‚ŒãŸæ™‚ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
     using ResizeCallback = std::function<void(int width, int height)>;
 
-    // ƒEƒBƒ“ƒhƒE‚ª•Â‚¶‚ç‚ê‚é‚ÌƒR[ƒ‹ƒoƒbƒN
+    // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒé–‰ã˜ã‚‰ã‚Œã‚‹æ™‚ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
     using CloseCallback = std::function<void()>;
 
     // =============================================================================
-   // WindowƒNƒ‰ƒX
+   // Windowã‚¯ãƒ©ã‚¹
    // =============================================================================
 
-    // ƒEƒBƒ“ƒhƒE‚Ìì¬‚ÆŠÇ—‚ğÀ‘•‚·‚éƒNƒ‰ƒX
+    // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ä½œæˆã¨ç®¡ç†ã‚’å®Ÿè£…ã™ã‚‹ã‚¯ãƒ©ã‚¹
     class Window
     {
     public:
-        // ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+        // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
         Window() = default;
 
-        // ƒfƒXƒgƒ‰ƒNƒ^
+        // ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
         ~Window();
 
-        // ƒRƒs[‹Ö~
+        // ã‚³ãƒ”ãƒ¼ç¦æ­¢
         Window(const Window&) = delete;
         Window& operator=(const Window&) = delete;
 
-        //  ƒ€[ƒu‚Í‚Å‚«‚é‚æ‚¤‚É‚·‚é
+        //  ãƒ ãƒ¼ãƒ–ã¯ã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹
         Window(Window&&) noexcept;
         Window& operator=(Window&&) noexcept;
 
-        // ƒEƒBƒ“ƒhƒE‚ğì¬
-        // ƒAƒvƒŠƒP[ƒVƒ‡ƒ“ƒCƒ“ƒXƒ^ƒ“ƒX
-        // ƒEƒBƒ“ƒhƒEİ’è
-        // ¬Œ÷‚ÍvoidA¸”s‚ÍError
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆ
+        // ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¨­å®š
+        // æˆåŠŸæ™‚ã¯voidã€å¤±æ•—æ™‚ã¯Error
         [[nodiscard]] Utils::VoidResult create(HINSTANCE hInstance, const WindowSettings& settings);
 
-        // ƒEƒBƒ“ƒhƒE‚ğ•\¦
-        // nCmdShow•\¦
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤º
+        // nCmdShowè¡¨ç¤º
         void show(int nCmdShow) const noexcept;
 
-        // ƒEƒBƒ“ƒhƒEƒƒbƒZ[ƒW‚ğˆ—
-        // ƒEƒBƒ“ƒhƒEƒnƒ“ƒhƒ‹
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å‡¦ç†
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
         [[nodiscard]] bool processMessages() const noexcept;
 
-        // ƒEƒBƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğæ“¾
-        // ƒEƒBƒ“ƒhƒEƒnƒ“ƒhƒ‹
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’å–å¾—
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
         [[nodiscard]] HWND getHandle() const noexcept { return m_handle; }
 
         [[nodiscard]] std::pair<int, int> getClientSize() const noexcept;
@@ -90,7 +90,7 @@ namespace Engine::Core {
 
         void setImGuiManager(UI::ImGuiManager* manager) { m_imguiManager = manager; }
 
-        // “ü—ÍƒVƒXƒeƒ€‚Ö‚ÌƒAƒNƒZƒX
+        // å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ ã¸ã®ã‚¢ã‚¯ã‚»ã‚¹
         [[nodiscard]] Input::InputManager* getInputManager() const noexcept;
 
     private:
@@ -98,11 +98,11 @@ namespace Engine::Core {
         std::wstring m_className;
         HINSTANCE m_hInstance = nullptr;
 
-        // “ü—ÍƒVƒXƒeƒ€
+        // å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ 
         std::unique_ptr<Input::InputManager> m_inputManager;
         UI::ImGuiManager* m_imguiManager = nullptr;
 
-        // ƒCƒxƒ“ƒgƒR[ƒ‹ƒoƒbƒN
+        // ã‚¤ãƒ™ãƒ³ãƒˆã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
         ResizeCallback m_resizeCallback;
         CloseCallback m_closeCallback;
 
@@ -116,3 +116,4 @@ namespace Engine::Core {
 
     };
 }
+

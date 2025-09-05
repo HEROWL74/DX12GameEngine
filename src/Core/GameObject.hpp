@@ -1,23 +1,23 @@
-//src/Core/GameObject.hpp
+ï»¿//src/Core/GameObject.hpp
 #pragma once
 
 #include <memory>
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <typeindex>  //ECS‚Å‚æ‚­g‚¤
+#include <typeindex>  //ECSã§ã‚ˆãä½¿ã†
 #include "../Math/Math.hpp"
 #include "../Utils/Common.hpp"
 
 namespace Engine::Core
 {
-	//‘O•ûéŒ¾
+	//å‰æ–¹å®£è¨€
 	class GameObject;
 	class Component;
 	class Transform;
 
 	//==========================================================
-	//Componentƒx[ƒXƒNƒ‰ƒX
+	//Componentãƒ™ãƒ¼ã‚¹ã‚¯ãƒ©ã‚¹
 	//==========================================================
 	class Component
 	{
@@ -25,22 +25,22 @@ namespace Engine::Core
 		Component() = default;
 		virtual ~Component() = default;
 
-		//ƒRƒs[Eƒ€[ƒu‹Ö~
+		//ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
 		Component(const Component&) = delete;
 		Component& operator=(const Component&) = delete;
 		Component(Component&&) = delete;
 		Component& operator=(Component&&) = delete;
 
-		//ƒ‰ƒCƒtƒTƒCƒNƒ‹
-		virtual void start() {}                    //‰Šú‰»‚Ì‚Éˆê“x‚¾‚¯ŒÄ‚Ô
-		virtual void update(float deltaTime) {}    //–ˆƒtƒŒ[ƒ€ŒÄ‚Ô
-		virtual void lateUpdate(float deltaTime) {}//update‚Æ‚ ‚Æ‚ÉŒÄ‚Ô
-		virtual void onDestroy() {}                //”jŠü‚ÉŒÄ‚Ô
+		//ãƒ©ã‚¤ãƒ•ã‚µã‚¤ã‚¯ãƒ«
+		virtual void start() {}                    //åˆæœŸåŒ–ã®æ™‚ã«ä¸€åº¦ã ã‘å‘¼ã¶
+		virtual void update(float deltaTime) {}    //æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‘¼ã¶
+		virtual void lateUpdate(float deltaTime) {}//updateã¨ã‚ã¨ã«å‘¼ã¶
+		virtual void onDestroy() {}                //ç ´æ£„æ™‚ã«å‘¼ã¶
 
-		//ƒQ[ƒ€ƒIƒuƒWƒFƒNƒg‚Ìæ“¾
+		//ã‚²ãƒ¼ãƒ ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å–å¾—
 		GameObject* getGameObject() const { return m_gameObject; }
 
-		//—LŒø‚©–³Œø‚©
+		//æœ‰åŠ¹ã‹ç„¡åŠ¹ã‹
 		bool isEnabled() const { return m_enabled; }
 		void setEnabled(bool enabled) { m_enabled = enabled; }
 
@@ -52,7 +52,7 @@ namespace Engine::Core
 	};
 
 	//=========================================================
-	//TransformƒRƒ“ƒ|[ƒlƒ“ƒgi•K{ƒRƒ“ƒ|[ƒlƒ“ƒgj
+	//Transformã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆï¼ˆå¿…é ˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆï¼‰
 	//=========================================================
 	class Transform : public Component
 	{
@@ -60,7 +60,7 @@ namespace Engine::Core
 		Transform() = default;
 		~Transform() = default;
 
-		//ˆÊ’uE‰ñ“]EƒXƒP[ƒ‹
+		//ä½ç½®ãƒ»å›è»¢ãƒ»ã‚¹ã‚±ãƒ¼ãƒ«
 		const Math::Vector3& getPosition() const { return m_position; }
 		const Math::Vector3& getRotation() const { return m_rotation; }
 		const Math::Vector3& getScale() const { return m_scale; }
@@ -69,14 +69,14 @@ namespace Engine::Core
 		void setRotation(const Math::Vector3& rotation) { m_rotation = rotation; m_isDirty = true; }
 		void setScale(const Math::Vector3& scale) { m_scale = scale; m_isDirty = true; }
 
-		//ˆÚ“®E‰ñ“]
+		//ç§»å‹•ãƒ»å›è»¢
 		void translate(const Math::Vector3& transition) { m_position += transition; m_isDirty = true; }
 		void rotate(const Math::Vector3& rotation) { m_rotation += rotation; m_isDirty = true; }
 
-		//ƒ[ƒ‹ƒhs—ñ‚Ìæ“¾
+		//ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã®å–å¾—
 		const Math::Matrix4& getWorldMatrix();
 
-		//•ûŒüƒxƒNƒgƒ‹
+		//æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«
 		Math::Vector3 getForward() const;
 		Math::Vector3 getRight() const;
 		Math::Vector3 getUp() const;
@@ -86,13 +86,13 @@ namespace Engine::Core
 		Math::Vector3 m_scale = Math::Vector3::one();
 
 		mutable Math::Matrix4 m_worldMatrix;
-		mutable bool m_isDirty = true; //isDirty‚Æ‘‚¢‚½‚Ì‚ÍAó‘Ô‚ªÅV‚¶‚á‚È‚¢ê‡‚Éˆ—‚ğ’Ç‰Á‚·‚é‚½‚ß
+		mutable bool m_isDirty = true; //isDirtyã¨æ›¸ã„ãŸã®ã¯ã€çŠ¶æ…‹ãŒæœ€æ–°ã˜ã‚ƒãªã„å ´åˆã«å‡¦ç†ã‚’è¿½åŠ ã™ã‚‹ãŸã‚
 
 		void updateWorldMatrix() const;
 	};
 
 	//=========================================================
-	//ƒQ[ƒ€ƒIƒuƒWƒFƒNƒgƒNƒ‰ƒX
+	//ã‚²ãƒ¼ãƒ ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚¯ãƒ©ã‚¹
 	//=========================================================
 	class GameObject
 	{
@@ -101,23 +101,23 @@ namespace Engine::Core
 
 		~GameObject();
 
-		//ƒRƒs[Eƒ€[ƒu‹Ö~
+		//ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
 		GameObject(const GameObject&) = delete;
 		GameObject& operator=(const GameObject&) = delete;
 		GameObject(GameObject&&) = delete;
 		GameObject& operator=(GameObject&&) = delete;
 
-		//Šî–{î•ñ
+		//åŸºæœ¬æƒ…å ±
 		const std::string& getName() const { return m_name; }
 		void setName(const std::string& name) { m_name = name; }
 
 		bool isActive() const { return m_active; }
 		void setActive(bool active) { m_active = active; }
 
-		//Transformi•K{‚ÌƒRƒ“ƒ|[ƒlƒ“ƒgj
+		//Transformï¼ˆå¿…é ˆã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆï¼‰
 		Transform* getTransform() const { return m_transform; }
 
-		//ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì’Ç‰ÁEæ“¾Eíœ
+		//ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®è¿½åŠ ãƒ»å–å¾—ãƒ»å‰Šé™¤
 		template<typename T, typename... Args>
 		T* addComponent(Args&&... args);
 
@@ -132,19 +132,19 @@ namespace Engine::Core
 		template<typename T>
 		bool hasComponent() const { return hasComponent(std::type_index(typeid(T))); }
 
-		//ƒ‰ƒCƒtƒTƒCƒNƒ‹
+		//ãƒ©ã‚¤ãƒ•ã‚µã‚¤ã‚¯ãƒ«
 		void start();
 		void update(float deltaTime);
 		void lateUpdate(float deltaTime);
 		void destroy();
 
-		//qƒIƒuƒWƒFƒNƒgŠÇ—
+		//å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆç®¡ç†
 		void addChild(std::unique_ptr<GameObject> child);
 		void removeChild(GameObject* child);
 		GameObject* findChild(const std::string& name) const;
 		const std::vector<std::unique_ptr<GameObject>>& getChildren() const { return m_children; }
 
-		//eƒIƒuƒWƒFƒNƒg
+		//è¦ªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 		GameObject* getParent() const { return m_parent; }
 
 	private:
@@ -152,19 +152,19 @@ namespace Engine::Core
 		bool m_active = true;
 		bool m_started = false;
 
-		//•K{ƒRƒ“ƒ|[ƒlƒ“ƒg
+		//å¿…é ˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 		Transform* m_transform = nullptr;
 
-		//ƒRƒ“ƒ|[ƒlƒ“ƒgŠÇ—
+		//ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç®¡ç†
 		std::unordered_map<std::type_index, std::unique_ptr<Component>> m_components;
 
-		//ŠK‘w\‘¢
+		//éšå±¤æ§‹é€ 
 		GameObject* m_parent = nullptr;
 		std::vector<std::unique_ptr<GameObject>> m_children;
 	};
 
 	//=============================================================
-	//ƒeƒ“ƒvƒŒ[ƒgÀ‘•
+	//ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆå®Ÿè£…
 	//=============================================================
 	template<typename T, typename... Args>
 	T* GameObject::addComponent(Args&&... args)
@@ -173,18 +173,18 @@ namespace Engine::Core
 
 		std::type_index typeIndex(typeid(T));
 
-		// Šù‚É‘¶İ‚·‚éê‡‚ÍŠù‘¶‚Ì‚à‚Ì‚ğ•Ô‚·
+		// æ—¢ã«å­˜åœ¨ã™ã‚‹å ´åˆã¯æ—¢å­˜ã®ã‚‚ã®ã‚’è¿”ã™
 		auto it = m_components.find(typeIndex);
 		if (it != m_components.end())
 		{
 			return static_cast<T*>(it->second.get());
 		}
 
-		// V‚µ‚¢ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğì¬
+		// æ–°ã—ã„ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’ä½œæˆ
 		T* rawPtr = new T(std::forward<Args>(args)...);
 		rawPtr->m_gameObject = this;
 
-		// unique_ptr‚ÉŠi”[
+		// unique_ptrã«æ ¼ç´
 		m_components[typeIndex] = std::unique_ptr<Component>(rawPtr);
 
 		return rawPtr;
@@ -221,5 +221,6 @@ namespace Engine::Core
 		}
 	}
 }
+
 
 

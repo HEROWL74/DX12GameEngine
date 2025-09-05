@@ -1,4 +1,4 @@
-// src/main.cpp
+﻿// src/main.cpp
 #include <Windows.h>
 #include <iostream>
 #include "Core/App.hpp"
@@ -8,7 +8,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE,_In_ LPSTR, _In_ 
 {
     using namespace Engine;
 
-    // コンソールウィンドウを作成（デバッグログ表示用）
+    // 繧ｳ繝ｳ繧ｽ繝ｼ繝ｫ繧ｦ繧｣繝ｳ繝峨え繧剃ｽ懈・・医ョ繝舌ャ繧ｰ繝ｭ繧ｰ陦ｨ遉ｺ逕ｨ・・
 #ifdef _DEBUG
     AllocConsole();
     freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
@@ -16,10 +16,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE,_In_ LPSTR, _In_ 
     std::cout << "=== DX12 Game Engine Debug Console ===" << std::endl;
 #endif
 
-    // アプリケーションの作成
+    // 繧｢繝励Μ繧ｱ繝ｼ繧ｷ繝ｧ繝ｳ縺ｮ菴懈・
     Core::App app;
 
-    // アプリケーションの初期化
+    // 繧｢繝励Μ繧ｱ繝ｼ繧ｷ繝ｧ繝ｳ縺ｮ蛻晄悄蛹・
     auto initResult = app.initialize(hInstance, nCmdShow);
     if (!initResult)
     {
@@ -34,7 +34,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE,_In_ LPSTR, _In_ 
         return -1;
     }
 
-    // メインループの実行
+    // 繝｡繧､繝ｳ繝ｫ繝ｼ繝励・螳溯｡・
     const int exitCode = app.run();
 
 #ifdef _DEBUG

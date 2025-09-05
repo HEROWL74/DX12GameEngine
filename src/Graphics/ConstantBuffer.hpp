@@ -1,4 +1,4 @@
-// src/Graphics/ConstantBuffer.hpp
+ï»¿// src/Graphics/ConstantBuffer.hpp
 #pragma once
 
 #include <Windows.h>
@@ -12,17 +12,17 @@ using Microsoft::WRL::ComPtr;
 
 namespace Engine::Graphics
 {
-    // ƒJƒƒ‰—p’è”ƒoƒbƒtƒ@
+    // ã‚«ãƒ¡ãƒ©ç”¨å®šæ•°ãƒãƒƒãƒ•ã‚¡
     struct CameraConstants
     {
         Math::Matrix4 viewMatrix;
         Math::Matrix4 projectionMatrix;
         Math::Matrix4 viewProjectionMatrix;
         Math::Vector3 cameraPosition;
-        float padding;  // 16ƒoƒCƒg‹«ŠE‚ÉƒAƒ‰ƒCƒ“
+        float padding;  // 16ãƒã‚¤ãƒˆå¢ƒç•Œã«ã‚¢ãƒ©ã‚¤ãƒ³
     };
 
-    // ƒIƒuƒWƒFƒNƒg—p’è”ƒoƒbƒtƒ@
+    // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆç”¨å®šæ•°ãƒãƒƒãƒ•ã‚¡
     struct ObjectConstants
     {
         Math::Matrix4 worldMatrix;
@@ -31,7 +31,7 @@ namespace Engine::Graphics
         float padding;
     };
 
-    // ’è”ƒoƒbƒtƒ@ŠÇ—ƒNƒ‰ƒX
+    // å®šæ•°ãƒãƒƒãƒ•ã‚¡ç®¡ç†ã‚¯ãƒ©ã‚¹
     template<typename T>
     class ConstantBuffer
     {
@@ -39,22 +39,22 @@ namespace Engine::Graphics
         ConstantBuffer() = default;
         ~ConstantBuffer() = default;
 
-        // ƒRƒs[Eƒ€[ƒu‹Ö~
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
         ConstantBuffer(const ConstantBuffer&) = delete;
         ConstantBuffer& operator=(const ConstantBuffer&) = delete;
         ConstantBuffer(ConstantBuffer&&) = delete;
         ConstantBuffer& operator=(ConstantBuffer&&) = delete;
 
-        // ‰Šú‰»
+        // åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initialize(Device* device, UINT frameCount = 2)
         {
             m_device = device;
             m_frameCount = frameCount;
 
-            // ’è”ƒoƒbƒtƒ@‚ÌƒTƒCƒYi256ƒoƒCƒg‹«ŠE‚ÉƒAƒ‰ƒCƒ“j
+            // å®šæ•°ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚ºï¼ˆ256ãƒã‚¤ãƒˆå¢ƒç•Œã«ã‚¢ãƒ©ã‚¤ãƒ³ï¼‰
             m_alignedSize = (sizeof(T) + 255) & ~255;
 
-            // ƒtƒŒ[ƒ€”•ª‚Ì’è”ƒoƒbƒtƒ@‚ğì¬
+            // ãƒ•ãƒ¬ãƒ¼ãƒ æ•°åˆ†ã®å®šæ•°ãƒãƒƒãƒ•ã‚¡ã‚’ä½œæˆ
             m_constantBuffers.resize(frameCount);
             m_mappedData.resize(frameCount);
 
@@ -67,7 +67,7 @@ namespace Engine::Graphics
             return {};
         }
 
-        // ƒf[ƒ^‚ğXV
+        // ãƒ‡ãƒ¼ã‚¿ã‚’æ›´æ–°
         void updateData(UINT frameIndex, const T& data)
         {
             if (frameIndex < m_frameCount && m_mappedData[frameIndex])
@@ -76,7 +76,7 @@ namespace Engine::Graphics
             }
         }
 
-        // GPUƒAƒhƒŒƒX‚ğæ“¾
+        // GPUã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å–å¾—
         D3D12_GPU_VIRTUAL_ADDRESS getGPUAddress(UINT frameIndex) const
         {
             if (frameIndex < m_frameCount && m_constantBuffers[frameIndex])
@@ -86,7 +86,7 @@ namespace Engine::Graphics
             return 0;
         }
 
-        // —LŒø‚©ƒ`ƒFƒbƒN
+        // æœ‰åŠ¹ã‹ãƒã‚§ãƒƒã‚¯
         [[nodiscard]] bool isValid() const
         {
             return !m_constantBuffers.empty() && m_constantBuffers[0] != nullptr;
@@ -102,7 +102,7 @@ namespace Engine::Graphics
 
         [[nodiscard]] Utils::VoidResult createConstantBuffer(UINT index)
         {
-            // ƒAƒbƒvƒ[ƒhƒq[ƒv‚ÌƒvƒƒpƒeƒB
+            // ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ãƒ’ãƒ¼ãƒ—ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
             D3D12_HEAP_PROPERTIES heapProps{};
             heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
             heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -110,7 +110,7 @@ namespace Engine::Graphics
             heapProps.CreationNodeMask = 1;
             heapProps.VisibleNodeMask = 1;
 
-            // ƒŠƒ\[ƒX‹Lqq
+            // ãƒªã‚½ãƒ¼ã‚¹è¨˜è¿°å­
             D3D12_RESOURCE_DESC resourceDesc{};
             resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
             resourceDesc.Alignment = 0;
@@ -133,8 +133,8 @@ namespace Engine::Graphics
                 IID_PPV_ARGS(&m_constantBuffers[index])),
                 Utils::ErrorType::ResourceCreation, "Failed to create constant buffer");
 
-            // ƒƒ‚ƒŠƒ}ƒbƒsƒ“ƒO
-            D3D12_RANGE readRange{ 0, 0 };  // CPU‚©‚ç“Ç‚İæ‚ç‚È‚¢
+            // ãƒ¡ãƒ¢ãƒªãƒãƒƒãƒ”ãƒ³ã‚°
+            D3D12_RANGE readRange{ 0, 0 };  // CPUã‹ã‚‰èª­ã¿å–ã‚‰ãªã„
             CHECK_HR(m_constantBuffers[index]->Map(0, &readRange, &m_mappedData[index]),
                 Utils::ErrorType::ResourceCreation, "Failed to map constant buffer");
 
@@ -142,33 +142,33 @@ namespace Engine::Graphics
         }
     };
 
-    // ’è”ƒoƒbƒtƒ@ƒ}ƒl[ƒWƒƒ[
+    // å®šæ•°ãƒãƒƒãƒ•ã‚¡ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼
     class ConstantBufferManager
     {
     public:
         ConstantBufferManager() = default;
         ~ConstantBufferManager() = default;
 
-        // ƒRƒs[Eƒ€[ƒu‹Ö~
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
         ConstantBufferManager(const ConstantBufferManager&) = delete;
         ConstantBufferManager& operator=(const ConstantBufferManager&) = delete;
         ConstantBufferManager(ConstantBufferManager&&) = delete;
         ConstantBufferManager& operator=(ConstantBufferManager&&) = delete;
 
-        // ‰Šú‰»
+        // åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initialize(Device* device, UINT frameCount = 2);
 
-        // ƒJƒƒ‰’è”‚ğXV
+        // ã‚«ãƒ¡ãƒ©å®šæ•°ã‚’æ›´æ–°
         void updateCameraConstants(UINT frameIndex, const CameraConstants& constants);
 
-        // ƒIƒuƒWƒFƒNƒg’è”‚ğXV
+        // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå®šæ•°ã‚’æ›´æ–°
         void updateObjectConstants(UINT frameIndex, const ObjectConstants& constants);
 
-        // GPUƒAƒhƒŒƒX‚ğæ“¾
+        // GPUã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å–å¾—
         D3D12_GPU_VIRTUAL_ADDRESS getCameraConstantsGPUAddress(UINT frameIndex) const;
         D3D12_GPU_VIRTUAL_ADDRESS getObjectConstantsGPUAddress(UINT frameIndex) const;
 
-        // —LŒø‚©ƒ`ƒFƒbƒN
+        // æœ‰åŠ¹ã‹ãƒã‚§ãƒƒã‚¯
         [[nodiscard]] bool isValid() const;
 
     private:

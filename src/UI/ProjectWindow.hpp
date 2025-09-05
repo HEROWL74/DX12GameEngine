@@ -1,4 +1,4 @@
-//src/UI/ProjectWindow.hpp
+ï»¿//src/UI/ProjectWindow.hpp
 #pragma once
 
 #include <memory>
@@ -13,7 +13,7 @@
 namespace Engine::UI
 {
     //=========================================================================
-    // ƒAƒZƒbƒgî•ñ\‘¢‘Ì
+    // ã‚¢ã‚»ãƒƒãƒˆæƒ…å ±æ§‹é€ ä½“
     //=========================================================================
     struct AssetInfo
     {
@@ -29,12 +29,12 @@ namespace Engine::UI
             Unknown
         } type{};
 
-        std::shared_ptr<Graphics::Texture> texture; // ƒeƒNƒXƒ`ƒƒƒvƒŒƒrƒ…[—p
-        std::shared_ptr<Graphics::Material> material; // ƒ}ƒeƒŠƒAƒ‹—p
+        std::shared_ptr<Graphics::Texture> texture; // ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ç”¨
+        std::shared_ptr<Graphics::Material> material; // ãƒãƒ†ãƒªã‚¢ãƒ«ç”¨
     };
 
     //=========================================================================
-    // ƒvƒƒWƒFƒNƒgƒEƒBƒ“ƒhƒE
+    // ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
     //=========================================================================
     class ProjectWindow : public ImGuiWindow
     {
@@ -44,18 +44,18 @@ namespace Engine::UI
 
         void draw() override;
 
-        // ˆË‘¶ŠÖŒWİ’è
+        // ä¾å­˜é–¢ä¿‚è¨­å®š
         void setTextureManager(Graphics::TextureManager* textureManager) { m_textureManager = textureManager; }
         void setMaterialManager(Graphics::MaterialManager* materialManager) { m_materialManager = materialManager; }
 
-        // ƒvƒƒWƒFƒNƒgƒpƒXİ’è
+        // ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆãƒ‘ã‚¹è¨­å®š
         void setProjectPath(const std::string& path);
         const std::string& getProjectPath() const { return m_projectPath; }
 
-        // ‘I‘ğ‚³‚ê‚½ƒAƒZƒbƒgæ“¾
+        // é¸æŠã•ã‚ŒãŸã‚¢ã‚»ãƒƒãƒˆå–å¾—
         const AssetInfo* getSelectedAsset() const { return m_selectedAsset; }
 
-        // ƒAƒZƒbƒg‘€ìƒR[ƒ‹ƒoƒbƒN
+        // ã‚¢ã‚»ãƒƒãƒˆæ“ä½œã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
         void setAssetDropCallback(std::function<void(const AssetInfo&)> callback) { m_assetDropCallback = callback; }
 
     private:
@@ -66,15 +66,15 @@ namespace Engine::UI
         std::vector<AssetInfo> m_assets;
         AssetInfo* m_selectedAsset = nullptr;
 
-        // UIó‘Ô
+        // UIçŠ¶æ…‹
         float m_iconSize = 64.0f;
         bool m_showGrid = true;
         std::string m_searchFilter;
 
-        // ƒR[ƒ‹ƒoƒbƒN
+        // ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
         std::function<void(const AssetInfo&)> m_assetDropCallback;
 
-        // ƒvƒ‰ƒCƒx[ƒgƒƒ\ƒbƒh
+        // ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆãƒ¡ã‚½ãƒƒãƒ‰
         void refreshAssets();
         void drawToolbar();
         void drawAssetGrid();
@@ -86,7 +86,7 @@ namespace Engine::UI
         void loadAssetPreview(AssetInfo& asset);
         bool matchesFilter(const AssetInfo& asset) const;
 
-        // ƒhƒ‰ƒbƒO&ƒhƒƒbƒv
+        // ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—
         void handleDragDrop(const AssetInfo& asset);
     };
 }

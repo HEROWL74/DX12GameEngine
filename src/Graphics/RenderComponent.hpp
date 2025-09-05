@@ -1,4 +1,4 @@
-//src/Graphics/RenderComponent.hpp
+ï»¿//src/Graphics/RenderComponent.hpp
 #pragma once
 
 #include "../Core/GameObject.hpp"
@@ -10,16 +10,16 @@
 #include "ShaderManager.hpp"
 namespace Engine::Graphics
 {
-	//ƒŒƒ“ƒ_ƒŠƒ“ƒO‰Â”\‚ÈƒIƒuƒWƒFƒNƒg‚Ìí—Ş
+	//ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°å¯èƒ½ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç¨®é¡
 	enum class RenderableType
 	{
 		Triangle,
 		Cube,
-		//Sphere‚âPlane‚à’Ç‰Á—\’è
+		//Sphereã‚„Planeã‚‚è¿½åŠ äºˆå®š
 	};
 
 	//=========================================
-	//ƒŒƒ“ƒ_ƒŠƒ“ƒOƒRƒ“ƒ|[ƒlƒ“ƒg
+	//ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 	//=========================================
 	class RenderComponent : public Core::Component
 	{
@@ -27,13 +27,13 @@ namespace Engine::Graphics
 		explicit RenderComponent(RenderableType type = RenderableType::Cube);
 		~RenderComponent() = default;
 
-		//‰Šú‰»
+		//åˆæœŸåŒ–
 		[[nodiscard]] Utils::VoidResult initialize(Device* device, ShaderManager* shaderManager);
 
-		//ƒŒƒ“ƒ_ƒŠƒ“ƒO
+		//ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°
 		void render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex);
 
-		//ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^ƒCƒv
+		//ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ã‚¤ãƒ—
 		RenderableType getRenderableType() const { return m_renderableType; }
 		void setRenderableType(RenderableType type);
 
@@ -41,37 +41,37 @@ namespace Engine::Graphics
 		std::shared_ptr<Graphics::Material> getMaterial() const { return m_material; }
 		void setMaterialManager(Graphics::MaterialManager* manager) { m_materialManager = manager; }
 
-		//F‚Ìİ’èTODO:iƒ}ƒeƒŠƒAƒ‹‚É”­“W‚·‚é—\’èj
+		//è‰²ã®è¨­å®šTODO:ï¼ˆãƒãƒ†ãƒªã‚¢ãƒ«ã«ç™ºå±•ã™ã‚‹äºˆå®šï¼‰
 		void setColor(const Math::Vector3& color) { m_color = color; }
 		const Math::Vector3& getColor() const { return m_color; }
 
-		//—LŒø‚©–³Œø‚©
+		//æœ‰åŠ¹ã‹ç„¡åŠ¹ã‹
 		void setVisible(bool visible) { m_visible = visible; }
 		bool isVisible() const { return m_visible; }
 
-		//—LŒø«ƒ`ƒFƒbƒN
+		//æœ‰åŠ¹æ€§ãƒã‚§ãƒƒã‚¯
 		[[nodiscard]] bool isValid() const;
 
 	private:
 		Device* m_device = nullptr;
-		ShaderManager* m_shaderManager = nullptr;  // © ‚±‚ê‚ğ’Ç‰Á
+		ShaderManager* m_shaderManager = nullptr;  // â† ã“ã‚Œã‚’è¿½åŠ 
 		RenderableType m_renderableType;
 		Math::Vector3 m_color = Math::Vector3(1.0f, 1.0f, 1.0f);
 		bool m_visible = true;
 		bool m_initialized = false;
 		Graphics::MaterialManager* m_materialManager = nullptr;
 
-		//ƒŒƒ“ƒ_ƒ‰[
+		//ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼
 		std::unique_ptr<TriangleRenderer> m_triangleRenderer;
 		std::unique_ptr<CubeRenderer> m_cubeRenderer;
 		std::shared_ptr<Graphics::Material> m_material;
 
-		//‰Šú‰»ƒwƒ‹ƒp[
+		//åˆæœŸåŒ–ãƒ˜ãƒ«ãƒ‘ãƒ¼
 		[[nodiscard]] Utils::VoidResult initializeRenderer();
 	};
 
 	//==================================================================================
-	//ƒV[ƒ“ŠÇ—ƒNƒ‰ƒX
+	//ã‚·ãƒ¼ãƒ³ç®¡ç†ã‚¯ãƒ©ã‚¹
 	//==================================================================================
 	class Scene
 	{
@@ -79,29 +79,29 @@ namespace Engine::Graphics
 		Scene() = default;
 		~Scene() = default;
 
-		//ƒRƒs[Eƒ€[ƒu‹Ö~
+		//ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
 		Scene(const Scene&) = delete;
 		Scene& operator=(const Scene&) = delete;
 		Scene(Scene&&) = delete;
 		Scene& operator=(Scene&&) = delete;
 
-		//ƒQ[ƒ€ƒIƒuƒWƒFƒNƒgŠÇ—
+		//ã‚²ãƒ¼ãƒ ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆç®¡ç†
 		Core::GameObject* createGameObject(const std::string& name = "GameObject");
 		void destroyGameObject(Core::GameObject* gameObject);
 		Core::GameObject* findGameObject(const std::string& name) const;
 
-		//ƒ‰ƒCƒtƒTƒCƒNƒ‹
+		//ãƒ©ã‚¤ãƒ•ã‚µã‚¤ã‚¯ãƒ«
 		void start();
 		void update(float deltaTime);
 		void lateUpdate(float deltaTime);
 
-		//ƒŒƒ“ƒ_ƒŠƒ“ƒO
+		//ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°
 		void render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex);
 
-		//‰Šú‰»
+		//åˆæœŸåŒ–
 		[[nodiscard]] Utils::VoidResult initialize(Device* device);
 
-		//ƒQ[ƒ€ƒIƒuƒWƒFƒNƒgˆê——æ“¾
+		//ã‚²ãƒ¼ãƒ ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆä¸€è¦§å–å¾—
 		const std::vector<std::unique_ptr<Core::GameObject>>& getGameObjects() const { return m_gameObjects; }
 
 	private:

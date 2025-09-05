@@ -1,4 +1,4 @@
-// src/Core/App.cpp
+﻿// src/Core/App.cpp
 #include "App.hpp"
 #include <format>
 
@@ -249,6 +249,10 @@ namespace Engine::Core
         m_hierarchyWindow->setSelectionChangedCallback([this](Core::GameObject* selectedObject) {
             m_inspectorWindow->setSelectedObject(selectedObject);
             });
+
+        m_scriptManager = std::make_unique<Scripting::ScriptManager>();
+        m_scriptManager->initialize();
+        m_scriptManager->loadScript("assets/scripts/test.lua");
 
         //コンテキストメニューのコールバック設定
         m_hierarchyWindow->setCreateObjectCallback([this](UI::PrimitiveType type, const std::string& name) -> Core::GameObject* {
@@ -1211,3 +1215,4 @@ namespace Engine::Core
         }
     }
 }
+

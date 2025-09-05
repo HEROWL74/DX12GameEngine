@@ -1,4 +1,4 @@
-//src/UI/ProjectWindow.cpp
+﻿//src/UI/ProjectWindow.cpp
 #include "ProjectWindow.hpp"
 #include <format>
 #include <algorithm>
@@ -20,7 +20,7 @@ namespace Engine::UI
             drawToolbar();
             ImGui::Separator();
 
-            // メインコンテンツエリア
+            // 繝｡繧､繝ｳ繧ｳ繝ｳ繝・Φ繝・お繝ｪ繧｢
             if (ImGui::BeginChild("AssetArea", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())))
             {
                 if (m_showGrid)
@@ -34,7 +34,7 @@ namespace Engine::UI
             }
             ImGui::EndChild();
 
-            // プレビューエリア
+            // 繝励Ξ繝薙Η繝ｼ繧ｨ繝ｪ繧｢
             drawAssetPreview();
         }
         ImGui::End();
@@ -69,12 +69,12 @@ namespace Engine::UI
                 m_assets.push_back(asset);
             }
 
-            // 名前でソート
+            // 蜷榊燕縺ｧ繧ｽ繝ｼ繝・
             std::sort(m_assets.begin(), m_assets.end(),
                 [](const AssetInfo& a, const AssetInfo& b) {
                     if (a.type != b.type)
                     {
-                        return a.type < b.type; // フォルダを先に
+                        return a.type < b.type; // 繝輔か繝ｫ繝繧貞・縺ｫ
                     }
                     return a.name < b.name;
                 });
@@ -87,7 +87,7 @@ namespace Engine::UI
 
     void ProjectWindow::drawToolbar()
     {
-        // 検索フィルター
+        // 讀懃ｴ｢繝輔ぅ繝ｫ繧ｿ繝ｼ
         char searchBuffer[256];
         strncpy_s(searchBuffer, m_searchFilter.c_str(), sizeof(searchBuffer) - 1);
         if (ImGui::InputText("Search", searchBuffer, sizeof(searchBuffer)))
@@ -97,7 +97,7 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-        // 表示切り替え
+        // 陦ｨ遉ｺ蛻・ｊ譖ｿ縺・
         if (ImGui::Button(m_showGrid ? "List" : "Grid"))
         {
             m_showGrid = !m_showGrid;
@@ -105,7 +105,7 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-        // リフレッシュボタン
+        // 繝ｪ繝輔Ξ繝・す繝･繝懊ち繝ｳ
         if (ImGui::Button("Refresh"))
         {
             refreshAssets();
@@ -113,7 +113,7 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-        // アイコンサイズスライダー（グリッド表示時のみ）
+        // 繧｢繧､繧ｳ繝ｳ繧ｵ繧､繧ｺ繧ｹ繝ｩ繧､繝繝ｼ・医げ繝ｪ繝・ラ陦ｨ遉ｺ譎ゅ・縺ｿ・・
         if (m_showGrid)
         {
             ImGui::SetNextItemWidth(100);
@@ -134,23 +134,23 @@ namespace Engine::UI
 
             ImGui::PushID(index);
 
-            // セルの位置計算
+            // 繧ｻ繝ｫ縺ｮ菴咲ｽｮ險育ｮ・
             if (index > 0 && (index % columnCount) != 0)
             {
                 ImGui::SameLine();
             }
 
-            // アセットアイコン描画
+            // 繧｢繧ｻ繝・ヨ繧｢繧､繧ｳ繝ｳ謠冗判
             ImGui::BeginGroup();
 
-            // 選択状態の背景
+            // 驕ｸ謚樒憾諷九・閭梧勹
             bool isSelected = (m_selectedAsset == &asset);
             if (isSelected)
             {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
             }
 
-            // アイコンボタン
+            // 繧｢繧､繧ｳ繝ｳ繝懊ち繝ｳ
             if (ImGui::Button("##icon", ImVec2(m_iconSize, m_iconSize)))
             {
                 m_selectedAsset = &asset;
@@ -162,7 +162,7 @@ namespace Engine::UI
                 ImGui::PopStyleColor();
             }
 
-            // ダブルクリック処理
+            // 繝繝悶Ν繧ｯ繝ｪ繝・け蜃ｦ逅・
             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
             {
                 if (asset.type == AssetInfo::Type::Folder)
@@ -175,10 +175,10 @@ namespace Engine::UI
                 }
             }
 
-            // ドラッグ＆ドロップ
+            // 繝峨Λ繝・げ・・ラ繝ｭ繝・・
             handleDragDrop(asset);
 
-            // アセット名
+            // 繧｢繧ｻ繝・ヨ蜷・
             ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + m_iconSize);
             ImGui::TextWrapped("%s", asset.name.c_str());
             ImGui::PopTextWrapPos();
@@ -207,7 +207,7 @@ namespace Engine::UI
                 ImGui::PushID(index);
                 ImGui::TableNextRow();
 
-                // 名前
+                // 蜷榊燕
                 ImGui::TableNextColumn();
                 bool isSelected = (m_selectedAsset == &asset);
                 if (ImGui::Selectable(asset.name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns))
@@ -216,7 +216,7 @@ namespace Engine::UI
                     loadAssetPreview(asset);
                 }
 
-                // ダブルクリック処理
+                // 繝繝悶Ν繧ｯ繝ｪ繝・け蜃ｦ逅・
 
 
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
@@ -231,10 +231,10 @@ namespace Engine::UI
                     }
                 }
 
-                // ドラッグ＆ドロップ
+                // 繝峨Λ繝・げ・・ラ繝ｭ繝・・
                 handleDragDrop(asset);
 
-                // タイプ
+                // 繧ｿ繧､繝・
                 ImGui::TableNextColumn();
                 const char* typeStr = "Unknown";
                 switch (asset.type)
@@ -246,7 +246,7 @@ namespace Engine::UI
                 }
                 ImGui::Text("%s", typeStr);
 
-                // サイズ
+                // 繧ｵ繧､繧ｺ
                 ImGui::TableNextColumn();
                 if (asset.type != AssetInfo::Type::Folder)
                 {
@@ -283,7 +283,7 @@ namespace Engine::UI
             ImGui::Text("Selected: %s", m_selectedAsset->name.c_str());
             ImGui::Text("Path: %s", m_selectedAsset->path.string().c_str());
 
-            // タイプ別のプレビュー
+            // 繧ｿ繧､繝怜挨縺ｮ繝励Ξ繝薙Η繝ｼ
             switch (m_selectedAsset->type)
             {
             case AssetInfo::Type::Texture:
@@ -310,7 +310,7 @@ namespace Engine::UI
 
     void ProjectWindow::drawContextMenu()
     {
-        // 右クリックメニューの実装（必要に応じて）
+        // 蜿ｳ繧ｯ繝ｪ繝・け繝｡繝九Η繝ｼ縺ｮ螳溯｣・ｼ亥ｿ・ｦ√↓蠢懊§縺ｦ・・
     }
 
     AssetInfo::Type ProjectWindow::getAssetType(const std::filesystem::path& path)
@@ -353,8 +353,8 @@ namespace Engine::UI
         case AssetInfo::Type::Material:
             if (m_materialManager && !asset.material)
             {
-                // マテリアルファイルの読み込み（簡易実装）
-                // 実際はMaterialSerializerを使用
+                // 繝槭ユ繝ｪ繧｢繝ｫ繝輔ぃ繧､繝ｫ縺ｮ隱ｭ縺ｿ霎ｼ縺ｿ・育ｰ｡譏灘ｮ溯｣・ｼ・
+                // 螳滄圀縺ｯMaterialSerializer繧剃ｽｿ逕ｨ
                 asset.material = m_materialManager->createMaterial(asset.name);
             }
             break;

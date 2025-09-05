@@ -158,6 +158,7 @@
     <ClInclude Include="src\Input\KeyCode.hpp" />
     <ClInclude Include="src\Input\MouseState.hpp" />
     <ClInclude Include="src\Math\Math.hpp" />
+    <ClInclude Include="src\Scripting\ScriptManager.hpp" />
     <ClInclude Include="src\UI\backends\imgui_impl_dx12.h" />
     <ClInclude Include="src\UI\backends\imgui_impl_win32.h" />
     <ClInclude Include="src\UI\ContextMenu.hpp" />
@@ -187,6 +188,7 @@
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Scripting\ScriptManager.cpp" />
     <ClCompile Include="src\UI\backends\imgui_impl_dx12.cpp" />
     <ClCompile Include="src\UI\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="src\UI\ContextMenu.cpp" />

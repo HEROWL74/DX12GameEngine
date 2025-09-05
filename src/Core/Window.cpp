@@ -1,4 +1,4 @@
-// src/Core/Window.cpp
+﻿// src/Core/Window.cpp
 #include "Window.hpp"
 #include <format>
 #include "../UI/ImGuiManager.hpp"
@@ -40,34 +40,34 @@ namespace Engine::Core {
 		return *this;
 	}
 
-	// パブリックメソッド
+	// 繝代ヶ繝ｪ繝・け繝｡繧ｽ繝・ラ
 
 	Utils::VoidResult Window::create(HINSTANCE hInstance, const WindowSettings& settings)
 	{
 		m_hInstance = hInstance;
 
-		// ウィンドウクラスを登録する
+		// 繧ｦ繧｣繝ｳ繝峨え繧ｯ繝ｩ繧ｹ繧堤匳骭ｲ縺吶ｋ
 		auto result = registerWindowClass(hInstance);
 		if (!result)
 		{
 			return result;
 		}
 
-		// ウィンドウスタイルを決定
+		// 繧ｦ繧｣繝ｳ繝峨え繧ｹ繧ｿ繧､繝ｫ繧呈ｱｺ螳・
 		DWORD windowStyle = WS_OVERLAPPEDWINDOW;
 		if (!settings.resizable)
 		{
 			windowStyle &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
 		}
 
-		// クライアント領域のサイズからウィンドウサイズを計算
+		// 繧ｯ繝ｩ繧､繧｢繝ｳ繝磯伜沺縺ｮ繧ｵ繧､繧ｺ縺九ｉ繧ｦ繧｣繝ｳ繝峨え繧ｵ繧､繧ｺ繧定ｨ育ｮ・
 		RECT windowRect = { 0,0,settings.width, settings.height };
 		AdjustWindowRect(&windowRect, windowStyle, FALSE);
 
 		const int windowWidth = windowRect.right - windowRect.left;
 		const int windowHeight = windowRect.bottom - windowRect.top;
 
-		// ウィンドウ作成
+		// 繧ｦ繧｣繝ｳ繝峨え菴懈・
 		m_handle = CreateWindowExW(
 			0,
 			m_className.c_str(),
@@ -86,7 +86,7 @@ namespace Engine::Core {
 		CHECK_CONDITION(m_handle != nullptr, Utils::ErrorType::WindowCreation,
 			"Failed to create window");
 
-		// 入力システムを初期化
+		// 蜈･蜉帙す繧ｹ繝・Β繧貞・譛溷喧
 		m_inputManager = std::make_unique<Input::InputManager>();
 		m_inputManager->initialize(m_handle);
 
@@ -118,7 +118,7 @@ namespace Engine::Core {
 			DispatchMessage(&msg);
 		}
 
-		// 入力システムを更新
+		// 蜈･蜉帙す繧ｹ繝・Β繧呈峩譁ｰ
 		if (m_inputManager)
 		{
 			m_inputManager->update();
@@ -152,10 +152,10 @@ namespace Engine::Core {
 		return m_inputManager.get();
 	}
 
-	// プライベートメソッド
+	// 繝励Λ繧､繝吶・繝医Γ繧ｽ繝・ラ
 	Utils::VoidResult Window::registerWindowClass(HINSTANCE hInstance)
 	{
-		// ユニークなクラス名を生成
+		// 繝ｦ繝九・繧ｯ縺ｪ繧ｯ繝ｩ繧ｹ蜷阪ｒ逕滓・
 		m_className = std::format(L"GameEngineWindow_{}",
 			reinterpret_cast<uintptr_t>(this));
 
@@ -186,14 +186,14 @@ namespace Engine::Core {
 
 		if (uMsg == WM_NCCREATE)
 		{
-			// ウィンドウ作成時に渡されたthisポインタを取得
+			// 繧ｦ繧｣繝ｳ繝峨え菴懈・譎ゅ↓貂｡縺輔ｌ縺殳his繝昴う繝ｳ繧ｿ繧貞叙蠕・
 			CREATESTRUCTW* createStruct = reinterpret_cast<CREATESTRUCTW*>(lParam);
 			window = static_cast<Window*>(createStruct->lpCreateParams);
 			SetWindowLongPtrW(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
 		}
 		else
 		{
-			// 既に設定されたthisポインタを取得
+			// 譌｢縺ｫ險ｭ螳壹＆繧後◆this繝昴う繝ｳ繧ｿ繧貞叙蠕・
 			window = reinterpret_cast<Window*>(GetWindowLongPtrW(hWnd, GWLP_USERDATA));
 		}
 
@@ -207,7 +207,7 @@ namespace Engine::Core {
 
 	LRESULT Window::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		// デバッグ: 重要なメッセージをログ出力
+		// 繝・ヰ繝・げ: 驥崎ｦ√↑繝｡繝・そ繝ｼ繧ｸ繧偵Ο繧ｰ蜃ｺ蜉・
 		if (uMsg == WM_SIZE || uMsg == WM_SIZING || uMsg == WM_ENTERSIZEMOVE || uMsg == WM_EXITSIZEMOVE)
 		{
 			Utils::log_info(std::format("Window message received: 0x{:04x}", uMsg));
@@ -219,23 +219,23 @@ namespace Engine::Core {
 			}
 		}
 
-		// ImGuiにメッセージ転送（ImGui使用時はtrueが返る）
+		// ImGui縺ｫ繝｡繝・そ繝ｼ繧ｸ霆｢騾・ｼ・mGui菴ｿ逕ｨ譎ゅ・true縺瑚ｿ斐ｋ・・
 		if (m_imguiManager) {
 			Utils::log_info(std::format("Forwarding message 0x{:04x} to ImGui", uMsg));
 			m_imguiManager->handleWindowMessage(hWnd, uMsg, wParam, lParam);
 
-			// ImGuiが入力キャプチャ中の場合はゲーム側では処理しない
+			// ImGui縺悟・蜉帙く繝｣繝励メ繝｣荳ｭ縺ｮ蝣ｴ蜷医・繧ｲ繝ｼ繝蛛ｴ縺ｧ縺ｯ蜃ｦ逅・＠縺ｪ縺・
 			ImGui::SetCurrentContext(m_imguiManager->getContext());
 			ImGuiIO& io = ImGui::GetIO();
 
-			// キーボードメッセージ
+			// 繧ｭ繝ｼ繝懊・繝峨Γ繝・そ繝ｼ繧ｸ
 			if ((uMsg == WM_KEYDOWN || uMsg == WM_KEYUP || uMsg == WM_CHAR) && io.WantCaptureKeyboard)
 			{
 				Utils::log_info("ImGui captured keyboard message");
 				return 0;
 			}
 
-			// マウスメッセージ
+			// 繝槭え繧ｹ繝｡繝・そ繝ｼ繧ｸ
 			if ((uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONUP || uMsg == WM_RBUTTONDOWN ||
 				uMsg == WM_RBUTTONUP || uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONUP ||
 				uMsg == WM_MOUSEWHEEL || uMsg == WM_MOUSEMOVE) && io.WantCaptureMouse)
@@ -245,10 +245,10 @@ namespace Engine::Core {
 			}
 		}
 
-		// 入力システムにメッセージ転送（ImGuiがキャプチャしていない場合のみ）
+		// 蜈･蜉帙す繧ｹ繝・Β縺ｫ繝｡繝・そ繝ｼ繧ｸ霆｢騾・ｼ・mGui縺後く繝｣繝励メ繝｣縺励※縺・↑縺・ｴ蜷医・縺ｿ・・
 		if (m_inputManager)
 		{
-			// ImGuiが入力キャプチャしていない場合のみ
+			// ImGui縺悟・蜉帙く繝｣繝励メ繝｣縺励※縺・↑縺・ｴ蜷医・縺ｿ
 			ImGuiIO* io = nullptr;
 			if (m_imguiManager && m_imguiManager->isInitialized() && m_imguiManager->getContext())
 			{
@@ -281,14 +281,14 @@ namespace Engine::Core {
 
 			Utils::log_info(std::format("WM_SIZE received: {}x{}, wParam: {}", width, height, wParam));
 
-			// 最小化や無効なサイズをスキップ
+			// 譛蟆丞喧繧・┌蜉ｹ縺ｪ繧ｵ繧､繧ｺ繧偵せ繧ｭ繝・・
 			if (wParam == SIZE_MINIMIZED || width <= 0 || height <= 0)
 			{
 				Utils::log_info("Skipping resize (minimized or invalid size)");
 				return 0;
 			}
 
-			// リサイズ処理中の重複呼び出しを防ぐ
+			// 繝ｪ繧ｵ繧､繧ｺ蜃ｦ逅・ｸｭ縺ｮ驥崎､・他縺ｳ蜃ｺ縺励ｒ髦ｲ縺・
 			static bool isResizing = false;
 			if (isResizing)
 			{
@@ -298,8 +298,8 @@ namespace Engine::Core {
 
 			isResizing = true;
 
-			// アプリケーションのリサイズコールバックのみ呼ぶ
-			// ImGuiの処理はApp側で行う
+			// 繧｢繝励Μ繧ｱ繝ｼ繧ｷ繝ｧ繝ｳ縺ｮ繝ｪ繧ｵ繧､繧ｺ繧ｳ繝ｼ繝ｫ繝舌ャ繧ｯ縺ｮ縺ｿ蜻ｼ縺ｶ
+			// ImGui縺ｮ蜃ｦ逅・・App蛛ｴ縺ｧ陦後≧
 			if (m_resizeCallback)
 			{
 				Utils::log_info("Calling application resize callback");
@@ -327,7 +327,7 @@ namespace Engine::Core {
 		case WM_ACTIVATE:
 		{
 			Utils::log_info(std::format("WM_ACTIVATE: wParam = {}", LOWORD(wParam)));
-			// ウィンドウがアクティブでなくなったら相対モード解除
+			// 繧ｦ繧｣繝ｳ繝峨え縺後い繧ｯ繝・ぅ繝悶〒縺ｪ縺上↑縺｣縺溘ｉ逶ｸ蟇ｾ繝｢繝ｼ繝芽ｧ｣髯､
 			if (LOWORD(wParam) == WA_INACTIVE && m_inputManager)
 			{
 				if (m_inputManager->getMouseState().isRelativeMode)
@@ -342,7 +342,7 @@ namespace Engine::Core {
 		case WM_KILLFOCUS:
 		{
 			Utils::log_info("WM_KILLFOCUS received");
-			// フォーカス喪失時も相対モード解除
+			// 繝輔か繝ｼ繧ｫ繧ｹ蝟ｪ螟ｱ譎ゅｂ逶ｸ蟇ｾ繝｢繝ｼ繝芽ｧ｣髯､
 			if (m_inputManager && m_inputManager->getMouseState().isRelativeMode)
 			{
 				m_inputManager->setRelativeMouseMode(false);
@@ -354,7 +354,7 @@ namespace Engine::Core {
 		case WM_CLOSE:
 		{
 			Utils::log_info("WM_CLOSE received");
-			// 終了時に相対モード解除
+			// 邨ゆｺ・凾縺ｫ逶ｸ蟇ｾ繝｢繝ｼ繝芽ｧ｣髯､
 			if (m_inputManager)
 			{
 				m_inputManager->setRelativeMouseMode(false);
@@ -370,7 +370,7 @@ namespace Engine::Core {
 		case WM_KEYDOWN:
 		{
 			Utils::log_info(std::format("WM_KEYDOWN: key = {}", wParam));
-			// F1キーでマウス相対モードの切り替え
+			// F1繧ｭ繝ｼ縺ｧ繝槭え繧ｹ逶ｸ蟇ｾ繝｢繝ｼ繝峨・蛻・ｊ譖ｿ縺・
 			if (wParam == VK_F1)
 			{
 				if (m_inputManager)
@@ -381,7 +381,7 @@ namespace Engine::Core {
 				}
 			}
 
-			// Alt+F4での終了
+			// Alt+F4縺ｧ縺ｮ邨ゆｺ・
 			if (wParam == VK_F4 && (GetKeyState(VK_MENU) & 0x8000))
 			{
 				Utils::log_info("Alt+F4 pressed");
@@ -392,7 +392,7 @@ namespace Engine::Core {
 				PostQuitMessage(0);
 				return 0;
 			}
-			// ESCキーでの終了
+			// ESC繧ｭ繝ｼ縺ｧ縺ｮ邨ゆｺ・
 			else if (wParam == VK_ESCAPE)
 			{
 				Utils::log_info("ESC pressed");
@@ -414,7 +414,7 @@ namespace Engine::Core {
 		break;
 
 		default:
-			// 頻繁なメッセージは除外してログ出力
+			// 鬆ｻ郢√↑繝｡繝・そ繝ｼ繧ｸ縺ｯ髯､螟悶＠縺ｦ繝ｭ繧ｰ蜃ｺ蜉・
 			if (uMsg != WM_MOUSEMOVE && uMsg != WM_NCHITTEST && uMsg != WM_SETCURSOR &&
 				uMsg != WM_GETTEXT && uMsg != WM_GETTEXTLENGTH && uMsg != WM_PAINT)
 			{
@@ -427,7 +427,7 @@ namespace Engine::Core {
 	}
 
 	void Window::destroy() noexcept {
-		// 入力システムをシャットダウン
+		// 蜈･蜉帙す繧ｹ繝・Β繧偵す繝｣繝・ヨ繝繧ｦ繝ｳ
 		if (m_inputManager)
 		{
 			m_inputManager->shutdown();

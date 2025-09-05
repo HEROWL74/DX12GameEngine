@@ -1,18 +1,18 @@
-// src/Graphics/ConstantBuffer.cpp
+﻿// src/Graphics/ConstantBuffer.cpp
 #include "ConstantBuffer.hpp"
 
 namespace Engine::Graphics
 {
     Utils::VoidResult ConstantBufferManager::initialize(Device* device, UINT frameCount)
     {
-        // カメラ定数バッファの初期化
+        // 繧ｫ繝｡繝ｩ螳壽焚繝舌ャ繝輔ぃ縺ｮ蛻晄悄蛹・
         auto cameraResult = m_cameraConstants.initialize(device, frameCount);
         if (!cameraResult)
         {
             return cameraResult;
         }
 
-        // オブジェクト定数バッファの初期化
+        // 繧ｪ繝悶ず繧ｧ繧ｯ繝亥ｮ壽焚繝舌ャ繝輔ぃ縺ｮ蛻晄悄蛹・
         auto objectResult = m_objectConstants.initialize(device, frameCount);
         if (!objectResult)
         {

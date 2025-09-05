@@ -1,4 +1,4 @@
-// src/Input/InputManager.hpp
+ï»¿// src/Input/InputManager.hpp
 #pragma once
 
 #include <Windows.h>
@@ -14,69 +14,69 @@
 
 namespace Engine::Input
 {
-    // “ü—ÍƒCƒxƒ“ƒg‚ÌƒR[ƒ‹ƒoƒbƒNŒ^’è‹`
+    // å…¥åŠ›ã‚¤ãƒ™ãƒ³ãƒˆã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯å‹å®šç¾©
     using KeyPressedCallback = std::function<void(KeyCode keyCode)>;
     using KeyReleasedCallback = std::function<void(KeyCode keyCode)>;
     using MouseButtonCallback = std::function<void(MouseButton button, int x, int y)>;
     using MouseMoveCallback = std::function<void(int x, int y, int deltaX, int deltaY)>;
     using MouseWheelCallback = std::function<void(float delta, int x, int y)>;
 
-    // “ü—ÍƒVƒXƒeƒ€‚Ì’†ŠjƒNƒ‰ƒX
-    // ƒL[ƒ{[ƒh‚Æƒ}ƒEƒX‚Ì“ü—Í‚ğ“‡“I‚ÉŠÇ—
+    // å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ ã®ä¸­æ ¸ã‚¯ãƒ©ã‚¹
+    // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã¨ãƒã‚¦ã‚¹ã®å…¥åŠ›ã‚’çµ±åˆçš„ã«ç®¡ç†
     class InputManager
     {
     public:
-        // Å‘å“¯‰Ÿ‚µ‰Â”\ƒL[”
+        // æœ€å¤§åŒæ™‚æŠ¼ã—å¯èƒ½ã‚­ãƒ¼æ•°
         static constexpr size_t MAX_KEYS = 256;
 
         InputManager();
         ~InputManager();
 
-        // ƒRƒs[Eƒ€[ƒu‹Ö~iƒVƒ“ƒOƒ‹ƒgƒ““I‚Èg—p‚ğ‘z’èj
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢ï¼ˆã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³çš„ãªä½¿ç”¨ã‚’æƒ³å®šï¼‰
         InputManager(const InputManager&) = delete;
         InputManager& operator=(const InputManager&) = delete;
         InputManager(InputManager&&) = delete;
         InputManager& operator=(InputManager&&) = delete;
 
-        // ‰Šú‰»‚ÆI—¹ˆ—
+        // åˆæœŸåŒ–ã¨çµ‚äº†å‡¦ç†
         void initialize(HWND windowHandle);
         void shutdown();
 
-        // ƒtƒŒ[ƒ€XVˆ—
+        // ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°å‡¦ç†
         void update();
 
-        // ƒL[ƒ{[ƒh“ü—ÍŠÖ˜A
+        // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›é–¢é€£
         bool isKeyDown(KeyCode keyCode) const;
         bool isKeyPressed(KeyCode keyCode) const;
         bool isKeyReleased(KeyCode keyCode) const;
 
-        // CüƒL[‚Ìó‘Ôæ“¾
+        // ä¿®é£¾ã‚­ãƒ¼ã®çŠ¶æ…‹å–å¾—
         bool isShiftDown() const;
         bool isCtrlDown() const;
         bool isAltDown() const;
 
-        // ƒ}ƒEƒX“ü—ÍŠÖ˜A
+        // ãƒã‚¦ã‚¹å…¥åŠ›é–¢é€£
         const MouseState& getMouseState() const { return m_mouseState; }
         bool isMouseButtonDown(MouseButton button) const;
         bool isMouseButtonPressed(MouseButton button) const;
         bool isMouseButtonReleased(MouseButton button) const;
 
-        // ƒ}ƒEƒXˆÊ’uæ“¾
+        // ãƒã‚¦ã‚¹ä½ç½®å–å¾—
         int getMouseX() const { return m_mouseState.x; }
         int getMouseY() const { return m_mouseState.y; }
         int getMouseDeltaX() const { return m_mouseState.deltaX; }
         int getMouseDeltaY() const { return m_mouseState.deltaY; }
 
-        // ƒ}ƒEƒXƒzƒC[ƒ‹æ“¾
+        // ãƒã‚¦ã‚¹ãƒ›ã‚¤ãƒ¼ãƒ«å–å¾—
         float getMouseWheelDelta() const { return m_mouseState.wheelDelta; }
 
-        // ƒ}ƒEƒX§Œä
+        // ãƒã‚¦ã‚¹åˆ¶å¾¡
         void setMousePosition(int x, int y);
         void showCursor(bool show);
         void captureMouse(bool capture);
         void setRelativeMouseMode(bool relative);
 
-        // ƒCƒxƒ“ƒgƒR[ƒ‹ƒoƒbƒNİ’è
+        // ã‚¤ãƒ™ãƒ³ãƒˆã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯è¨­å®š
         void setKeyPressedCallback(KeyPressedCallback callback) { m_keyPressedCallback = callback; }
         void setKeyReleasedCallback(KeyReleasedCallback callback) { m_keyReleasedCallback = callback; }
         void setMouseButtonPressedCallback(MouseButtonCallback callback) { m_mouseButtonPressedCallback = callback; }
@@ -84,41 +84,41 @@ namespace Engine::Input
         void setMouseMoveCallback(MouseMoveCallback callback) { m_mouseMoveCallback = callback; }
         void setMouseWheelCallback(MouseWheelCallback callback) { m_mouseWheelCallback = callback; }
 
-        // Win32ƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰iWindow.cpp‚©‚çŒÄ‚Ño‚³‚ê‚éj
+        // Win32ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒãƒ³ãƒ‰ãƒ©ï¼ˆWindow.cppã‹ã‚‰å‘¼ã³å‡ºã•ã‚Œã‚‹ï¼‰
         bool handleWindowMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-        // ƒfƒoƒbƒOî•ñæ“¾
+        // ãƒ‡ãƒãƒƒã‚°æƒ…å ±å–å¾—
         std::string getDebugInfo() const;
 
-        // İ’è
+        // è¨­å®š
         void setMouseSensitivity(float sensitivity) { m_mouseSensitivity = sensitivity; }
         float getMouseSensitivity() const { return m_mouseSensitivity; }
 
-        // —LŒø«ƒ`ƒFƒbƒN
+        // æœ‰åŠ¹æ€§ãƒã‚§ãƒƒã‚¯
         bool isInitialized() const { return m_initialized; }
 
     private:
-        // “à•”ó‘Ô
+        // å†…éƒ¨çŠ¶æ…‹
         bool m_initialized = false;
         HWND m_windowHandle = nullptr;
         float m_mouseSensitivity = 1.0f;
 
-        // ƒL[ƒ{[ƒhó‘Ô
+        // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰çŠ¶æ…‹
         std::array<bool, MAX_KEYS> m_keyStates = { false };
         std::array<bool, MAX_KEYS> m_prevKeyStates = { false };
 
-        // ƒ}ƒEƒXó‘Ô
+        // ãƒã‚¦ã‚¹çŠ¶æ…‹
         MouseState m_mouseState;
 
-        // ƒJ[ƒ\ƒ‹§Œä
+        // ã‚«ãƒ¼ã‚½ãƒ«åˆ¶å¾¡
         bool m_cursorVisible = true;
         bool m_mouseCaptured = false;
 
-        // ‘Š‘Îƒ}ƒEƒXƒ‚[ƒh—p
+        // ç›¸å¯¾ãƒã‚¦ã‚¹ãƒ¢ãƒ¼ãƒ‰ç”¨
         POINT m_windowCenter = { 0, 0 };
         bool m_relativeMode = false;
 
-        // ƒCƒxƒ“ƒgƒR[ƒ‹ƒoƒbƒN
+        // ã‚¤ãƒ™ãƒ³ãƒˆã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
         KeyPressedCallback m_keyPressedCallback;
         KeyReleasedCallback m_keyReleasedCallback;
         MouseButtonCallback m_mouseButtonPressedCallback;
@@ -126,19 +126,19 @@ namespace Engine::Input
         MouseMoveCallback m_mouseMoveCallback;
         MouseWheelCallback m_mouseWheelCallback;
 
-        // “à•”ƒƒ\ƒbƒh
+        // å†…éƒ¨ãƒ¡ã‚½ãƒƒãƒ‰
         void updateKeyboardState();
         void updateMouseState();
         void resetFrameData();
         void calculateWindowCenter();
         void setRawMouseInput(bool enable);
 
-        // Win32ƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰i“à•”j
+        // Win32ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒãƒ³ãƒ‰ãƒ©ï¼ˆå†…éƒ¨ï¼‰
         bool handleKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam);
         bool handleMouseMessage(UINT message, WPARAM wParam, LPARAM lParam);
         bool handleRawInput(LPARAM lParam);
 
-        // ƒ†[ƒeƒBƒŠƒeƒBƒƒ\ƒbƒh
+        // ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£ãƒ¡ã‚½ãƒƒãƒ‰
         bool isValidKeyCode(KeyCode keyCode) const;
         size_t keyCodeToIndex(KeyCode keyCode) const;
         KeyCode virtualKeyToKeyCode(WPARAM vkCode) const;

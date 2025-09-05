@@ -1,4 +1,4 @@
-// src/Input/InputManager.cpp
+﻿// src/Input/InputManager.cpp
 #include "InputManager.hpp"
 #include "../Utils/Common.hpp"
 #include <format>
@@ -28,15 +28,15 @@ namespace Engine::Input
             return;
         }
 
-        // 初期状態をリセット
+        // 蛻晄悄迥ｶ諷九ｒ繝ｪ繧ｻ繝・ヨ
         m_keyStates.fill(false);
         m_prevKeyStates.fill(false);
         m_mouseState.reset();
 
-        // ウィンドウの中心座標を計算
+        // 繧ｦ繧｣繝ｳ繝峨え縺ｮ荳ｭ蠢・ｺｧ讓吶ｒ險育ｮ・
         calculateWindowCenter();
 
-        // Raw Input を有効化（高精度マウス入力用）
+        // Raw Input 繧呈怏蜉ｹ蛹厄ｼ磯ｫ倡ｲｾ蠎ｦ繝槭え繧ｹ蜈･蜉帷畑・・
         setRawMouseInput(true);
 
         m_initialized = true;
@@ -50,23 +50,23 @@ namespace Engine::Input
             return;
         }
 
-        // 必ず相対モードを解除
+        // 蠢・★逶ｸ蟇ｾ繝｢繝ｼ繝峨ｒ隗｣髯､
         setRelativeMouseMode(false);
 
-        // Raw Inputを無効化
+        // Raw Input繧堤┌蜉ｹ蛹・
         setRawMouseInput(false);
 
-        // マウスキャプチャを解放
+        // 繝槭え繧ｹ繧ｭ繝｣繝励メ繝｣繧定ｧ｣謾ｾ
         if (m_mouseCaptured)
         {
             ReleaseCapture();
             m_mouseCaptured = false;
         }
 
-        // カーソルを表示
+        // 繧ｫ繝ｼ繧ｽ繝ｫ繧定｡ｨ遉ｺ
         showCursor(true);
 
-        // システムのカーソル位置を復元（念のため）
+        // 繧ｷ繧ｹ繝・Β縺ｮ繧ｫ繝ｼ繧ｽ繝ｫ菴咲ｽｮ繧貞ｾｩ蜈・ｼ亥ｿｵ縺ｮ縺溘ａ・・
         POINT centerPoint;
         centerPoint.x = GetSystemMetrics(SM_CXSCREEN) / 2;
         centerPoint.y = GetSystemMetrics(SM_CYSCREEN) / 2;
@@ -85,17 +85,17 @@ namespace Engine::Input
             return;
         }
 
-        // 前フレームの状態を保存
+        // 蜑阪ヵ繝ｬ繝ｼ繝縺ｮ迥ｶ諷九ｒ菫晏ｭ・
         m_prevKeyStates = m_keyStates;
         m_mouseState.savePreviousState();
 
-        // キーボード状態を更新
+        // 繧ｭ繝ｼ繝懊・繝臥憾諷九ｒ譖ｴ譁ｰ
         updateKeyboardState();
 
-        // マウス状態を更新
+        // 繝槭え繧ｹ迥ｶ諷九ｒ譖ｴ譁ｰ
         updateMouseState();
 
-        // フレーム固有のデータをリセット
+        // 繝輔Ξ繝ｼ繝蝗ｺ譛峨・繝・・繧ｿ繧偵Μ繧ｻ繝・ヨ
         resetFrameData();
     }
 
@@ -182,11 +182,11 @@ namespace Engine::Input
 
         m_cursorVisible = show;
 
-        // ShowCursor()は内部カウンターを使用するため、
-        // 確実に表示/非表示にするために適切に制御
+        // ShowCursor()縺ｯ蜀・Κ繧ｫ繧ｦ繝ｳ繧ｿ繝ｼ繧剃ｽｿ逕ｨ縺吶ｋ縺溘ａ縲・
+        // 遒ｺ螳溘↓陦ｨ遉ｺ/髱櫁｡ｨ遉ｺ縺ｫ縺吶ｋ縺溘ａ縺ｫ驕ｩ蛻・↓蛻ｶ蠕｡
         if (show)
         {
-            // カーソルを表示するまでShowCursor(TRUE)を繰り返す
+            // 繧ｫ繝ｼ繧ｽ繝ｫ繧定｡ｨ遉ｺ縺吶ｋ縺ｾ縺ｧShowCursor(TRUE)繧堤ｹｰ繧願ｿ斐☆
             int count = ShowCursor(TRUE);
             while (count < 0)
             {
@@ -195,7 +195,7 @@ namespace Engine::Input
         }
         else
         {
-            // カーソルを非表示にするまでShowCursor(FALSE)を繰り返す
+            // 繧ｫ繝ｼ繧ｽ繝ｫ繧帝撼陦ｨ遉ｺ縺ｫ縺吶ｋ縺ｾ縺ｧShowCursor(FALSE)繧堤ｹｰ繧願ｿ斐☆
             int count = ShowCursor(FALSE);
             while (count >= 0)
             {
@@ -250,35 +250,35 @@ namespace Engine::Input
         {
             Utils::log_info("Enabling relative mouse mode");
 
-            // 1. ウィンドウ中央位置を計算
+            // 1. 繧ｦ繧｣繝ｳ繝峨え荳ｭ螟ｮ菴咲ｽｮ繧定ｨ育ｮ・
             calculateWindowCenter();
 
-            // 2. マウスキャプチャを先に設定
+            // 2. 繝槭え繧ｹ繧ｭ繝｣繝励メ繝｣繧貞・縺ｫ險ｭ螳・
             captureMouse(true);
 
-            // 3. Raw Inputを有効化
+            // 3. Raw Input繧呈怏蜉ｹ蛹・
             setRawMouseInput(true);
 
-            // 4. マウスを中央に移動
+            // 4. 繝槭え繧ｹ繧剃ｸｭ螟ｮ縺ｫ遘ｻ蜍・
             setMousePosition(m_windowCenter.x, m_windowCenter.y);
 
-            // 5. 最後にカーソルを非表示
+            // 5. 譛蠕後↓繧ｫ繝ｼ繧ｽ繝ｫ繧帝撼陦ｨ遉ｺ
             showCursor(false);
         }
         else
         {
             Utils::log_info("Disabling relative mouse mode");
 
-            // 1. 最初にカーソルを表示
+            // 1. 譛蛻昴↓繧ｫ繝ｼ繧ｽ繝ｫ繧定｡ｨ遉ｺ
             showCursor(true);
 
-            // 2. Raw Inputを無効化
+            // 2. Raw Input繧堤┌蜉ｹ蛹・
             setRawMouseInput(false);
 
-            // 3. マウスキャプチャを解除
+            // 3. 繝槭え繧ｹ繧ｭ繝｣繝励メ繝｣繧定ｧ｣髯､
             captureMouse(false);
 
-            // 4. デルタをリセット
+            // 4. 繝・Ν繧ｿ繧偵Μ繧ｻ繝・ヨ
             m_mouseState.deltaX = 0;
             m_mouseState.deltaY = 0;
         }
@@ -330,7 +330,7 @@ namespace Engine::Input
         info += std::format("Relative Mode: {}\n", m_relativeMode);
         info += std::format("Cursor Visible: {}\n", m_cursorVisible);
 
-        // 押されているキーの情報
+        // 謚ｼ縺輔ｌ縺ｦ縺・ｋ繧ｭ繝ｼ縺ｮ諠・ｱ
         info += "Pressed Keys: ";
         for (size_t i = 0; i < MAX_KEYS; ++i)
         {
@@ -346,7 +346,7 @@ namespace Engine::Input
 
     void InputManager::updateKeyboardState()
     {
-        // Windows APIでキーボード状態を直接取得
+        // Windows API縺ｧ繧ｭ繝ｼ繝懊・繝臥憾諷九ｒ逶ｴ謗･蜿門ｾ・
         BYTE keyboardState[256];
         if (GetKeyboardState(keyboardState))
         {
@@ -357,7 +357,7 @@ namespace Engine::Input
         }
     }
 
-    // InputManager.cpp の updateMouseState を修正
+    // InputManager.cpp 縺ｮ updateMouseState 繧剃ｿｮ豁｣
     void InputManager::updateMouseState()
     {
         if (!m_initialized)
@@ -365,7 +365,7 @@ namespace Engine::Input
             return;
         }
 
-        // 相対モードでない場合のみ通常の位置取得
+        // 逶ｸ蟇ｾ繝｢繝ｼ繝峨〒縺ｪ縺・ｴ蜷医・縺ｿ騾壼ｸｸ縺ｮ菴咲ｽｮ蜿門ｾ・
         if (!m_relativeMode)
         {
             POINT cursorPos;
@@ -375,9 +375,9 @@ namespace Engine::Input
                 m_mouseState.setPosition(cursorPos.x, cursorPos.y);
             }
         }
-        // 相対モードの場合、Raw Inputからのデルタのみを使用
+        // 逶ｸ蟇ｾ繝｢繝ｼ繝峨・蝣ｴ蜷医ヽaw Input縺九ｉ縺ｮ繝・Ν繧ｿ縺ｮ縺ｿ繧剃ｽｿ逕ｨ
 
-        // ウィンドウ内判定
+        // 繧ｦ繧｣繝ｳ繝峨え蜀・愛螳・
         RECT clientRect;
         if (GetClientRect(m_windowHandle, &clientRect))
         {
@@ -390,7 +390,7 @@ namespace Engine::Input
 
     void InputManager::resetFrameData()
     {
-        // ホイールデータをリセット
+        // 繝帙う繝ｼ繝ｫ繝・・繧ｿ繧偵Μ繧ｻ繝・ヨ
         m_mouseState.wheelDelta = 0.0f;
         m_mouseState.horizontalWheelDelta = 0.0f;
     }
@@ -418,7 +418,7 @@ namespace Engine::Input
 
         if (enable)
         {
-            rid.dwFlags = RIDEV_INPUTSINK;  // アクティブでない時も受信
+            rid.dwFlags = RIDEV_INPUTSINK;  // 繧｢繧ｯ繝・ぅ繝悶〒縺ｪ縺・凾繧ょ女菫｡
             rid.hwndTarget = m_windowHandle;
         }
         else
@@ -445,11 +445,11 @@ namespace Engine::Input
         bool isPressed = (message == WM_KEYDOWN || message == WM_SYSKEYDOWN);
         bool wasPressed = isKeyDown(keyCode);
 
-        // 状態を更新
+        // 迥ｶ諷九ｒ譖ｴ譁ｰ
         size_t index = keyCodeToIndex(keyCode);
         m_keyStates[index] = isPressed;
 
-        // コールバック呼び出し
+        // 繧ｳ繝ｼ繝ｫ繝舌ャ繧ｯ蜻ｼ縺ｳ蜃ｺ縺・
         if (isPressed && !wasPressed && m_keyPressedCallback)
         {
             m_keyPressedCallback(keyCode);
@@ -495,8 +495,8 @@ namespace Engine::Input
         return true;
 
         default:
-            // マウスボタンメッセージの処理
-            MouseButton button = win32ToMouseButton(message, wParam);  // wParamも渡す
+            // 繝槭え繧ｹ繝懊ち繝ｳ繝｡繝・そ繝ｼ繧ｸ縺ｮ蜃ｦ逅・
+            MouseButton button = win32ToMouseButton(message, wParam);  // wParam繧よｸ｡縺・
             if (button != static_cast<MouseButton>(255))
             {
                 bool isPressed = (message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN ||
@@ -530,19 +530,19 @@ namespace Engine::Input
         {
             if (raw.header.dwType == RIM_TYPEMOUSE && m_relativeMode)
             {
-                // 生のマウス移動量を取得
+                // 逕溘・繝槭え繧ｹ遘ｻ蜍暮㍼繧貞叙蠕・
                 int deltaX = raw.data.mouse.lLastX;
                 int deltaY = raw.data.mouse.lLastY;
 
-                // 感度を適用（整数で計算してから設定）
+                // 諢溷ｺｦ繧帝←逕ｨ・域紛謨ｰ縺ｧ險育ｮ励＠縺ｦ縺九ｉ險ｭ螳夲ｼ・
                 float adjustedDeltaX = deltaX * m_mouseSensitivity;
                 float adjustedDeltaY = deltaY * m_mouseSensitivity;
 
-                // デルタを直接設定
+                // 繝・Ν繧ｿ繧堤峩謗･險ｭ螳・
                 m_mouseState.deltaX = static_cast<int>(adjustedDeltaX);
                 m_mouseState.deltaY = static_cast<int>(adjustedDeltaY);
 
-                // 相対モードでは画面中央を維持
+                // 逶ｸ蟇ｾ繝｢繝ｼ繝峨〒縺ｯ逕ｻ髱｢荳ｭ螟ｮ繧堤ｶｭ謖・
                 setMousePosition(m_windowCenter.x, m_windowCenter.y);
 
                 return true;

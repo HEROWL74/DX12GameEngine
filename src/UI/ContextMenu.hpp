@@ -1,4 +1,4 @@
-//src/UI/ContextMenu.hpp
+ï»¿//src/UI/ContextMenu.hpp
 #pragma once
 
 #include <functional>
@@ -9,7 +9,7 @@
 
 namespace Engine::UI
 {
-	//3DƒIƒuƒWƒFƒNƒgì¬‚Ìí—Ş
+	//3Dã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆä½œæˆã®ç¨®é¡
 	enum class PrimitiveType
 	{
 		Cube,
@@ -18,7 +18,7 @@ namespace Engine::UI
 		Cylinder
 	};
 
-	//ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[€–Ú‚Ìí—Ş
+	//ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼é …ç›®ã®ç¨®é¡
 	enum class ContextMenuAction
 	{
 		CreateCube,
@@ -30,18 +30,18 @@ namespace Engine::UI
 		RenameObject
 	};
 
-	//ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[ƒNƒ‰ƒX
+	//ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¯ãƒ©ã‚¹
 	class ContextMenu
 	{
 	public:
 		ContextMenu() = default;
 		~ContextMenu() = default;
 
-		//‰EƒNƒŠƒbƒNƒƒjƒ…[•\¦
+		//å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼è¡¨ç¤º
 		bool drawHierarchyContextMenu();
 		bool drawGameObjectContextMenu(Core::GameObject* selectedObject);
 
-		//ƒR[ƒ‹ƒoƒbƒNİ’è
+		//ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯è¨­å®š
 		void setCreateObjectCallback(std::function<Core::GameObject* (PrimitiveType, const std::string&)> callback)
 		{
 			m_createObjectCallback = callback;
@@ -63,13 +63,13 @@ namespace Engine::UI
 		}
 		void drawModals();
 	private:
-		//ƒR[ƒ‹ƒoƒbƒNŠÖ”
+		//ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°
 		std::function<Core::GameObject* (PrimitiveType, const std::string&)> m_createObjectCallback;
 		std::function<void(Core::GameObject*)> m_deleteObjectCallback;
 		std::function<Core::GameObject* (Core::GameObject*)> m_duplicateObjectCallback;
 		std::function<void(Core::GameObject*, const std::string&)> m_renameObjectCallback;
 
-		//“à•”ƒƒ\ƒbƒh
+		//å†…éƒ¨ãƒ¡ã‚½ãƒƒãƒ‰
 		void drawCreateMenu();
 		void draw3DObjectMenu();
 		std::string generateUniqueName(const std::string& baseName);

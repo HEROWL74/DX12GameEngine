@@ -1,4 +1,4 @@
-//src/Graphics/ShaderManager.cpp
+﻿//src/Graphics/ShaderManager.cpp
 #include "ShaderManager.hpp"
 #include <format>
 #include <fstream>
@@ -8,19 +8,19 @@
 namespace Engine::Graphics
 {
     //=========================================================================
-    // Shader実装
+    // Shader螳溯｣・
     //=========================================================================
 
     Utils::Result<std::shared_ptr<Shader>> Shader::compileFromFile(const ShaderCompileDesc& desc)
     {
-        // ファイル読み込み
+        // 繝輔ぃ繧､繝ｫ隱ｭ縺ｿ霎ｼ縺ｿ
         auto codeResult = readShaderFile(desc.filePath);
         if (!codeResult)
         {
             return std::unexpected(codeResult.error());
         }
 
-        // インクルード処理
+        // 繧､繝ｳ繧ｯ繝ｫ繝ｼ繝牙・逅・
         std::string baseDir = std::filesystem::path(desc.filePath).parent_path().string();
         std::string processedCode = processIncludes(*codeResult, baseDir);
 
@@ -63,7 +63,7 @@ namespace Engine::Graphics
         m_entryPoint = entryPoint;
         m_filePath = filePath;
 
-        // コンパイルフラグ
+        // 繧ｳ繝ｳ繝代う繝ｫ繝輔Λ繧ｰ
         UINT compileFlags = 0;
         if (enableDebug)
         {
@@ -74,10 +74,10 @@ namespace Engine::Graphics
             compileFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
         }
 
-        // マクロ変換
+        // 繝槭け繝ｭ螟画鋤
         auto d3dMacros = convertMacros(macros);
 
-        // シェーダーターゲット
+        // 繧ｷ繧ｧ繝ｼ繝繝ｼ繧ｿ繝ｼ繧ｲ繝・ヨ
         std::string target = shaderTypeToTarget(type);
 
         ComPtr<ID3DBlob> errorBlob;
@@ -136,7 +136,7 @@ namespace Engine::Graphics
             d3dMacros.push_back(d3dMacro);
         }
 
-        // 終端
+        // 邨らｫｯ
         D3D_SHADER_MACRO endMacro = { nullptr, nullptr };
         d3dMacros.push_back(endMacro);
 
@@ -144,7 +144,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // PipelineState実装
+    // PipelineState螳溯｣・
     //=========================================================================
 
     Utils::Result<std::shared_ptr<PipelineState>> PipelineState::create(
@@ -209,7 +209,7 @@ namespace Engine::Graphics
         std::vector<D3D12_ROOT_PARAMETER1> rootParams;
         rootParams.reserve(m_desc.rootParameters.size());
 
-        // DescriptorTable用のレンジを保持するベクター
+        // DescriptorTable逕ｨ縺ｮ繝ｬ繝ｳ繧ｸ繧剃ｿ晄戟縺吶ｋ繝吶け繧ｿ繝ｼ
         std::vector<std::vector<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
         descriptorRanges.resize(m_desc.rootParameters.size());
 
@@ -248,7 +248,7 @@ namespace Engine::Graphics
 
             case RootParameterDesc::DescriptorTable:
                 rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-                // レンジをコピー
+                // 繝ｬ繝ｳ繧ｸ繧偵さ繝斐・
                 descriptorRanges[i] = param.ranges;
                 rootParam.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(descriptorRanges[i].size());
                 rootParam.DescriptorTable.pDescriptorRanges = descriptorRanges[i].data();
@@ -261,7 +261,7 @@ namespace Engine::Graphics
             rootParams.push_back(rootParam);
         }
 
-        // スタティックサンプラー処理
+        // 繧ｹ繧ｿ繝・ぅ繝・け繧ｵ繝ｳ繝励Λ繝ｼ蜃ｦ逅・
         std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
         staticSamplers.reserve(m_desc.staticSamplers.size());
 
@@ -285,7 +285,7 @@ namespace Engine::Graphics
             staticSamplers.push_back(samplerDesc);
         }
 
-        // ルートシグネチャ記述
+        // 繝ｫ繝ｼ繝医す繧ｰ繝阪メ繝｣險倩ｿｰ
         D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc = {};
         rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
         rootSigDesc.Desc_1_1.NumParameters = static_cast<UINT>(rootParams.size());
@@ -322,7 +322,7 @@ namespace Engine::Graphics
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 
-        // シェーダー設定
+        // 繧ｷ繧ｧ繝ｼ繝繝ｼ險ｭ螳・
         if (m_desc.vertexShader && m_desc.vertexShader->isValid())
         {
             psoDesc.VS.pShaderBytecode = m_desc.vertexShader->getBytecode();
@@ -341,17 +341,17 @@ namespace Engine::Graphics
             psoDesc.GS.BytecodeLength = m_desc.geometryShader->getBytecodeSize();
         }
 
-        // ルートシグネチャ
+        // 繝ｫ繝ｼ繝医す繧ｰ繝阪メ繝｣
         psoDesc.pRootSignature = m_rootSignature.Get();
 
-        // 入力レイアウト
+        // 蜈･蜉帙Ξ繧､繧｢繧ｦ繝・
         psoDesc.InputLayout.pInputElementDescs = m_desc.inputLayout.empty() ? nullptr : m_desc.inputLayout.data();
         psoDesc.InputLayout.NumElements = static_cast<UINT>(m_desc.inputLayout.size());
 
-        // プリミティブトポロジー
+        // 繝励Μ繝溘ユ繧｣繝悶ヨ繝昴Ο繧ｸ繝ｼ
         psoDesc.PrimitiveTopologyType = m_desc.primitiveTopology;
 
-        // レンダーターゲット
+        // 繝ｬ繝ｳ繝繝ｼ繧ｿ繝ｼ繧ｲ繝・ヨ
         psoDesc.NumRenderTargets = static_cast<UINT>(m_desc.rtvFormats.size());
         for (size_t i = 0; i < m_desc.rtvFormats.size() && i < 8; ++i)
         {
@@ -359,12 +359,12 @@ namespace Engine::Graphics
         }
         psoDesc.DSVFormat = m_desc.dsvFormat;
 
-        // サンプル設定
+        // 繧ｵ繝ｳ繝励Ν險ｭ螳・
         psoDesc.SampleDesc.Count = 1;
         psoDesc.SampleDesc.Quality = 0;
         psoDesc.SampleMask = UINT_MAX;
 
-        // ブレンドステート
+        // 繝悶Ξ繝ｳ繝峨せ繝・・繝・
         psoDesc.BlendState.RenderTarget[0].BlendEnable = m_desc.enableBlending;
         psoDesc.BlendState.RenderTarget[0].SrcBlend = m_desc.srcBlend;
         psoDesc.BlendState.RenderTarget[0].DestBlend = m_desc.destBlend;
@@ -374,7 +374,7 @@ namespace Engine::Graphics
         psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
         psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-        // ラスタライザーステート
+        // 繝ｩ繧ｹ繧ｿ繝ｩ繧､繧ｶ繝ｼ繧ｹ繝・・繝・
         psoDesc.RasterizerState.FillMode = m_desc.fillMode;
         psoDesc.RasterizerState.CullMode = m_desc.cullMode;
         psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
@@ -387,7 +387,7 @@ namespace Engine::Graphics
         psoDesc.RasterizerState.ForcedSampleCount = 0;
         psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-        // 深度ステンシルステート
+        // 豺ｱ蠎ｦ繧ｹ繝・Φ繧ｷ繝ｫ繧ｹ繝・・繝・
         psoDesc.DepthStencilState.DepthEnable = m_desc.enableDepthTest;
         psoDesc.DepthStencilState.DepthWriteMask = m_desc.enableDepthWrite ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
         psoDesc.DepthStencilState.DepthFunc = m_desc.depthFunc;
@@ -401,7 +401,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // ShaderManager実装
+    // ShaderManager螳溯｣・
     //=========================================================================
 
     Utils::VoidResult ShaderManager::initialize(Device* device)
@@ -430,7 +430,7 @@ namespace Engine::Graphics
 
     std::shared_ptr<Shader> ShaderManager::loadShader(const ShaderCompileDesc& desc)
     {
-        // デバッグ: thisポインタの確認
+        // 繝・ヰ繝・げ: this繝昴う繝ｳ繧ｿ縺ｮ遒ｺ隱・
         Utils::log_info(std::format("ShaderManager::loadShader called, this = {}",
             static_cast<void*>(this)));
 
@@ -540,7 +540,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult ShaderManager::createDefaultShaders()
     {
-        // HLSLファイルからシェーダーをコンパイル
+        // HLSL繝輔ぃ繧､繝ｫ縺九ｉ繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵さ繝ｳ繝代う繝ｫ
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/PBR_VS.hlsl";
         vsDesc.entryPoint = "main";
@@ -594,43 +594,43 @@ namespace Engine::Graphics
 
     Utils::VoidResult ShaderManager::createDefaultPipelines()
     {
-        // PBRパイプライン作成
+        // PBR繝代う繝励Λ繧､繝ｳ菴懈・
         PipelineStateDesc pbrDesc;
         pbrDesc.vertexShader = getShader("DefaultPBR_VS");
         pbrDesc.pixelShader = getShader("DefaultPBR_PS");
         pbrDesc.inputLayout = StandardInputLayouts::PBRVertex;
         pbrDesc.debugName = "DefaultPBR";
 
-        // Scene定数バッファ (b0)
+        // Scene螳壽焚繝舌ャ繝輔ぃ (b0)
         RootParameterDesc sceneConstants;
         sceneConstants.type = RootParameterDesc::ConstantBufferView;
         sceneConstants.shaderRegister = 0;
         sceneConstants.visibility = D3D12_SHADER_VISIBILITY_ALL;
 
-        // Object定数バッファ (b1)
+        // Object螳壽焚繝舌ャ繝輔ぃ (b1)
         RootParameterDesc objectConstants;
         objectConstants.type = RootParameterDesc::ConstantBufferView;
         objectConstants.shaderRegister = 1;
         objectConstants.visibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // Material定数バッファ (b2)
+        // Material螳壽焚繝舌ャ繝輔ぃ (b2)
         RootParameterDesc materialConstants;
         materialConstants.type = RootParameterDesc::ConstantBufferView;
         materialConstants.shaderRegister = 2;
         materialConstants.visibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // PBRテクスチャ用ディスクリプタテーブル
+        // PBR繝・け繧ｹ繝√Ε逕ｨ繝・ぅ繧ｹ繧ｯ繝ｪ繝励ち繝・・繝悶Ν
         RootParameterDesc textureTable;
         textureTable.type = RootParameterDesc::DescriptorTable;
         textureTable.visibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // 6つのテクスチャすべてを1つのレンジで定義 (t0-t5)
+        // 6縺､縺ｮ繝・け繧ｹ繝√Ε縺吶∋縺ｦ繧・縺､縺ｮ繝ｬ繝ｳ繧ｸ縺ｧ螳夂ｾｩ (t0-t5)
         std::vector<D3D12_DESCRIPTOR_RANGE1> srvRanges;
 
         D3D12_DESCRIPTOR_RANGE1 pbrTextureRange{};
         pbrTextureRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-        pbrTextureRange.NumDescriptors = 6;  // t0, t1, t2, t3, t4, t5 の6つ
-        pbrTextureRange.BaseShaderRegister = 0;  // t0から開始
+        pbrTextureRange.NumDescriptors = 6;  // t0, t1, t2, t3, t4, t5 縺ｮ6縺､
+        pbrTextureRange.BaseShaderRegister = 0;  // t0縺九ｉ髢句ｧ・
         pbrTextureRange.RegisterSpace = 0;
         pbrTextureRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
         pbrTextureRange.OffsetInDescriptorsFromTableStart = 0;
@@ -638,10 +638,10 @@ namespace Engine::Graphics
         srvRanges.push_back(pbrTextureRange);
         textureTable.ranges = srvRanges;
 
-        // ルートパラメータを設定
+        // 繝ｫ繝ｼ繝医ヱ繝ｩ繝｡繝ｼ繧ｿ繧定ｨｭ螳・
         pbrDesc.rootParameters = { sceneConstants, objectConstants, materialConstants, textureTable };
 
-        // スタティックサンプラー (s0)
+        // 繧ｹ繧ｿ繝・ぅ繝・け繧ｵ繝ｳ繝励Λ繝ｼ (s0)
         StaticSamplerDesc linearSampler;
         linearSampler.shaderRegister = 0;
         linearSampler.filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -651,7 +651,7 @@ namespace Engine::Graphics
 
         pbrDesc.staticSamplers = { linearSampler };
 
-        // パイプライン作成
+        // 繝代う繝励Λ繧､繝ｳ菴懈・
         auto pbrPipelineResult = PipelineState::create(m_device, pbrDesc);
         if (!pbrPipelineResult)
         {
@@ -683,7 +683,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // 標準入力レイアウト定義
+    // 讓呎ｺ門・蜉帙Ξ繧､繧｢繧ｦ繝亥ｮ夂ｾｩ
     //=========================================================================
 
     namespace StandardInputLayouts
@@ -716,7 +716,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // ユーティリティ関数実装
+    // 繝ｦ繝ｼ繝・ぅ繝ｪ繝・ぅ髢｢謨ｰ螳溯｣・
     //=========================================================================
 
     Utils::Result<std::string> readShaderFile(const std::string& filePath)
@@ -735,7 +735,7 @@ namespace Engine::Graphics
 
     std::string processIncludes(const std::string& shaderCode, const std::string& baseDir)
     {
-        // 簡単なインクルード処理（#include "filename"の形式のみ対応）
+        // 邁｡蜊倥↑繧､繝ｳ繧ｯ繝ｫ繝ｼ繝牙・逅・ｼ・include "filename"縺ｮ蠖｢蠑上・縺ｿ蟇ｾ蠢懶ｼ・
         std::string result = shaderCode;
         std::string includePattern = "#include \"";
 
@@ -753,7 +753,7 @@ namespace Engine::Graphics
                 auto includeResult = readShaderFile(fullPath);
                 if (includeResult)
                 {
-                    // インクルード文を実際のファイル内容で置換
+                    // 繧､繝ｳ繧ｯ繝ｫ繝ｼ繝画枚繧貞ｮ滄圀縺ｮ繝輔ぃ繧､繝ｫ蜀・ｮｹ縺ｧ鄂ｮ謠・
                     size_t lineEnd = result.find("\n", pos);
                     if (lineEnd == std::string::npos) lineEnd = result.length();
 
