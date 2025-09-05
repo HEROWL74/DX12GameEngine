@@ -20,7 +20,7 @@ namespace Engine::UI
             drawToolbar();
             ImGui::Separator();
 
-            // ƒƒCƒ“ƒRƒ“ƒeƒ“ƒcƒGƒŠƒA
+            // ãƒ¡ã‚¤ãƒ³ã‚³ãƒ³ãƒ†ãƒ³ãƒ„ã‚¨ãƒªã‚¢
             if (ImGui::BeginChild("AssetArea", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())))
             {
                 if (m_showGrid)
@@ -34,7 +34,7 @@ namespace Engine::UI
             }
             ImGui::EndChild();
 
-            // ƒvƒŒƒrƒ…[ƒGƒŠƒA
+            // ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã‚¨ãƒªã‚¢
             drawAssetPreview();
         }
         ImGui::End();
@@ -69,12 +69,12 @@ namespace Engine::UI
                 m_assets.push_back(asset);
             }
 
-            // –¼‘O‚Åƒ\[ƒg
+            // åå‰ã§ã‚½ãƒ¼ãƒˆ
             std::sort(m_assets.begin(), m_assets.end(),
                 [](const AssetInfo& a, const AssetInfo& b) {
                     if (a.type != b.type)
                     {
-                        return a.type < b.type; // ƒtƒHƒ‹ƒ_‚ğæ‚É
+                        return a.type < b.type; // ãƒ•ã‚©ãƒ«ãƒ€ã‚’å…ˆã«
                     }
                     return a.name < b.name;
                 });
@@ -87,7 +87,7 @@ namespace Engine::UI
 
     void ProjectWindow::drawToolbar()
     {
-        // ŒŸõƒtƒBƒ‹ƒ^[
+        // æ¤œç´¢ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼
         char searchBuffer[256];
         strncpy_s(searchBuffer, m_searchFilter.c_str(), sizeof(searchBuffer) - 1);
         if (ImGui::InputText("Search", searchBuffer, sizeof(searchBuffer)))
@@ -97,7 +97,7 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-        // •\¦Ø‚è‘Ö‚¦
+        // è¡¨ç¤ºåˆ‡ã‚Šæ›¿ãˆ
         if (ImGui::Button(m_showGrid ? "List" : "Grid"))
         {
             m_showGrid = !m_showGrid;
@@ -105,7 +105,7 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-        // ƒŠƒtƒŒƒbƒVƒ…ƒ{ƒ^ƒ“
+        // ãƒªãƒ•ãƒ¬ãƒƒã‚·ãƒ¥ãƒœã‚¿ãƒ³
         if (ImGui::Button("Refresh"))
         {
             refreshAssets();
@@ -113,7 +113,7 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-        // ƒAƒCƒRƒ“ƒTƒCƒYƒXƒ‰ƒCƒ_[iƒOƒŠƒbƒh•\¦‚Ì‚İj
+        // ã‚¢ã‚¤ã‚³ãƒ³ã‚µã‚¤ã‚ºã‚¹ãƒ©ã‚¤ãƒ€ãƒ¼ï¼ˆã‚°ãƒªãƒƒãƒ‰è¡¨ç¤ºæ™‚ã®ã¿ï¼‰
         if (m_showGrid)
         {
             ImGui::SetNextItemWidth(100);
@@ -134,23 +134,23 @@ namespace Engine::UI
 
             ImGui::PushID(index);
 
-            // ƒZƒ‹‚ÌˆÊ’uŒvZ
+            // ã‚»ãƒ«ã®ä½ç½®è¨ˆç®—
             if (index > 0 && (index % columnCount) != 0)
             {
                 ImGui::SameLine();
             }
 
-            // ƒAƒZƒbƒgƒAƒCƒRƒ“•`‰æ
+            // ã‚¢ã‚»ãƒƒãƒˆã‚¢ã‚¤ã‚³ãƒ³æç”»
             ImGui::BeginGroup();
 
-            // ‘I‘ğó‘Ô‚Ì”wŒi
+            // é¸æŠçŠ¶æ…‹ã®èƒŒæ™¯
             bool isSelected = (m_selectedAsset == &asset);
             if (isSelected)
             {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
             }
 
-            // ƒAƒCƒRƒ“ƒ{ƒ^ƒ“
+            // ã‚¢ã‚¤ã‚³ãƒ³ãƒœã‚¿ãƒ³
             if (ImGui::Button("##icon", ImVec2(m_iconSize, m_iconSize)))
             {
                 m_selectedAsset = &asset;
@@ -162,7 +162,7 @@ namespace Engine::UI
                 ImGui::PopStyleColor();
             }
 
-            // ƒ_ƒuƒ‹ƒNƒŠƒbƒNˆ—
+            // ãƒ€ãƒ–ãƒ«ã‚¯ãƒªãƒƒã‚¯å‡¦ç†
             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
             {
                 if (asset.type == AssetInfo::Type::Folder)
@@ -175,10 +175,10 @@ namespace Engine::UI
                 }
             }
 
-            // ƒhƒ‰ƒbƒO•ƒhƒƒbƒv
+            // ãƒ‰ãƒ©ãƒƒã‚°ï¼†ãƒ‰ãƒ­ãƒƒãƒ—
             handleDragDrop(asset);
 
-            // ƒAƒZƒbƒg–¼
+            // ã‚¢ã‚»ãƒƒãƒˆå
             ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + m_iconSize);
             ImGui::TextWrapped("%s", asset.name.c_str());
             ImGui::PopTextWrapPos();
@@ -207,7 +207,7 @@ namespace Engine::UI
                 ImGui::PushID(index);
                 ImGui::TableNextRow();
 
-                // –¼‘O
+                // åå‰
                 ImGui::TableNextColumn();
                 bool isSelected = (m_selectedAsset == &asset);
                 if (ImGui::Selectable(asset.name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns))
@@ -216,7 +216,9 @@ namespace Engine::UI
                     loadAssetPreview(asset);
                 }
 
-                // ƒ_ƒuƒ‹ƒNƒŠƒbƒNˆ—
+                // ãƒ€ãƒ–ãƒ«ã‚¯ãƒªãƒƒã‚¯å‡¦ç†
+
+
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
                 {
                     if (asset.type == AssetInfo::Type::Folder)
@@ -229,10 +231,10 @@ namespace Engine::UI
                     }
                 }
 
-                // ƒhƒ‰ƒbƒO•ƒhƒƒbƒv
+                // ãƒ‰ãƒ©ãƒƒã‚°ï¼†ãƒ‰ãƒ­ãƒƒãƒ—
                 handleDragDrop(asset);
 
-                // ƒ^ƒCƒv
+                // ã‚¿ã‚¤ãƒ—
                 ImGui::TableNextColumn();
                 const char* typeStr = "Unknown";
                 switch (asset.type)
@@ -244,7 +246,7 @@ namespace Engine::UI
                 }
                 ImGui::Text("%s", typeStr);
 
-                // ƒTƒCƒY
+                // ã‚µã‚¤ã‚º
                 ImGui::TableNextColumn();
                 if (asset.type != AssetInfo::Type::Folder)
                 {
@@ -253,7 +255,7 @@ namespace Engine::UI
                         auto size = std::filesystem::file_size(asset.path);
                         if (size < 1024)
                             ImGui::Text("%llu B", size);
-                        else if (size < 1024 * 1024)
+                        else if (size < static_cast<unsigned long long>(1024) * 1024)
                             ImGui::Text("%.1f KB", size / 1024.0f);
                         else
                             ImGui::Text("%.1f MB", size / (1024.0f * 1024.0f));
@@ -281,7 +283,7 @@ namespace Engine::UI
             ImGui::Text("Selected: %s", m_selectedAsset->name.c_str());
             ImGui::Text("Path: %s", m_selectedAsset->path.string().c_str());
 
-            // ƒ^ƒCƒv•Ê‚ÌƒvƒŒƒrƒ…[
+            // ã‚¿ã‚¤ãƒ—åˆ¥ã®ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
             switch (m_selectedAsset->type)
             {
             case AssetInfo::Type::Texture:
@@ -308,7 +310,7 @@ namespace Engine::UI
 
     void ProjectWindow::drawContextMenu()
     {
-        // ‰EƒNƒŠƒbƒNƒƒjƒ…[‚ÌÀ‘•i•K—v‚É‰‚¶‚Äj
+        // å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®å®Ÿè£…ï¼ˆå¿…è¦ã«å¿œã˜ã¦ï¼‰
     }
 
     AssetInfo::Type ProjectWindow::getAssetType(const std::filesystem::path& path)
@@ -351,8 +353,8 @@ namespace Engine::UI
         case AssetInfo::Type::Material:
             if (m_materialManager && !asset.material)
             {
-                // ƒ}ƒeƒŠƒAƒ‹ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İiŠÈˆÕÀ‘•j
-                // ÀÛ‚ÍMaterialSerializer‚ğg—p
+                // ãƒãƒ†ãƒªã‚¢ãƒ«ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿ï¼ˆç°¡æ˜“å®Ÿè£…ï¼‰
+                // å®Ÿéš›ã¯MaterialSerializerã‚’ä½¿ç”¨
                 asset.material = m_materialManager->createMaterial(asset.name);
             }
             break;

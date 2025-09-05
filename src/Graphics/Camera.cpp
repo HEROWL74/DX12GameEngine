@@ -37,7 +37,7 @@ namespace Engine::Graphics
         Math::Vector3 right = Math::Vector3::cross(forward, up).normalized();
         Math::Vector3 newUp = Math::Vector3::cross(right, forward);
 
-        // ‰ñ“]Šp“x‚ðŒvŽZ
+        // å›žè»¢è§’åº¦ã‚’è¨ˆç®—
         m_rotation.y = Math::degrees(std::atan2(forward.x, forward.z));
         m_rotation.x = Math::degrees(std::asin(-forward.y));
         m_rotation.z = 0.0f;
@@ -146,7 +146,7 @@ namespace Engine::Graphics
     void Camera::rotatePitch(float pitch)
     {
         m_rotation.x += pitch;
-        m_rotation.x = std::clamp(m_rotation.x, -89.0f, 89.0f);  // ã‰º‚Ì‰ñ“]‚ð§ŒÀ
+        m_rotation.x = std::clamp(m_rotation.x, -89.0f, 89.0f);  // ä¸Šä¸‹ã®å›žè»¢ã‚’åˆ¶é™
         m_viewMatrixDirty = true;
     }
 
@@ -171,17 +171,17 @@ namespace Engine::Graphics
 
     Math::Vector3 Camera::screenToWorldPoint(const Math::Vector3& screenPoint, float viewportWidth, float viewportHeight) const
     {
-        // NDCÀ•W‚É•ÏŠ·
+        // NDCåº§æ¨™ã«å¤‰æ›
         float x = (2.0f * screenPoint.x) / viewportWidth - 1.0f;
         float y = 1.0f - (2.0f * screenPoint.y) / viewportHeight;
         float z = screenPoint.z;
 
-        // ƒNƒŠƒbƒvÀ•W
+        // ã‚¯ãƒªãƒƒãƒ—åº§æ¨™
         Math::Vector3 clipCoords(x, y, z);
 
-        // ƒrƒ…[EƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñ‚Ì‹ts—ñ‚ðŒvŽZ
-        // –{Ši“I‚ÈŽÀ‘•‚Å‚Í‹ts—ñŒvŽZ‚ª•K—v
-        return clipCoords;  // TODO: ³Šm‚È‹t•ÏŠ·‚ðŽÀ‘•
+        // ãƒ“ãƒ¥ãƒ¼ãƒ»ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³è¡Œåˆ—ã®é€†è¡Œåˆ—ã‚’è¨ˆç®—
+        // æœ¬æ ¼çš„ãªå®Ÿè£…ã§ã¯é€†è¡Œåˆ—è¨ˆç®—ãŒå¿…è¦
+        return clipCoords;  // TODO: æ­£ç¢ºãªé€†å¤‰æ›ã‚’å®Ÿè£…
     }
 
     void Camera::updateViewMatrix() const
@@ -210,15 +210,15 @@ namespace Engine::Graphics
 
     void Camera::normalizeRotation()
     {
-        // YŽ²‰ñ“]‚ð-180~180“x‚É³‹K‰»
+        // Yè»¸å›žè»¢ã‚’-180~180åº¦ã«æ­£è¦åŒ–
         while (m_rotation.y > 180.0f) m_rotation.y -= 360.0f;
         while (m_rotation.y < -180.0f) m_rotation.y += 360.0f;
 
-        // ‚˜Ž²‰ñ“]‚ð-89~89“x‚É§ŒÀi^ãE^‰º‚ðŒü‚©‚È‚¢‚æ‚¤‚Éj
+        // ï½˜è»¸å›žè»¢ã‚’-89~89åº¦ã«åˆ¶é™ï¼ˆçœŸä¸Šãƒ»çœŸä¸‹ã‚’å‘ã‹ãªã„ã‚ˆã†ã«ï¼‰
         m_rotation.x = std::clamp(m_rotation.x, -89.0f, 89.0f);
     }
 
-    // FPSCameraControllerŽÀ‘•
+    // FPSCameraControllerå®Ÿè£…
     FPSCameraController::FPSCameraController(Camera* camera)
         : m_camera(camera)
         , m_movementSpeed(5.0f)
@@ -228,8 +228,8 @@ namespace Engine::Graphics
 
     void FPSCameraController::update(float deltaTime)
     {
-        // Œ»Ý‚Í‰½‚à‚µ‚È‚¢
-        // TODO: «—ˆ“I‚É‚ÍŠµ«‚âƒXƒ€[ƒWƒ“ƒO‚ð’Ç‰Á‚·‚é—\’è
+        // ç¾åœ¨ã¯ä½•ã‚‚ã—ãªã„
+        // TODO: å°†æ¥çš„ã«ã¯æ…£æ€§ã‚„ã‚¹ãƒ ãƒ¼ã‚¸ãƒ³ã‚°ã‚’è¿½åŠ ã™ã‚‹äºˆå®š
     }
 
     void FPSCameraController::processKeyboard(bool forward, bool backward, bool left, bool right, bool up, bool down, float deltaTime)
@@ -237,13 +237,13 @@ namespace Engine::Graphics
         float velocity = m_movementSpeed * deltaTime;
 
         if (forward)
-            m_camera->moveForward(velocity);    // •„†‚ðC³
+            m_camera->moveForward(velocity);    // ç¬¦å·ã‚’ä¿®æ­£
         if (backward)
-            m_camera->moveForward(-velocity);   // •„†‚ðC³
+            m_camera->moveForward(-velocity);   // ç¬¦å·ã‚’ä¿®æ­£
         if (right)
-            m_camera->moveRight(velocity);      // •„†‚ðC³
+            m_camera->moveRight(velocity);      // ç¬¦å·ã‚’ä¿®æ­£
         if (left)
-            m_camera->moveRight(-velocity);     // •„†‚ðC³
+            m_camera->moveRight(-velocity);     // ç¬¦å·ã‚’ä¿®æ­£
         if (up)
             m_camera->moveUp(velocity);
         if (down)

@@ -8,7 +8,7 @@ namespace Engine::Core
     {
         Utils::log_info("Initializing Game Engine...");
 
-        // ƒEƒBƒ“ƒhƒE‚Ìì¬
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ä½œæˆ
         WindowSettings windowSettings{
             .title = L"DX12 Game Engine",
             .width = 1280,
@@ -24,7 +24,7 @@ namespace Engine::Core
             return std::unexpected(windowResult.error());
         }
 
-        // ƒEƒBƒ“ƒhƒEƒCƒxƒ“ƒg‚ÌƒR[ƒ‹ƒoƒbƒN‚ğİ’è
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¤ãƒ™ãƒ³ãƒˆã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’è¨­å®š
         m_window.setResizeCallback([this](int width, int height) {
             onWindowResize(width, height);
             });
@@ -35,7 +35,7 @@ namespace Engine::Core
 
         m_window.show(nCmdShow);
 
-        // DirectX 12‚Ì‰Šú‰»
+        // DirectX 12ã®åˆæœŸåŒ–
         auto d3dResult = initD3D();
         if (!d3dResult)
         {
@@ -43,7 +43,7 @@ namespace Engine::Core
             return std::unexpected(d3dResult.error());
         }
 
-        // “ü—ÍƒVƒXƒeƒ€‚Ì‰Šú‰»
+        // å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ ã®åˆæœŸåŒ–
         auto inputResult = initializeInput();
         if (!inputResult)
         {
@@ -59,7 +59,7 @@ namespace Engine::Core
     {
         Utils::log_info("Starting main loop...");
 
-        // ƒƒCƒ“ƒ‹[ƒv
+        // ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ—
         while (m_window.processMessages())
         {
             update();
@@ -76,7 +76,7 @@ namespace Engine::Core
     {
         Utils::log_info("Initializing DirectX 12...");
 
-        // ƒfƒoƒCƒX‰Šú‰»
+        // ãƒ‡ãƒã‚¤ã‚¹åˆæœŸåŒ–
         Graphics::DeviceSettings deviceSettings{
             .enableDebugLayer = true,
             .enableGpuValidation = false,
@@ -87,7 +87,7 @@ namespace Engine::Core
         auto deviceResult = m_device.initialize(deviceSettings);
         if (!deviceResult) return deviceResult;
 
-        // DirectXƒŠƒ\[ƒXŠî–{‰Šú‰»
+        // DirectXãƒªã‚½ãƒ¼ã‚¹åŸºæœ¬åˆæœŸåŒ–
         auto queueResult = createCommandQueue();
         if (!queueResult) return queueResult;
 
@@ -106,13 +106,13 @@ namespace Engine::Core
         auto syncResult = createSyncObjects();
         if (!syncResult) return syncResult;
 
-        // ImGui‰Šú‰»
+        // ImGuiåˆæœŸåŒ–
         auto imguiResult = m_imguiManager.initialize(&m_device, m_window.getHandle(), m_commandQueue.Get());
         if (!imguiResult) return imguiResult;
 
         m_window.setImGuiManager(&m_imguiManager);
 
-        // ShaderManager‰Šú‰»
+        // ShaderManageråˆæœŸåŒ–
         Utils::log_info("Initializing ShaderManager FIRST...");
         m_shaderManager = std::make_unique<Graphics::ShaderManager>();
 
@@ -129,19 +129,19 @@ namespace Engine::Core
 
         Utils::log_info("ShaderManager initialization completed successfully");
 
-        // TextureManager‰Šú‰»
+        // TextureManageråˆæœŸåŒ–
         auto textureManagerResult = m_textureManager.initialize(&m_device);
         if (!textureManagerResult) return textureManagerResult;
 
-        // MaterialManager‰Šú‰»
+        // MaterialManageråˆæœŸåŒ–
         auto materialManagerResult = m_materialManager.initialize(&m_device);
         if (!materialManagerResult) return materialManagerResult;
 
-        // Scene‰Šú‰»
+        // SceneåˆæœŸåŒ–
         auto sceneResult = m_scene.initialize(&m_device);
         if (!sceneResult) return sceneResult;
 
-        // ShaderManagerƒ|ƒCƒ“ƒ^æ“¾
+        // ShaderManagerãƒã‚¤ãƒ³ã‚¿å–å¾—
         if (!m_shaderManager || !m_shaderManager.get()) {
             Utils::log_warning("ShaderManager became null before GameObject creation");
             return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null before GameObject creation"));
@@ -153,7 +153,7 @@ namespace Engine::Core
             return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager pointer is null"));
         }
 
-        // Triangleì¬
+        // Triangleä½œæˆ
         auto* triangleObject = m_scene.createGameObject("Triangle");
         triangleObject->getTransform()->setPosition(Math::Vector3(-2.0f, 0.0f, 0.0f));
         auto* triangleRender = triangleObject->addComponent<Graphics::RenderComponent>(Graphics::RenderableType::Triangle);
@@ -175,7 +175,7 @@ namespace Engine::Core
             return triangleInitResult;
         }
 
-        // Cubeì¬
+        // Cubeä½œæˆ
         auto* cubeObject = m_scene.createGameObject("Cube");
         cubeObject->getTransform()->setPosition(Math::Vector3(2.0f, 0.0f, 0.0f));
         auto* cubeRender = cubeObject->addComponent<Graphics::RenderComponent>(Graphics::RenderableType::Cube);
@@ -197,7 +197,7 @@ namespace Engine::Core
             return cubeInitResult;
         }
 
-        // ’Ç‰ÁƒLƒ…[ƒuì¬
+        // è¿½åŠ ã‚­ãƒ¥ãƒ¼ãƒ–ä½œæˆ
         for (int i = 0; i < 3; ++i)
         {
             auto* extraCube = m_scene.createGameObject("Cube" + std::to_string(i + 2));
@@ -223,13 +223,13 @@ namespace Engine::Core
             extraRender->initialize(&m_device, shaderMgrPtr);
         }
 
-        // ProjectWindowì¬
+        // ProjectWindowä½œæˆ
         m_projectWindow = std::make_unique<UI::ProjectWindow>();
         m_projectWindow->setTextureManager(&m_textureManager);
         m_projectWindow->setMaterialManager(&m_materialManager);
         m_projectWindow->setProjectPath("assets");
 
-        // ƒJƒƒ‰‰Šú‰»
+        // ã‚«ãƒ¡ãƒ©åˆæœŸåŒ–
         const auto [clientWidth, clientHeight] = m_window.getClientSize();
         m_camera.setPerspective(45.0f, static_cast<float>(clientWidth) / clientHeight, 0.1f, 100.0f);
         m_camera.setPosition({ 0.0f, 0.0f, 8.0f });
@@ -239,18 +239,18 @@ namespace Engine::Core
         m_cameraController->setMovementSpeed(5.0f);
         m_cameraController->setMouseSensitivity(0.1f);
 
-        // UIƒEƒBƒ“ƒhƒEì¬
+        // UIã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½œæˆ
         m_debugWindow = std::make_unique<UI::DebugWindow>();
         m_hierarchyWindow = std::make_unique<UI::SceneHierarchyWindow>();
         m_inspectorWindow = std::make_unique<UI::InspectorWindow>();
 
-        // UIƒEƒBƒ“ƒhƒEİ’è
+        // UIã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¨­å®š
         m_hierarchyWindow->setScene(&m_scene);
         m_hierarchyWindow->setSelectionChangedCallback([this](Core::GameObject* selectedObject) {
             m_inspectorWindow->setSelectedObject(selectedObject);
             });
 
-        //ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚ÌƒR[ƒ‹ƒoƒbƒNİ’è
+        //ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯è¨­å®š
         m_hierarchyWindow->setCreateObjectCallback([this](UI::PrimitiveType type, const std::string& name) -> Core::GameObject* {
             return createPrimitiveObject(type, name);
             });
@@ -259,12 +259,12 @@ namespace Engine::Core
             deleteGameObject(object);
             });
 
-        // DuplicateƒR[ƒ‹ƒoƒbƒN‚ğ’Ç‰Á
+        // Duplicateã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’è¿½åŠ 
         m_hierarchyWindow->setDuplicateObjectCallback([this](Core::GameObject* object) -> Core::GameObject* {
             return duplicateGameObject(object);
             });
 
-        // RenameƒR[ƒ‹ƒoƒbƒN‚ğ’Ç‰Á
+        // Renameã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’è¿½åŠ 
         m_hierarchyWindow->setRenameObjectCallback([this](Core::GameObject* object, const std::string& newName) {
             renameGameObject(object, newName);
             });
@@ -288,16 +288,16 @@ namespace Engine::Core
             return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "InputManager not available"));
         }
 
-        // ƒ}ƒEƒX‚ğ‘Š‘Îƒ‚[ƒh‚Éİ’èiFPSƒXƒ^ƒCƒ‹j
+        // ãƒã‚¦ã‚¹ã‚’ç›¸å¯¾ãƒ¢ãƒ¼ãƒ‰ã«è¨­å®šï¼ˆFPSã‚¹ã‚¿ã‚¤ãƒ«ï¼‰
         #ifdef _DEBUG
         inputManager->setRelativeMouseMode(false);
         #else
         inputManager->setRelativeMouseMode(true);
         #endif
 
-        inputManager->setMouseSensitivity(0.1f);  // Š´“x‚ğ‰º‚°‚é
+        inputManager->setMouseSensitivity(0.1f);  // æ„Ÿåº¦ã‚’ä¸‹ã’ã‚‹
 
-        // ˆÈ‰º‚ÍŠù‘¶‚ÌƒR[ƒh‚Ì‚Ü‚Ü
+        // ä»¥ä¸‹ã¯æ—¢å­˜ã®ã‚³ãƒ¼ãƒ‰ã®ã¾ã¾
         inputManager->setKeyPressedCallback([this](Input::KeyCode key) {
             onKeyPressed(key);
             });
@@ -362,7 +362,7 @@ namespace Engine::Core
 
     Utils::VoidResult App::createRenderTargets()
     {
-        // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[—pƒfƒXƒNƒŠƒvƒ^ƒq[ƒv‚Ìì¬
+        // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ç”¨ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—ã®ä½œæˆ
         D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
         rtvHeapDesc.NumDescriptors = 2;
         rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
@@ -371,7 +371,7 @@ namespace Engine::Core
         CHECK_HR(m_device.getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)),
             Utils::ErrorType::ResourceCreation, "Failed to create RTV descriptor heap");
 
-        // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[‚Ìì¬
+        // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ã®ä½œæˆ
         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
         const UINT rtvDescriptorSize = m_device.getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
@@ -390,60 +390,60 @@ namespace Engine::Core
 
     Utils::VoidResult App::createCommandObjects()
     {
-        // ƒRƒ}ƒ“ƒhƒAƒƒP[ƒ^[‚Ìì¬
+        // ã‚³ãƒãƒ³ãƒ‰ã‚¢ãƒ­ã‚±ãƒ¼ã‚¿ãƒ¼ã®ä½œæˆ
         CHECK_HR(m_device.getDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)),
             Utils::ErrorType::ResourceCreation, "Failed to create command allocator");
 
-        // ƒRƒ}ƒ“ƒhƒŠƒXƒg‚Ìì¬
+        // ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®ä½œæˆ
         CHECK_HR(m_device.getDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
             m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_commandList)),
             Utils::ErrorType::ResourceCreation, "Failed to create command list");
 
-        // ƒRƒ}ƒ“ƒhƒŠƒXƒg‚Íì¬‚É‹L˜^ó‘Ô‚É‚È‚Á‚Ä‚¢‚é‚Ì‚ÅAˆê“xƒNƒ[ƒY‚·‚é
+        // ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã¯ä½œæˆæ™‚ã«è¨˜éŒ²çŠ¶æ…‹ã«ãªã£ã¦ã„ã‚‹ã®ã§ã€ä¸€åº¦ã‚¯ãƒ­ãƒ¼ã‚ºã™ã‚‹
         m_commandList->Close();
 
         return {};
     }
 
-    //[“xƒXƒeƒ“ƒVƒ‹ƒoƒbƒtƒ@‚Ìì¬
+    //æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ãƒãƒƒãƒ•ã‚¡ã®ä½œæˆ
     Utils::VoidResult App::createDepthStencilBuffer()
     {
         const auto [clientWidth, clientHeight] = m_window.getClientSize();
 
-        //[“xƒXƒeƒ“ƒVƒ‹ƒoƒbƒtƒ@—p‚Ìƒq[ƒvì¬
+        //æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ãƒãƒƒãƒ•ã‚¡ç”¨ã®ãƒ’ãƒ¼ãƒ—ä½œæˆ
         D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
-        dsvHeapDesc.NumDescriptors = 1;                          //‚±‚Ìƒq[ƒv‚É‰½ŒÂ‚ÌDSV‚ğ“ü‚ê‚é‚©
-        dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;       //‚±‚Ìƒq[ƒv‚Í‰½—pH
-        dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;     //‚±‚Ìƒq[ƒv‚É“Á•Ê‚Èg‚¢•û‚ğ‚·‚é‚©H
+        dsvHeapDesc.NumDescriptors = 1;                          //ã“ã®ãƒ’ãƒ¼ãƒ—ã«ä½•å€‹ã®DSVã‚’å…¥ã‚Œã‚‹ã‹
+        dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;       //ã“ã®ãƒ’ãƒ¼ãƒ—ã¯ä½•ç”¨ï¼Ÿ
+        dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;     //ã“ã®ãƒ’ãƒ¼ãƒ—ã«ç‰¹åˆ¥ãªä½¿ã„æ–¹ã‚’ã™ã‚‹ã‹ï¼Ÿ
 
         CHECK_HR(m_device.getDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_dsvHeap)),
             Utils::ErrorType::ResourceCreation, "Failed to create DSV descriptor heap");
 
-        //[“xƒXƒeƒ“ƒVƒ‹ƒoƒbƒtƒ@‚ğì¬
+        //æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ãƒãƒƒãƒ•ã‚¡ã‚’ä½œæˆ
         D3D12_CLEAR_VALUE depthOptimizedClearValue{};
-        depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT; //ƒoƒbƒtƒ@‚ÌƒtƒH[ƒ}ƒbƒgw’èE32bit‚Ì•‚“®¬”“_Œ`®‚Ì[“xƒoƒbƒtƒ@
-        depthOptimizedClearValue.DepthStencil.Depth = 1.0f;      //Zƒoƒbƒtƒ@‚ğ‚Ç‚ñ‚È’l‚ÅƒNƒŠƒAi‰Šú‰»j‚·‚é‚©Hv
-        depthOptimizedClearValue.DepthStencil.Stencil = 0;       //ƒXƒeƒ“ƒVƒ‹’l‚Ì‰Šú’liƒ}ƒXƒN•`‰æ‚È‚Ç‚Åg‚¤”Ô†j
+        depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT; //ãƒãƒƒãƒ•ã‚¡ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæŒ‡å®šãƒ»32bitã®æµ®å‹•å°æ•°ç‚¹å½¢å¼ã®æ·±åº¦ãƒãƒƒãƒ•ã‚¡
+        depthOptimizedClearValue.DepthStencil.Depth = 1.0f;      //Zãƒãƒƒãƒ•ã‚¡ã‚’ã©ã‚“ãªå€¤ã§ã‚¯ãƒªã‚¢ï¼ˆåˆæœŸåŒ–ï¼‰ã™ã‚‹ã‹ï¼Ÿã€
+        depthOptimizedClearValue.DepthStencil.Stencil = 0;       //ã‚¹ãƒ†ãƒ³ã‚·ãƒ«å€¤ã®åˆæœŸå€¤ï¼ˆãƒã‚¹ã‚¯æç”»ãªã©ã§ä½¿ã†ç•ªå·ï¼‰
 
         D3D12_HEAP_PROPERTIES heapProps{};                         
-        heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;                   //GPU‚Ì‚½‚ß‚Ìƒƒ‚ƒŠ‚ğg‚¢‚½‚¢‚Æ‚«‚Éw’è
-        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;//“Á•Ê‚È–Ú“I‚ª‚È‚¢ŒÀ‚èUNKNOWN‚Éİ’è
-        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN; //“Á•Ê‚È–Ú“I‚ª‚È‚¢ŒÀ‚èUNKNOWN‚Éİ’è
-        heapProps.CreationNodeMask = 1;                             //‚Ç‚ÌGPUƒm[ƒh‚Å‚±‚ÌƒŠƒ\[ƒX‚ğì‚é‚© 
-        heapProps.VisibleNodeMask = 1;                              //‚Ç‚Ìƒm[ƒh‚©‚çƒAƒNƒZƒX‰Â”\‚É‚·‚é‚©
+        heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;                   //GPUã®ãŸã‚ã®ãƒ¡ãƒ¢ãƒªã‚’ä½¿ã„ãŸã„ã¨ãã«æŒ‡å®š
+        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;//ç‰¹åˆ¥ãªç›®çš„ãŒãªã„é™ã‚ŠUNKNOWNã«è¨­å®š
+        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN; //ç‰¹åˆ¥ãªç›®çš„ãŒãªã„é™ã‚ŠUNKNOWNã«è¨­å®š
+        heapProps.CreationNodeMask = 1;                             //ã©ã®GPUãƒãƒ¼ãƒ‰ã§ã“ã®ãƒªã‚½ãƒ¼ã‚¹ã‚’ä½œã‚‹ã‹ 
+        heapProps.VisibleNodeMask = 1;                              //ã©ã®ãƒãƒ¼ãƒ‰ã‹ã‚‰ã‚¢ã‚¯ã‚»ã‚¹å¯èƒ½ã«ã™ã‚‹ã‹
 
         D3D12_RESOURCE_DESC depthStencilDesc{};
-        depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D; //ƒŠƒ\[ƒX‚Ìí—Ş‚Í 2D ƒeƒNƒXƒ`ƒƒ
-        depthStencilDesc.Alignment = 0;                                  //ƒAƒ‰ƒCƒƒ“ƒg‚Í0‚ÅOKi©“®‚ÅÅ“K‚È’l‚ªİ’è‚³‚ê‚éj
-        depthStencilDesc.Width = clientWidth;                            //[“xƒoƒbƒtƒ@‚Ì‰ğ‘œ“xi•©E‚‚³j
-        depthStencilDesc.Height = clientHeight;                          //[“xƒoƒbƒtƒ@‚Ì‰ğ‘œ“xi•E‚‚³©j
-        depthStencilDesc.DepthOrArraySize = 1;                           //1–‡‚ÌƒeƒNƒXƒ`ƒƒiDepth=1j
-        depthStencilDesc.MipLevels = 1;                                  //ƒ~ƒbƒvƒ}ƒbƒv‚Íg‚í‚È‚¢iZƒoƒbƒtƒ@‚É‚Í•s—vj
-        depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;                 //Zƒoƒbƒtƒ@‚ÌŒ`®i32bit •‚“®¬”“_‚Ì[“xj
-        depthStencilDesc.SampleDesc.Count = 1;                           //ƒ}ƒ‹ƒ`ƒTƒ“ƒvƒŠƒ“ƒOiMSAAj‚Ìİ’è
-        depthStencilDesc.SampleDesc.Quality = 0;                         //ƒ}ƒ‹ƒ`ƒTƒ“ƒvƒŠƒ“ƒOiMSAAj‚Ìİ’è
-        depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;          //©“®ƒŒƒCƒAƒEƒg‚ÅOK
-        depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;//‚±‚ÌƒŠƒ\[ƒX‚ğ u[“xƒoƒbƒtƒ@‚Æ‚µ‚Äg‚¢‚Ü‚·v ‚Æ–¾¦
+        depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D; //ãƒªã‚½ãƒ¼ã‚¹ã®ç¨®é¡ã¯ 2D ãƒ†ã‚¯ã‚¹ãƒãƒ£
+        depthStencilDesc.Alignment = 0;                                  //ã‚¢ãƒ©ã‚¤ãƒ¡ãƒ³ãƒˆã¯0ã§OKï¼ˆè‡ªå‹•ã§æœ€é©ãªå€¤ãŒè¨­å®šã•ã‚Œã‚‹ï¼‰
+        depthStencilDesc.Width = clientWidth;                            //æ·±åº¦ãƒãƒƒãƒ•ã‚¡ã®è§£åƒåº¦ï¼ˆå¹…â†ãƒ»é«˜ã•ï¼‰
+        depthStencilDesc.Height = clientHeight;                          //æ·±åº¦ãƒãƒƒãƒ•ã‚¡ã®è§£åƒåº¦ï¼ˆå¹…ãƒ»é«˜ã•â†ï¼‰
+        depthStencilDesc.DepthOrArraySize = 1;                           //1æšã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼ˆDepth=1ï¼‰
+        depthStencilDesc.MipLevels = 1;                                  //ãƒŸãƒƒãƒ—ãƒãƒƒãƒ—ã¯ä½¿ã‚ãªã„ï¼ˆZãƒãƒƒãƒ•ã‚¡ã«ã¯ä¸è¦ï¼‰
+        depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;                 //Zãƒãƒƒãƒ•ã‚¡ã®å½¢å¼ï¼ˆ32bit æµ®å‹•å°æ•°ç‚¹ã®æ·±åº¦ï¼‰
+        depthStencilDesc.SampleDesc.Count = 1;                           //ãƒãƒ«ãƒã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ï¼ˆMSAAï¼‰ã®è¨­å®š
+        depthStencilDesc.SampleDesc.Quality = 0;                         //ãƒãƒ«ãƒã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ï¼ˆMSAAï¼‰ã®è¨­å®š
+        depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;          //è‡ªå‹•ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã§OK
+        depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;//ã“ã®ãƒªã‚½ãƒ¼ã‚¹ã‚’ ã€Œæ·±åº¦ãƒãƒƒãƒ•ã‚¡ã¨ã—ã¦ä½¿ã„ã¾ã™ã€ ã¨æ˜ç¤º
 
         CHECK_HR(m_device.getDevice()->CreateCommittedResource(
             &heapProps,
@@ -454,7 +454,7 @@ namespace Engine::Core
             IID_PPV_ARGS(&m_depthStencilBuffer)),
             Utils::ErrorType::ResourceCreation, "Failed to create depth stencil buffer");
 
-        //[“xƒXƒeƒ“ƒVƒ‹ƒrƒ…[İ’è
+        //æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ãƒ“ãƒ¥ãƒ¼è¨­å®š
         D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
         dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
         dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
@@ -471,13 +471,13 @@ namespace Engine::Core
 
     Utils::VoidResult App::createSyncObjects()
     {
-        // “¯Šú—pƒtƒFƒ“ƒX‚Ìì¬
+        // åŒæœŸç”¨ãƒ•ã‚§ãƒ³ã‚¹ã®ä½œæˆ
         CHECK_HR(m_device.getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)),
             Utils::ErrorType::ResourceCreation, "Failed to create fence");
 
         m_fenceValue = 1;
 
-        // ƒtƒFƒ“ƒXƒCƒxƒ“ƒg‚Ìì¬
+        // ãƒ•ã‚§ãƒ³ã‚¹ã‚¤ãƒ™ãƒ³ãƒˆã®ä½œæˆ
         m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         CHECK_CONDITION(m_fenceEvent != nullptr, Utils::ErrorType::ResourceCreation,
             "Failed to create fence event");
@@ -487,22 +487,22 @@ namespace Engine::Core
 
     void App::update()
     {
-        // ƒfƒ‹ƒ^ƒ^ƒCƒ€‚ÌŒvZ
+        // ãƒ‡ãƒ«ã‚¿ã‚¿ã‚¤ãƒ ã®è¨ˆç®—
         updateDeltaTime();
 
-        // “ü—Íˆ—
+        // å…¥åŠ›å‡¦ç†
         processInput();
 
-        //ƒV[ƒ“‚ÌXV
+        //ã‚·ãƒ¼ãƒ³ã®æ›´æ–°
         m_scene.update(m_deltaTime);
         m_scene.lateUpdate(m_deltaTime);
 
-        //ImGuiî•ñ‚ğXV
+        //ImGuiæƒ…å ±ã‚’æ›´æ–°
         m_debugWindow->setFPS(m_currentFPS);
         m_debugWindow->setFrameTime(m_deltaTime);
         m_debugWindow->setObjectCount(m_scene.getGameObjects().size());
 
-        // ƒfƒ‚—pƒAƒjƒ[ƒVƒ‡ƒ“
+        // ãƒ‡ãƒ¢ç”¨ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
         auto* triangleObject = m_scene.findGameObject("Triangle");
         if (triangleObject)
         {
@@ -519,7 +519,7 @@ namespace Engine::Core
             cubeObject->getTransform()->setRotation(Math::Vector3(cubeRotation, cubeRotation * 0.7f, 0.0f));
         }
 
-        // ’Ç‰Á‚Ì—§•û‘Ì‚ğƒAƒjƒ[ƒVƒ‡ƒ“
+        // è¿½åŠ ã®ç«‹æ–¹ä½“ã‚’ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
         for (int i = 0; i < 3; ++i)
         {
             auto* extraCube = m_scene.findGameObject("Cube" + std::to_string(i + 2));
@@ -531,37 +531,97 @@ namespace Engine::Core
             }
         }
     }
-
     void App::render()
     {
-        // ƒŠƒTƒCƒY’†‚ÍƒŒƒ“ƒ_ƒŠƒ“ƒO‚ğƒXƒLƒbƒv
+        Utils::log_info("App::render() called");
+
+        // ãƒªã‚µã‚¤ã‚ºçŠ¶æ…‹ç¢ºèª
+        bool isResizing = false;
+        {
+            std::lock_guard<std::mutex> lock(m_resizeMutex);
+            isResizing = m_isResizing;
+        }
+
+        if (isResizing)
+        {
+            Utils::log_info("Currently resizing, checking ImGui state");
+        }
+
+        // ImGuiã®åˆæœŸåŒ–çŠ¶æ…‹ç¢ºèª
+        if (!m_imguiManager.isInitialized())
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "ImGuiManager not initialized"));
+            return;
+        }
+
+        // ImGuiã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆç¢ºèª
+        ImGuiContext* context = m_imguiManager.getContext();
+        if (!context)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "ImGui context is null"));
+            return;
+        }
+
+        Utils::log_info("Starting ImGui newFrame");
+        try
+        {
+            m_imguiManager.newFrame();
+            Utils::log_info("ImGui newFrame completed");
+        }
+        catch (...)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception in ImGui newFrame"));
+            return;
+        }
+
+        Utils::log_info("Drawing ImGui windows");
+        try
+        {
+            m_debugWindow->draw();
+            m_hierarchyWindow->draw();
+            m_inspectorWindow->draw();
+            m_projectWindow->draw();
+            Utils::log_info("ImGui windows drawn successfully");
+        }
+        catch (...)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception in ImGui window drawing"));
+            return;
+        }
+
+        // ãƒªã‚µã‚¤ã‚ºä¸­ã®å‡¦ç†
         {
             std::lock_guard<std::mutex> lock(m_resizeMutex);
             if (m_isResizing)
             {
+                Utils::log_info("Resizing: calling ImGui::Render and returning");
+                try
+                {
+                    ImGui::Render();
+                    Utils::log_info("ImGui::Render completed during resize");
+                }
+                catch (...)
+                {
+                    Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception in ImGui::Render during resize"));
+                }
                 return;
             }
         }
 
-        // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚Ì—LŒø«‚ğƒ`ƒFƒbƒN
+        // 3Dãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°éƒ¨åˆ†ï¼ˆæ—¢å­˜ã‚³ãƒ¼ãƒ‰ï¼‰
+        Utils::log_info("Starting 3D rendering");
+
         if (!m_renderTargets[m_frameIndex] || !m_commandList || !m_swapChain)
         {
             Utils::log_warning("Render resources not ready, skipping frame");
             return;
         }
 
-        // ƒRƒ}ƒ“ƒhƒŠƒXƒg‚Ì‹L˜^ŠJn
+        // ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®è¨˜éŒ²é–‹å§‹
         m_commandAllocator->Reset();
         m_commandList->Reset(m_commandAllocator.Get(), nullptr);
 
-        // ImGuiVƒtƒŒ[ƒ€
-        m_imguiManager.newFrame();
-        m_debugWindow->draw();
-        m_hierarchyWindow->draw();
-        m_inspectorWindow->draw();
-        m_projectWindow->draw();
-
-        // ƒŠƒ\[ƒXƒoƒŠƒA: ƒoƒbƒNƒoƒbƒtƒ@‚ğƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgó‘Ô‚É•ÏX
+        // ãƒªã‚½ãƒ¼ã‚¹ãƒãƒªã‚¢: ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã‚’ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆçŠ¶æ…‹ã«å¤‰æ›´
         D3D12_RESOURCE_BARRIER barrier{};
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -572,32 +632,30 @@ namespace Engine::Core
 
         m_commandList->ResourceBarrier(1, &barrier);
 
-        // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[‚Æ[“xƒXƒeƒ“ƒVƒ‹ƒrƒ…[‚Ìƒnƒ“ƒhƒ‹æ“¾
+        // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ã¨æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ãƒ“ãƒ¥ãƒ¼ã®ãƒãƒ³ãƒ‰ãƒ«å–å¾—
         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
         const UINT rtvDescriptorSize = m_device.getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         rtvHandle.ptr += m_frameIndex * rtvDescriptorSize;
 
         D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
 
-        // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚Æ[“xƒXƒeƒ“ƒVƒ‹‚ğİ’è
+        // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¨æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«è¨­å®š
         m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
-        // ‰æ–ÊƒNƒŠƒAi”Z‚¢ÂF‚Å“h‚è‚Â‚Ô‚µj
+        // ç”»é¢ã‚¯ãƒªã‚¢ï¼ˆæ·±é’è‰²ã§å¡—ã‚Šã¤ã¶ã—ï¼‰
         const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 
-        // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚Ì—LŒø«‚ğÄ“xƒ`ƒFƒbƒN
         if (m_renderTargets[m_frameIndex])
         {
             m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
         }
 
-        // [“xƒoƒbƒtƒ@‚àƒNƒŠƒA
         if (m_depthStencilBuffer)
         {
             m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
         }
 
-        // ƒrƒ…[ƒ|[ƒg‚ÆƒVƒU[‹éŒ`‚ğ“®“I‚Éİ’èiƒŠƒTƒCƒY‘Î‰j
+        // ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆã¨ã‚·ã‚¶ãƒ¼çŸ©å½¢ã‚’å‹•çš„ã«è¨­å®šï¼ˆãƒªã‚µã‚¤ã‚ºå¯¾å¿œï¼‰
         const auto [clientWidth, clientHeight] = m_window.getClientSize();
         D3D12_VIEWPORT viewport{};
         viewport.TopLeftX = 0.0f;
@@ -616,26 +674,36 @@ namespace Engine::Core
         m_commandList->RSSetViewports(1, &viewport);
         m_commandList->RSSetScissorRects(1, &scissorRect);
 
-        // ƒV[ƒ“‚ÌƒŒƒ“ƒ_ƒŠƒ“ƒO
+        // ã‚·ãƒ¼ãƒ³ã®ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°
+        Utils::log_info("Rendering scene");
         m_scene.render(m_commandList.Get(), m_camera, m_frameIndex);
 
-        // ImGui•`‰æ
-        m_imguiManager.render(m_commandList.Get());
+        // ImGuiæç”»
+        Utils::log_info("Rendering ImGui");
+        try
+        {
+            m_imguiManager.render(m_commandList.Get());
+            Utils::log_info("ImGui rendering completed");
+        }
+        catch (...)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception in ImGui render"));
+        }
 
-        // ƒŠƒ\[ƒXƒoƒŠƒA: ƒoƒbƒNƒoƒbƒtƒ@‚ğ•\¦ó‘Ô‚É–ß‚·
+        // ãƒªã‚½ãƒ¼ã‚¹ãƒãƒªã‚¢: ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã‚’è¡¨ç¤ºçŠ¶æ…‹ã«æˆ»ã™
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 
         m_commandList->ResourceBarrier(1, &barrier);
 
-        // ƒRƒ}ƒ“ƒhƒŠƒXƒg‚Ì‹L˜^I—¹
+        // ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®è¨˜éŒ²çµ‚äº†
         m_commandList->Close();
 
-        // ƒRƒ}ƒ“ƒhƒŠƒXƒg‚ÌÀs
+        // ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®å®Ÿè¡Œ
         ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
         m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
-        // ‰æ–Ê‚É•\¦
+        // ç”»é¢ã«è¡¨ç¤º
         HRESULT hr = m_swapChain->Present(1, 0);
         if (FAILED(hr))
         {
@@ -643,8 +711,10 @@ namespace Engine::Core
             return;
         }
 
-        // ƒtƒŒ[ƒ€Š®—¹‘Ò‚¿
+        // ãƒ•ãƒ¬ãƒ¼ãƒ å¾…æ©Ÿ
         waitForPreviousFrame();
+
+        Utils::log_info("App::render() completed");
     }
 
     void App::updateDeltaTime()
@@ -659,7 +729,7 @@ namespace Engine::Core
         m_deltaTime = duration.count() / 1000000.0f;
         m_lastFrameTime = currentTime;
 
-        // ƒtƒŒ[ƒ€ƒŒ[ƒg‚ÌŒvZ
+        // ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆã®è¨ˆç®—
         m_frameCount++;
         m_frameTimeAccumulator += m_deltaTime;
         if (m_frameTimeAccumulator >= 1.0f)
@@ -668,7 +738,7 @@ namespace Engine::Core
             m_frameCount = 0;
             m_frameTimeAccumulator = 0.0f;
 
-            // FPS‚ğƒEƒBƒ“ƒhƒEƒ^ƒCƒgƒ‹‚É•\¦
+            // FPSã‚’ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¿ã‚¤ãƒˆãƒ«ã«è¡¨ç¤º
             std::wstring title = std::format(L"DX12 Game Engine - FPS: {:.1f}", m_currentFPS);
             m_window.setTitle(title);
         }
@@ -682,13 +752,13 @@ namespace Engine::Core
             return;
         }
 
-        // ImGui‚ª“ü—Í‚ğƒLƒƒƒvƒ`ƒƒ‚µ‚Ä‚¢‚éê‡‚ÍAƒQ[ƒ€“ü—Í‚ğˆ—‚µ‚È‚¢
+        // ImGuiãŒå…¥åŠ›ã‚’ã‚­ãƒ£ãƒ—ãƒãƒ£ã—ã¦ã„ã‚‹å ´åˆã¯ã€ã‚²ãƒ¼ãƒ å…¥åŠ›ã‚’å‡¦ç†ã—ãªã„
         ImGuiIO& io = ImGui::GetIO();
 
-        // ƒL[ƒ{[ƒh“ü—Í‚ªImGui‚ÉƒLƒƒƒvƒ`ƒƒ‚³‚ê‚Ä‚¢‚éê‡‚ÍƒXƒLƒbƒv
+        // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›ãŒImGuiã«ã‚­ãƒ£ãƒ—ãƒãƒ£ã•ã‚Œã¦ã„ã‚‹å ´åˆã¯ã‚¹ã‚­ãƒƒãƒ—
         if (!io.WantCaptureKeyboard)
         {
-            // WASDƒL[‚ÅƒJƒƒ‰ˆÚ“®
+            // WASDã‚­ãƒ¼ã§ã‚«ãƒ¡ãƒ©ç§»å‹•
             bool forward = inputManager->isKeyDown(Input::KeyCode::W);
             bool backward = inputManager->isKeyDown(Input::KeyCode::S);
             bool left = inputManager->isKeyDown(Input::KeyCode::A);
@@ -696,14 +766,14 @@ namespace Engine::Core
             bool up = inputManager->isKeyDown(Input::KeyCode::Space);
             bool down = inputManager->isKeyDown(Input::KeyCode::LeftShift);
 
-            // ƒJƒƒ‰ƒRƒ“ƒgƒ[ƒ‰[‚ÉˆÚ“®î•ñ‚ğ“n‚·
+            // ã‚«ãƒ¡ãƒ©ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã«ç§»å‹•æƒ…å ±ã‚’æ¸¡ã™
             m_cameraController->processKeyboard(forward, backward, left, right, up, down, m_deltaTime);
         }
 
-        // ƒ}ƒEƒX“ü—Í‚ªImGui‚ÉƒLƒƒƒvƒ`ƒƒ‚³‚ê‚Ä‚¢‚éê‡‚ÍƒXƒLƒbƒv
+        // ãƒã‚¦ã‚¹å…¥åŠ›ãŒImGuiã«ã‚­ãƒ£ãƒ—ãƒãƒ£ã•ã‚Œã¦ã„ã‚‹å ´åˆã¯ã‚¹ã‚­ãƒƒãƒ—
         if (!io.WantCaptureMouse)
         {
-            // ƒ}ƒEƒX‚É‚æ‚é‹“_•ÏX
+            // ãƒã‚¦ã‚¹ã«ã‚ˆã‚‹è¦–ç‚¹å¤‰æ›´
             if (inputManager->getMouseState().isRelativeMode)
             {
                 int deltaX = inputManager->getMouseDeltaX();
@@ -715,7 +785,7 @@ namespace Engine::Core
 
     void App::waitForPreviousFrame()
     {
-        // •K—v‚ÈƒIƒuƒWƒFƒNƒg‚ª‰Šú‰»‚³‚ê‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN
+        // å¿…è¦ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒåˆæœŸåŒ–ã•ã‚Œã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
         if (!m_commandQueue || !m_fence || !m_fenceEvent)
         {
             Utils::log_warning("DirectX objects not initialized in waitForPreviousFrame");
@@ -750,10 +820,10 @@ namespace Engine::Core
 
     void App::cleanup()
     {
-        // GPU‚Ìˆ—Š®—¹‚ğ‘Ò‚Â
+        // GPUã®å‡¦ç†å®Œäº†ã‚’å¾…ã¤
         waitForPreviousFrame();
 
-        // ƒtƒFƒ“ƒXƒCƒxƒ“ƒg‚ÌƒNƒŠ[ƒ“ƒAƒbƒv
+        // ãƒ•ã‚§ãƒ³ã‚¹ã‚¤ãƒ™ãƒ³ãƒˆã®ã‚¯ãƒªãƒ¼ãƒ³ã‚¢ãƒƒãƒ—
         if (m_fenceEvent)
         {
             CloseHandle(m_fenceEvent);
@@ -762,17 +832,20 @@ namespace Engine::Core
 
         Utils::log_info("DirectX 12 resources cleaned up.");
     }
-
     void App::onWindowResize(int width, int height)
     {
-        Utils::log_info(std::format("Window resized: {}x{}", width, height));
+        Utils::log_info(std::format("App::onWindowResize called: {}x{}", width, height));
 
-        if (width <= 0 || height <= 0) return;
+        if (width <= 0 || height <= 0)
+        {
+            Utils::log_warning(std::format("Invalid resize dimensions: {}x{}", width, height));
+            return;
+        }
 
-        // DirectX 12‚ª‰Šú‰»‚³‚ê‚Ä‚¢‚È‚¢ê‡‚Í‰½‚à‚µ‚È‚¢
+        // DirectX 12ãŒåˆæœŸåŒ–ã•ã‚Œã¦ã„ãªã„å ´åˆ
         if (!m_commandQueue || !m_swapChain || !m_fence)
         {
-            Utils::log_info("DirectX 12 not initialized yet, skipping resize");
+            Utils::log_info("DirectX 12 not initialized yet");
             if (height > 0)
             {
                 m_camera.updateAspect(static_cast<float>(width) / height);
@@ -780,94 +853,103 @@ namespace Engine::Core
             return;
         }
 
-        // ƒŠƒTƒCƒYƒtƒ‰ƒO‚ğİ’è‚µ‚ÄƒŒƒ“ƒ_ƒŠƒ“ƒO‚ğ’â~
-        {
-            std::lock_guard<std::mutex> lock(m_resizeMutex);
-            m_isResizing = true;
-        }
+        Utils::log_info("Starting safe DirectX resize process...");
 
         try
         {
-            // GPUˆ—Š®—¹‚ğ‘Ò‹@
+            // 1. ImGuiã®å®‰å…¨ãªã‚·ãƒ£ãƒƒãƒˆãƒ€ã‚¦ãƒ³
+            if (m_imguiManager.isInitialized())
+            {
+                Utils::log_info("Safely shutting down ImGui for resize");
+                m_imguiManager.shutdown();
+            }
+
+            // 2. å®Œå…¨ãªGPUåŒæœŸ
+            Utils::log_info("Complete GPU synchronization");
             waitForPreviousFrame();
 
-            // Šù‘¶ƒŠƒ\[ƒX‚ğƒŠƒZƒbƒg
+            // è¿½åŠ åŒæœŸ
+            const UINT64 flushFence = m_fenceValue;
+            m_commandQueue->Signal(m_fence.Get(), flushFence);
+            m_fenceValue++;
+
+            if (m_fence->GetCompletedValue() < flushFence)
+            {
+                m_fence->SetEventOnCompletion(flushFence, m_fenceEvent);
+                WaitForSingleObject(m_fenceEvent, INFINITE);
+            }
+
+            // 3. ãƒªã‚½ãƒ¼ã‚¹ã‚¯ãƒªã‚¢
+            Utils::log_info("Clearing DirectX resources");
             for (UINT i = 0; i < 2; i++)
             {
-                m_renderTargets[i].Reset();
+                if (m_renderTargets[i])
+                {
+                    m_renderTargets[i].Reset();
+                }
             }
-            m_depthStencilBuffer.Reset();
 
-            // ƒXƒƒbƒvƒ`ƒF[ƒ“‚ğƒŠƒTƒCƒY
-            HRESULT hr = m_swapChain->ResizeBuffers(
-                2,                              // ƒoƒbƒtƒ@”
-                width,                          // V‚µ‚¢•
-                height,                         // V‚µ‚¢‚‚³
-                DXGI_FORMAT_R8G8B8A8_UNORM,    // ƒtƒH[ƒ}ƒbƒg
-                0                               // ƒtƒ‰ƒO
-            );
+            if (m_depthStencilBuffer)
+            {
+                m_depthStencilBuffer.Reset();
+            }
+
+            // 4. ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³ãƒªã‚µã‚¤ã‚º
+            Utils::log_info("Resizing swap chain");
+            HRESULT hr = m_swapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
             if (FAILED(hr))
             {
                 Utils::log_error(Utils::make_error(Utils::ErrorType::SwapChainCreation,
-                    "Failed to resize swap chain", hr));
-
-                // ƒŠƒTƒCƒY¸”s‚Å‚àƒtƒ‰ƒO‚ğƒNƒŠƒA
-                {
-                    std::lock_guard<std::mutex> lock(m_resizeMutex);
-                    m_isResizing = false;
-                }
+                    std::format("Failed to resize swap chain: 0x{:08x}", static_cast<unsigned>(hr)), hr));
                 return;
             }
 
-            // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚ğÄì¬
+            // 5. ãƒªã‚½ãƒ¼ã‚¹å†ä½œæˆ
             auto renderTargetResult = createRenderTargets();
             if (!renderTargetResult)
             {
                 Utils::log_error(renderTargetResult.error());
-
-                // ƒŠƒTƒCƒY¸”s‚Å‚àƒtƒ‰ƒO‚ğƒNƒŠƒA
-                {
-                    std::lock_guard<std::mutex> lock(m_resizeMutex);
-                    m_isResizing = false;
-                }
                 return;
             }
 
-            // [“xƒXƒeƒ“ƒVƒ‹ƒoƒbƒtƒ@‚ğÄì¬
             auto depthStencilResult = createDepthStencilBuffer();
             if (!depthStencilResult)
             {
                 Utils::log_error(depthStencilResult.error());
-
-                // ƒŠƒTƒCƒY¸”s‚Å‚àƒtƒ‰ƒO‚ğƒNƒŠƒA
-                {
-                    std::lock_guard<std::mutex> lock(m_resizeMutex);
-                    m_isResizing = false;
-                }
                 return;
             }
 
-            // ƒtƒŒ[ƒ€ƒCƒ“ƒfƒbƒNƒX‚ğXV
+            // 6. ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹æ›´æ–°
             m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-            // ƒJƒƒ‰‚ÌƒAƒXƒyƒNƒg”ä‚ğXV
+            // 7. ã‚«ãƒ¡ãƒ©æ›´æ–°
             m_camera.updateAspect(static_cast<float>(width) / height);
 
-            // ImGui‚ÉƒŠƒTƒCƒY‚ğ’Ê’m
-            m_imguiManager.onWindowResize(width, height);
+            // 8. ImGuiã®å®‰å…¨ãªå†åˆæœŸåŒ–
+            Utils::log_info("Safely reinitializing ImGui after resize");
+            auto imguiResult = m_imguiManager.initialize(&m_device, m_window.getHandle(), m_commandQueue.Get());
+            if (!imguiResult)
+            {
+                Utils::log_error(imguiResult.error());
+                Utils::log_warning("ImGui reinitialization failed, continuing without ImGui");
+            }
+            else
+            {
+                m_window.setImGuiManager(&m_imguiManager);
+                Utils::log_info("ImGui reinitialized successfully");
+            }
 
-            Utils::log_info("Window resize completed successfully");
+            Utils::log_info("DirectX resize completed successfully");
+        }
+        catch (const std::exception& e)
+        {
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+                std::format("Exception during resize: {}", e.what())));
         }
         catch (...)
         {
-            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception during resize"));
-        }
-
-        // ƒŠƒTƒCƒYŠ®—¹AƒŒƒ“ƒ_ƒŠƒ“ƒOÄŠJ
-        {
-            std::lock_guard<std::mutex> lock(m_resizeMutex);
-            m_isResizing = false;
+            Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Unknown exception during resize"));
         }
     }
 
@@ -880,14 +962,14 @@ namespace Engine::Core
 
     void App::onKeyPressed(Input::KeyCode key)
     {
-        // ImGui‚ª“ü—Í‚ğƒLƒƒƒvƒ`ƒƒ‚µ‚Ä‚¢‚éê‡‚ÍƒXƒLƒbƒv
+        // ImGuiãŒå…¥åŠ›ã‚’ã‚­ãƒ£ãƒ—ãƒãƒ£ã—ã¦ã„ã‚‹å ´åˆã¯ã‚¹ã‚­ãƒƒãƒ—
         ImGuiIO& io = ImGui::GetIO();
         if (io.WantCaptureKeyboard)
         {
             return;
         }
 
-        // ƒfƒoƒbƒO—pFƒL[“ü—Í‚ÌƒƒOo—Í
+        // ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šã‚­ãƒ¼å…¥åŠ›ã®ãƒ­ã‚°å‡ºåŠ›
         if (key == Input::KeyCode::Escape)
         {
             Utils::log_info("Escape key pressed - requesting exit");
@@ -895,7 +977,7 @@ namespace Engine::Core
         }
         else if (key == Input::KeyCode::F1)
         {
-            // F1ƒL[‚Åƒ}ƒEƒX‘Š‘Îƒ‚[ƒh‚ÌØ‚è‘Ö‚¦
+            // F1ã‚­ãƒ¼ã§ãƒã‚¦ã‚¹ç›¸å¯¾ãƒ¢ãƒ¼ãƒ‰ã®åˆ‡ã‚Šæ›¿ãˆ
             auto* inputManager = m_window.getInputManager();
             if (inputManager)
             {
@@ -908,13 +990,13 @@ namespace Engine::Core
 
     void App::onKeyReleased(Input::KeyCode key)
     {
-        // Œ»İ‚Í‰½‚à‚µ‚È‚¢
+        // ç¾åœ¨ã¯ä½•ã‚‚ã—ãªã„
     }
 
     [[maybe_unused]]
     void App::onMouseMove(int x, int y, int deltaX, int deltaY)
     {
-        // ƒ}ƒEƒXˆÚ“®‚Ìˆ—‚ÍprocessInput()‚Ås‚¤
+        // ãƒã‚¦ã‚¹ç§»å‹•ã®å‡¦ç†ã¯processInput()ã§è¡Œã†
     }
 
     void App::onMouseButtonPressed(Input::MouseButton button, int x, int y)
@@ -927,16 +1009,16 @@ namespace Engine::Core
 
     Core::GameObject* App::createPrimitiveObject(UI::PrimitiveType type, const std::string& name)
     {
-        // V‚µ‚¢GameObject‚ğì¬
+        // æ–°ã—ã„GameObjectã‚’ä½œæˆ
         auto* newObject = m_scene.createGameObject(name);
         if (!newObject) return nullptr;
 
-        // ƒfƒtƒHƒ‹ƒgˆÊ’uİ’è
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆä½ç½®è¨­å®š
         Math::Vector3 cameraPos = m_camera.getPosition();
         Math::Vector3 cameraForward = m_camera.getForward();
         newObject->getTransform()->setPosition(cameraPos + cameraForward * 3.0f);
 
-        // RenderComponent‚ğ’Ç‰ÁiƒRƒ“ƒ|[ƒlƒ“ƒg‚Í¶ƒ|ƒCƒ“ƒ^‚Åì¬j
+        // RenderComponentã‚’è¿½åŠ ï¼ˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã¯ç”Ÿãƒã‚¤ãƒ³ã‚¿ã§ä½œæˆï¼‰
         Graphics::RenderableType renderType = primitiveToRenderableType(type);
         auto* renderComponent = newObject->addComponent<Graphics::RenderComponent>(renderType);
 
@@ -946,13 +1028,13 @@ namespace Engine::Core
             return nullptr;
         }
 
-        // ƒ}ƒeƒŠƒAƒ‹‚ğì¬
+        // ãƒãƒ†ãƒªã‚¢ãƒ«ã‚’ä½œæˆ
         auto material = m_materialManager.createMaterial(name + "_Material");
         if (material)
         {
             Graphics::MaterialProperties props;
 
-            // ƒ^ƒCƒv•Ê‚ÉF‚ğİ’è
+            // ã‚¿ã‚¤ãƒ—åˆ¥ã«è‰²ã‚’è¨­å®š
             switch (type)
             {
             case UI::PrimitiveType::Cube:
@@ -975,10 +1057,10 @@ namespace Engine::Core
             renderComponent->setMaterial(material);
         }
 
-        // MaterialManager‚ğİ’è
+        // MaterialManagerã‚’è¨­å®š
         renderComponent->setMaterialManager(&m_materialManager);
 
-        // ShaderManager‚Å‰Šú‰»
+        // ShaderManagerã§åˆæœŸåŒ–
         if (m_shaderManager)
         {
             auto initResult = renderComponent->initialize(&m_device, m_shaderManager.get());
@@ -1005,7 +1087,7 @@ namespace Engine::Core
         std::string objectName = object->getName();
         Utils::log_info(std::format("Starting deletion of object: {}", objectName));
 
-        // ‚Ü‚¸UI‚ÌQÆ‚ğ‚·‚×‚ÄƒNƒŠƒA
+        // ã¾ãšUIã®å‚ç…§ã‚’ã™ã¹ã¦ã‚¯ãƒªã‚¢
         if (m_inspectorWindow)
         {
             if (m_inspectorWindow->getSelectedObject() == object)
@@ -1022,13 +1104,13 @@ namespace Engine::Core
             }
         }
 
-        // ImGui‚ÌƒRƒ“ƒeƒLƒXƒg‚ğƒNƒŠƒAid—vj
+        // ImGuiã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ã‚¯ãƒªã‚¢ï¼ˆé‡è¦ï¼‰
         //ImGui::SetWindowFocus(nullptr);
 
-        // ƒIƒuƒWƒFƒNƒg‚ğíœ
+        // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å‰Šé™¤
         m_scene.destroyGameObject(object);
 
-        // íœŒã‚Énullptr‚ğİ’è
+        // å‰Šé™¤å¾Œã«nullptrã‚’è¨­å®š
         object = nullptr;
 
         Utils::log_info(std::format("Successfully deleted object: {}", objectName));
@@ -1038,20 +1120,20 @@ namespace Engine::Core
     {
         if (!original) return nullptr;
 
-        // ƒIƒŠƒWƒiƒ‹‚Ìî•ñ‚ğæ“¾
+        // ã‚ªãƒªã‚¸ãƒŠãƒ«ã®æƒ…å ±ã‚’å–å¾—
         auto* originalRender = original->getComponent<Graphics::RenderComponent>();
         if (!originalRender) return nullptr;
 
-        // V‚µ‚¢–¼‘O‚ğ¶¬
+        // æ–°ã—ã„åå‰ã‚’ç”Ÿæˆ
         std::string newName = generateUniqueName(original->getName() + "_Copy");
 
-        // ƒvƒŠƒ~ƒeƒBƒuƒ^ƒCƒv‚ğg—p‚µ‚ÄV‹Kì¬
+        // ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ã‚¿ã‚¤ãƒ—ã‚’ä½¿ç”¨ã—ã¦æ–°è¦ä½œæˆ
         UI::PrimitiveType primitiveType = renderableToPrimitiveType(originalRender->getRenderableType());
         auto* newObject = createPrimitiveObject(primitiveType, newName);
 
         if (!newObject) return nullptr;
 
-        // Transform‚ğƒRƒs[
+        // Transformã‚’ã‚³ãƒ”ãƒ¼
         auto* originalTransform = original->getTransform();
         auto* newTransform = newObject->getTransform();
         if (originalTransform && newTransform)
@@ -1070,13 +1152,13 @@ namespace Engine::Core
         std::string candidateName = baseName;
         int counter = 1;
 
-        // “¯‚¶–¼‘O‚ª‘¶İ‚·‚éŒÀ‚èƒJƒEƒ“ƒ^[‚ğ‘‚â‚·
+        // åŒã˜åå‰ãŒå­˜åœ¨ã™ã‚‹é™ã‚Šã‚«ã‚¦ãƒ³ã‚¿ãƒ¼ã‚’å¢—ã‚„ã™
         while (m_scene.findGameObject(candidateName) != nullptr)
         {
             candidateName = baseName + "_" + std::to_string(counter);
             counter++;
 
-            // –³ŒÀƒ‹[ƒv–h~
+            // ç„¡é™ãƒ«ãƒ¼ãƒ—é˜²æ­¢
             if (counter > 1000)
             {
                 candidateName = baseName + "_" + std::to_string(std::time(nullptr));
@@ -1087,7 +1169,7 @@ namespace Engine::Core
         return candidateName;
     }
 
-    // ƒŠƒl[ƒ€‹@”\iŠÈˆÕ”Åj
+    // ãƒªãƒãƒ¼ãƒ æ©Ÿèƒ½ï¼ˆç°¡æ˜“ç‰ˆï¼‰
     void App::renameGameObject(Core::GameObject* object, const std::string& newName)
     {
         if (!object) return;
@@ -1105,12 +1187,12 @@ namespace Engine::Core
         case UI::PrimitiveType::Cube:
             return Graphics::RenderableType::Cube;
         case UI::PrimitiveType::Sphere:
-            // Œ»İ‚ÍCube‚Ì‚İÀ‘•‚³‚ê‚Ä‚¢‚é‚½‚ßA«—ˆ“I‚É’Ç‰Á
+            // ç¾åœ¨ã¯Cubeã®ã¿å®Ÿè£…ã•ã‚Œã¦ã„ã‚‹ãŸã‚ã€å°†æ¥çš„ã«è¿½åŠ 
             return Graphics::RenderableType::Cube;
         case UI::PrimitiveType::Plane:
-            return Graphics::RenderableType::Triangle; // ‰¼À‘•
+            return Graphics::RenderableType::Triangle; // ä»®å®Ÿè£…
         case UI::PrimitiveType::Cylinder:
-            return Graphics::RenderableType::Cube; // ‰¼À‘•
+            return Graphics::RenderableType::Cube; // ä»®å®Ÿè£…
         default:
             return Graphics::RenderableType::Cube;
         }
@@ -1123,10 +1205,9 @@ namespace Engine::Core
         case Graphics::RenderableType::Cube:
             return UI::PrimitiveType::Cube;
         case Graphics::RenderableType::Triangle:
-            return UI::PrimitiveType::Plane; // ‰¼À‘•
+            return UI::PrimitiveType::Plane; // ä»®å®Ÿè£…
         default:
             return UI::PrimitiveType::Cube;
         }
     }
 }
-

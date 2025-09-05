@@ -5,7 +5,7 @@
 namespace Engine::Graphics
 {
 	//==========================================================================================
-	//RenderComponentÀ‘•
+	//RenderComponentå®Ÿè£…
 	//==========================================================================================
 	RenderComponent::RenderComponent(RenderableType type)
 		:m_renderableType(type)
@@ -29,7 +29,7 @@ namespace Engine::Graphics
 
 		Utils::log_info("RenderComponent::initialize - Device and ShaderManager assigned successfully");
 
-		// ShaderManager‚Ì—LŒø«‚ğÄŠm”F
+		// ShaderManagerã®æœ‰åŠ¹æ€§ã‚’å†ç¢ºèª
 		if (!m_shaderManager) {
 			Utils::log_warning("ShaderManager became null after assignment");
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null after assignment"));
@@ -54,29 +54,29 @@ namespace Engine::Graphics
 			return;
 		}
 
-		// Transform‚©‚çˆÊ’uE‰ñ“]EƒXƒP[ƒ‹‚ğæ“¾
+		// Transformã‹ã‚‰ä½ç½®ãƒ»å›è»¢ãƒ»ã‚¹ã‚±ãƒ¼ãƒ«ã‚’å–å¾—
 		auto* transform = getGameObject()->getTransform();
 		if (!transform)
 		{
 			return;
 		}
 
-		// ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹‚ª‚È‚¢ê‡‚Íİ’è
+		// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒãƒ†ãƒªã‚¢ãƒ«ãŒãªã„å ´åˆã¯è¨­å®š
 		if (!m_material && m_materialManager)
 		{
 			m_material = m_materialManager->getDefaultMaterial();
 		}
 		/*
-		// ƒ}ƒeƒŠƒAƒ‹‚ÌF‚ğRenderComponent‚ÌF‚Æ‘g‚İ‡‚í‚¹‚é
+		// ãƒãƒ†ãƒªã‚¢ãƒ«ã®è‰²ã‚’RenderComponentã®è‰²ã¨çµ„ã¿åˆã‚ã›ã‚‹
 		if (m_material)
 		{
 			auto props = m_material->getProperties();
 
-			// RenderComponent‚Ìm_color‚ğƒ}ƒeƒŠƒAƒ‹‚Ìalbedo‚É”½‰f
+			// RenderComponentã®m_colorã‚’ãƒãƒ†ãƒªã‚¢ãƒ«ã®albedoã«åæ˜ 
 			props.albedo = m_color;
 			m_material->setProperties(props);
 
-			// ƒ}ƒeƒŠƒAƒ‹‚Ì’è”ƒoƒbƒtƒ@‚ğXV
+			// ãƒãƒ†ãƒªã‚¢ãƒ«ã®å®šæ•°ãƒãƒƒãƒ•ã‚¡ã‚’æ›´æ–°
 			auto updateResult = m_material->updateConstantBuffer();
 			if (!updateResult)
 			{
@@ -86,7 +86,7 @@ namespace Engine::Graphics
 		}
 		*/
 
-		// ƒŒƒ“ƒ_ƒ‰[‚ÌTransform‚ğXV
+		// ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼ã®Transformã‚’æ›´æ–°
 		switch (m_renderableType)
 		{
 		case RenderableType::Triangle:
@@ -145,17 +145,17 @@ namespace Engine::Graphics
 
 	Utils::VoidResult RenderComponent::initializeRenderer()
 	{
-		// Šù‘¶‚ÌƒŒƒ“ƒ_ƒ‰[‚ğƒNƒŠƒA
+		// æ—¢å­˜ã®ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼ã‚’ã‚¯ãƒªã‚¢
 		m_triangleRenderer.reset();
 		m_cubeRenderer.reset();
 
-		// ShaderManager‚Ì—LŒø«‚ğŠm”F
+		// ShaderManagerã®æœ‰åŠ¹æ€§ã‚’ç¢ºèª
 		if (!m_shaderManager) {
 			Utils::log_warning("ShaderManager is null in RenderComponent::initializeRenderer");
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null in RenderComponent"));
 		}
 
-		// ƒŒƒ“ƒ_ƒ‰[ƒ^ƒCƒv‚É‰‚¶‚Äì¬
+		// ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼ã‚¿ã‚¤ãƒ—ã«å¿œã˜ã¦ä½œæˆ
 		switch (m_renderableType)
 		{
 		case RenderableType::Triangle:
@@ -194,7 +194,7 @@ namespace Engine::Graphics
 	}
 
 	//==========================================================================================
-	//SceneÀ‘•
+	//Sceneå®Ÿè£…
 	//==========================================================================================
 	Utils::VoidResult Scene::initialize(Device* device)
 	{
@@ -222,22 +222,22 @@ namespace Engine::Graphics
 			return;
 		}
 
-		// ƒIƒuƒWƒFƒNƒg–¼‚ğ•Û‘¶
+		// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆåã‚’ä¿å­˜
 		std::string objectName = gameObject->getName();
 
-		// ƒCƒeƒŒ[ƒ^‚ÅŒŸõ
+		// ã‚¤ãƒ†ãƒ¬ãƒ¼ã‚¿ã§æ¤œç´¢
 		auto it = m_gameObjects.begin();
 		while (it != m_gameObjects.end())
 		{
 			if (it->get() == gameObject)
 			{
-				// ƒIƒuƒWƒFƒNƒg‚ğ”ñƒAƒNƒeƒBƒu‰»
+				// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’éã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ–
 				(*it)->setActive(false);
 
-				// ”jŠüˆ—‚ğÀs
+				// ç ´æ£„å‡¦ç†ã‚’å®Ÿè¡Œ
 				(*it)->destroy();
 
-				// vector‚©‚çíœ
+				// vectorã‹ã‚‰å‰Šé™¤
 				it = m_gameObjects.erase(it);
 
 				Utils::log_info(std::format("GameObject '{}' destroyed successfully", objectName));

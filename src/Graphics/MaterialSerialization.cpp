@@ -5,7 +5,7 @@
 namespace Engine::Graphics
 {
     //=========================================================================
-    // MaterialSerializerÀ‘•
+    // MaterialSerializerå®Ÿè£…
     //=========================================================================
 
     Utils::VoidResult MaterialSerializer::saveMaterial(
@@ -22,7 +22,7 @@ namespace Engine::Graphics
 
         try
         {
-            // ƒfƒBƒŒƒNƒgƒŠ‚ª‘¶İ‚µ‚È‚¢ê‡‚Íì¬
+            // ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãŒå­˜åœ¨ã—ãªã„å ´åˆã¯ä½œæˆ
             std::filesystem::path path(filePath);
             std::filesystem::create_directories(path.parent_path());
 
@@ -33,7 +33,7 @@ namespace Engine::Graphics
                     std::format("Cannot open file for writing: {}", filePath)));
             }
 
-            file << jsonResult->dump(4); // 4ƒXƒy[ƒXƒCƒ“ƒfƒ“ƒg
+            file << jsonResult->dump(4); // 4ã‚¹ãƒšãƒ¼ã‚¹ã‚¤ãƒ³ãƒ‡ãƒ³ãƒˆ
             file.close();
 
             Utils::log_info(std::format("Material saved: {}", filePath));
@@ -101,7 +101,7 @@ namespace Engine::Graphics
             j["name"] = material->getName();
             j["properties"] = material->getProperties();
 
-            // ƒeƒNƒXƒ`ƒƒî•ñ
+            // ãƒ†ã‚¯ã‚¹ãƒãƒ£æƒ…å ±
             json textures = json::object();
             for (int i = 0; i < static_cast<int>(TextureType::Count); ++i)
             {
@@ -111,7 +111,7 @@ namespace Engine::Graphics
                 {
                     std::string typeName = textureTypeToString(type);
                     json textureInfo;
-                    textureInfo["path"] = texture->getDesc().debugName; // ‘Š‘ÎƒpƒX‚É•ÏŠ·—\’è
+                    textureInfo["path"] = texture->getDesc().debugName; // ç›¸å¯¾ãƒ‘ã‚¹ã«å¤‰æ›äºˆå®š
                     textureInfo["width"] = texture->getWidth();
                     textureInfo["height"] = texture->getHeight();
                     textureInfo["format"] = static_cast<int>(texture->getFormat());
@@ -120,7 +120,7 @@ namespace Engine::Graphics
             }
             j["textures"] = textures;
 
-            // ƒƒ^ƒf[ƒ^
+            // ãƒ¡ã‚¿ãƒ‡ãƒ¼ã‚¿
             j["metadata"] = {
                 {"created", std::time(nullptr)},
                 {"engine", "DX12GameEngine"},
@@ -143,13 +143,13 @@ namespace Engine::Graphics
     {
         try
         {
-            // ƒoƒŠƒf[ƒVƒ‡ƒ“
+            // ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³
             if (!validateMaterialJson(j))
             {
                 return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Invalid material JSON"));
             }
 
-            // ƒ}ƒeƒŠƒAƒ‹ì¬
+            // ãƒãƒ†ãƒªã‚¢ãƒ«ä½œæˆ
             std::string name = j.at("name").get<std::string>();
             auto material = materialManager->createMaterial(name);
             if (!material)
@@ -158,11 +158,11 @@ namespace Engine::Graphics
                     std::format("Failed to create material: {}", name)));
             }
 
-            // ƒvƒƒpƒeƒBİ’è
+            // ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£è¨­å®š
             MaterialProperties props = j.at("properties").get<MaterialProperties>();
             material->setProperties(props);
 
-            // ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+            // ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
             if (j.contains("textures"))
             {
                 const auto& texturesJson = j.at("textures");
@@ -210,11 +210,11 @@ namespace Engine::Graphics
     bool MaterialSerializer::validateVersion(const json& j)
     {
         std::string version = j.at("version").get<std::string>();
-        return version == "1.0"; // Œ»İƒTƒ|[ƒg‚µ‚Ä‚¢‚éƒo[ƒWƒ‡ƒ“
+        return version == "1.0"; // ç¾åœ¨ã‚µãƒãƒ¼ãƒˆã—ã¦ã„ã‚‹ãƒãƒ¼ã‚¸ãƒ§ãƒ³
     }
 
     //=========================================================================
-    // MaterialPresetManagerÀ‘•
+    // MaterialPresetManagerå®Ÿè£…
     //=========================================================================
 
     Utils::VoidResult MaterialPresetManager::initialize(
@@ -226,17 +226,17 @@ namespace Engine::Graphics
         m_textureManager = textureManager;
         m_presetDirectory = presetDirectory;
 
-        // ƒvƒŠƒZƒbƒgƒfƒBƒŒƒNƒgƒŠ‚ğì¬
+        // ãƒ—ãƒªã‚»ãƒƒãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä½œæˆ
         std::filesystem::create_directories(m_presetDirectory);
 
-        // Šù‘¶ƒvƒŠƒZƒbƒg‚ğƒXƒLƒƒƒ“
+        // æ—¢å­˜ãƒ—ãƒªã‚»ãƒƒãƒˆã‚’ã‚¹ã‚­ãƒ£ãƒ³
         auto scanResult = scanPresetDirectory();
         if (!scanResult)
         {
             return scanResult;
         }
 
-        // “à‘ ƒvƒŠƒZƒbƒg‚ğì¬
+        // å†…è”µãƒ—ãƒªã‚»ãƒƒãƒˆã‚’ä½œæˆ
         auto builtInResult = createBuiltInPresets();
         if (!builtInResult)
         {
@@ -256,7 +256,7 @@ namespace Engine::Graphics
 
         std::string filePath = getPresetFilePath(presetName);
 
-        // ƒ}ƒeƒŠƒAƒ‹‚ÌƒRƒs[‚ğì¬i–¼‘O‚ğƒvƒŠƒZƒbƒg–¼‚É•ÏXj
+        // ãƒãƒ†ãƒªã‚¢ãƒ«ã®ã‚³ãƒ”ãƒ¼ã‚’ä½œæˆï¼ˆåå‰ã‚’ãƒ—ãƒªã‚»ãƒƒãƒˆåã«å¤‰æ›´ï¼‰
         auto presetMaterial = m_materialManager->createMaterial(presetName);
         if (!presetMaterial)
         {
@@ -266,7 +266,7 @@ namespace Engine::Graphics
 
         presetMaterial->setProperties(material->getProperties());
 
-        // ƒeƒNƒXƒ`ƒƒ‚àƒRƒs[
+        // ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚‚ã‚³ãƒ”ãƒ¼
         for (int i = 0; i < static_cast<int>(TextureType::Count); ++i)
         {
             TextureType type = static_cast<TextureType>(i);
@@ -296,7 +296,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult MaterialPresetManager::createBuiltInPresets()
     {
-        // ƒƒ^ƒ‹ƒvƒŠƒZƒbƒg
+        // ãƒ¡ã‚¿ãƒ«ãƒ—ãƒªã‚»ãƒƒãƒˆ
         {
             auto metal = m_materialManager->createMaterial("Metal");
             MaterialProperties metalProps;
@@ -307,7 +307,7 @@ namespace Engine::Graphics
             savePreset(metal, "Metal", "Shiny metallic surface");
         }
 
-        // ƒvƒ‰ƒXƒ`ƒbƒNƒvƒŠƒZƒbƒg
+        // ãƒ—ãƒ©ã‚¹ãƒãƒƒã‚¯ãƒ—ãƒªã‚»ãƒƒãƒˆ
         {
             auto plastic = m_materialManager->createMaterial("Plastic");
             MaterialProperties plasticProps;
@@ -318,7 +318,7 @@ namespace Engine::Graphics
             savePreset(plastic, "Plastic", "Colored plastic material");
         }
 
-        // ƒKƒ‰ƒXƒvƒŠƒZƒbƒg
+        // ã‚¬ãƒ©ã‚¹ãƒ—ãƒªã‚»ãƒƒãƒˆ
         {
             auto glass = m_materialManager->createMaterial("Glass");
             MaterialProperties glassProps;
@@ -370,9 +370,9 @@ namespace Engine::Graphics
             {
                 if (entry.path().extension() == ".json")
                 {
-                    // ƒvƒŠƒZƒbƒgà–¾‚ğ“Ç‚İ‚İiƒƒ^ƒf[ƒ^‚©‚çj
+                    // ãƒ—ãƒªã‚»ãƒƒãƒˆèª¬æ˜ã‚’èª­ã¿è¾¼ã¿ï¼ˆãƒ¡ã‚¿ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰ï¼‰
                     std::string presetName = entry.path().stem().string();
-                    m_presetDescriptions[presetName] = ""; // ƒfƒtƒHƒ‹ƒg‹ó
+                    m_presetDescriptions[presetName] = ""; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆç©º
                 }
             }
 
@@ -406,7 +406,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // MaterialImporterÀ‘•
+    // MaterialImporterå®Ÿè£…
     //=========================================================================
 
     Utils::Result<std::shared_ptr<Material>> MaterialImporter::importMaterial(
@@ -440,7 +440,7 @@ namespace Engine::Graphics
         if (extension == ".mtl") return ImportFormat::MTL;
         if (extension == ".gltf" || extension == ".glb") return ImportFormat::GLTF;
 
-        return ImportFormat::JSON; // ƒfƒtƒHƒ‹ƒg
+        return ImportFormat::JSON; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
     }
 
     bool MaterialImporter::isFormatSupported(ImportFormat format)
@@ -452,7 +452,7 @@ namespace Engine::Graphics
             return true;
         case ImportFormat::GLTF:
         case ImportFormat::FBX:
-            return false; // Œ»İ–¢À‘•
+            return false; // ç¾åœ¨æœªå®Ÿè£…
         default:
             return false;
         }
@@ -490,40 +490,40 @@ namespace Engine::Graphics
                 std::string command;
                 iss >> command;
 
-                if (command == "Ka") // ƒAƒ“ƒrƒGƒ“ƒgF
+                if (command == "Ka") // ã‚¢ãƒ³ãƒ“ã‚¨ãƒ³ãƒˆè‰²
                 {
                     float r, g, b;
                     iss >> r >> g >> b;
-                    // ƒAƒ“ƒrƒGƒ“ƒgF‚ÍŒ»İ–¢g—p
+                    // ã‚¢ãƒ³ãƒ“ã‚¨ãƒ³ãƒˆè‰²ã¯ç¾åœ¨æœªä½¿ç”¨
                 }
-                else if (command == "Kd") // ƒfƒBƒtƒ…[ƒYF
+                else if (command == "Kd") // ãƒ‡ã‚£ãƒ•ãƒ¥ãƒ¼ã‚ºè‰²
                 {
                     float r, g, b;
                     iss >> r >> g >> b;
                     props.albedo = Math::Vector3(r, g, b);
                 }
-                else if (command == "Ks") // ƒXƒyƒLƒ…ƒ‰[F
+                else if (command == "Ks") // ã‚¹ãƒšã‚­ãƒ¥ãƒ©ãƒ¼è‰²
                 {
                     float r, g, b;
                     iss >> r >> g >> b;
-                    // PBR‚Å‚Íƒƒ^ƒŠƒbƒN’l‚Æ‚µ‚Ä‹ß—
+                    // PBRã§ã¯ãƒ¡ã‚¿ãƒªãƒƒã‚¯å€¤ã¨ã—ã¦è¿‘ä¼¼
                     float luminance = 0.299f * r + 0.587f * g + 0.114f * b;
                     props.metallic = luminance;
                 }
-                else if (command == "Ns") // ƒXƒyƒLƒ…ƒ‰[w”
+                else if (command == "Ns") // ã‚¹ãƒšã‚­ãƒ¥ãƒ©ãƒ¼æŒ‡æ•°
                 {
                     float ns;
                     iss >> ns;
-                    // ƒXƒyƒLƒ…ƒ‰[w”‚ğƒ‰ƒtƒlƒX‚É•ÏŠ·i‹ß—j
+                    // ã‚¹ãƒšã‚­ãƒ¥ãƒ©ãƒ¼æŒ‡æ•°ã‚’ãƒ©ãƒ•ãƒã‚¹ã«å¤‰æ›ï¼ˆè¿‘ä¼¼ï¼‰
                     props.roughness = std::sqrt(2.0f / (ns + 2.0f));
                 }
-                else if (command == "d" || command == "Tr") // “§–¾“x
+                else if (command == "d" || command == "Tr") // é€æ˜åº¦
                 {
                     float alpha;
                     iss >> alpha;
                     props.alpha = (command == "Tr") ? (1.0f - alpha) : alpha;
                 }
-                else if (command == "map_Kd") // ƒfƒBƒtƒ…[ƒYƒ}ƒbƒv
+                else if (command == "map_Kd") // ãƒ‡ã‚£ãƒ•ãƒ¥ãƒ¼ã‚ºãƒãƒƒãƒ—
                 {
                     std::string texturePath;
                     iss >> texturePath;
@@ -533,7 +533,7 @@ namespace Engine::Graphics
                         material->setTexture(TextureType::Albedo, texture);
                     }
                 }
-                else if (command == "map_bump" || command == "bump") // –@üƒ}ƒbƒv
+                else if (command == "map_bump" || command == "bump") // æ³•ç·šãƒãƒƒãƒ—
                 {
                     std::string texturePath;
                     iss >> texturePath;
@@ -561,12 +561,12 @@ namespace Engine::Graphics
         MaterialManager* materialManager,
         TextureManager* textureManager)
     {
-        // glTFƒCƒ“ƒ|[ƒg‚Í•¡G‚È‚½‚ßAŒ»İ‚Í–¢À‘•
+        // glTFã‚¤ãƒ³ãƒãƒ¼ãƒˆã¯è¤‡é›‘ãªãŸã‚ã€ç¾åœ¨ã¯æœªå®Ÿè£…
         return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "GLTF import not implemented yet"));
     }
 
     //=========================================================================
-    // MaterialExporterÀ‘•
+    // MaterialExporterå®Ÿè£…
     //=========================================================================
 
     Utils::VoidResult MaterialExporter::exportMaterial(
@@ -595,7 +595,7 @@ namespace Engine::Graphics
         case ExportFormat::MTL:
             return true;
         case ExportFormat::GLTF:
-            return false; // Œ»İ–¢À‘•
+            return false; // ç¾åœ¨æœªå®Ÿè£…
         default:
             return false;
         }
@@ -619,23 +619,23 @@ namespace Engine::Graphics
             file << "# Material exported from DX12GameEngine\n";
             file << "newmtl " << material->getName() << "\n";
 
-            // ƒAƒ“ƒrƒGƒ“ƒgFiŒÅ’è’lj
+            // ã‚¢ãƒ³ãƒ“ã‚¨ãƒ³ãƒˆè‰²ï¼ˆå›ºå®šå€¤ï¼‰
             file << "Ka 0.1 0.1 0.1\n";
 
-            // ƒfƒBƒtƒ…[ƒYF
+            // ãƒ‡ã‚£ãƒ•ãƒ¥ãƒ¼ã‚ºè‰²
             file << std::format("Kd {:.3f} {:.3f} {:.3f}\n", props.albedo.x, props.albedo.y, props.albedo.z);
 
-            // ƒXƒyƒLƒ…ƒ‰[Fiƒƒ^ƒŠƒbƒN’l‚©‚ç‹ß—j
+            // ã‚¹ãƒšã‚­ãƒ¥ãƒ©ãƒ¼è‰²ï¼ˆãƒ¡ã‚¿ãƒªãƒƒã‚¯å€¤ã‹ã‚‰è¿‘ä¼¼ï¼‰
             file << std::format("Ks {:.3f} {:.3f} {:.3f}\n", props.metallic, props.metallic, props.metallic);
 
-            // ƒXƒyƒLƒ…ƒ‰[w”iƒ‰ƒtƒlƒX‚©‚ç•ÏŠ·j
+            // ã‚¹ãƒšã‚­ãƒ¥ãƒ©ãƒ¼æŒ‡æ•°ï¼ˆãƒ©ãƒ•ãƒã‚¹ã‹ã‚‰å¤‰æ›ï¼‰
             float ns = 2.0f / (props.roughness * props.roughness) - 2.0f;
             file << std::format("Ns {:.1f}\n", ns);
 
-            // “§–¾“x
+            // é€æ˜åº¦
             file << std::format("d {:.3f}\n", props.alpha);
 
-            // ƒeƒNƒXƒ`ƒƒƒ}ƒbƒv
+            // ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒãƒƒãƒ—
             auto albedoTexture = material->getTexture(TextureType::Albedo);
             if (albedoTexture)
             {
@@ -663,12 +663,12 @@ namespace Engine::Graphics
         std::shared_ptr<Material> material,
         const std::string& filePath)
     {
-        // glTFƒGƒNƒXƒ|[ƒg‚Í•¡G‚È‚½‚ßAŒ»İ‚Í–¢À‘•
+        // glTFã‚¨ã‚¯ã‚¹ãƒãƒ¼ãƒˆã¯è¤‡é›‘ãªãŸã‚ã€ç¾åœ¨ã¯æœªå®Ÿè£…
         return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "GLTF export not implemented yet"));
     }
 
     //=========================================================================
-    // ƒoƒbƒ`‘€ìÀ‘•
+    // ãƒãƒƒãƒæ“ä½œå®Ÿè£…
     //=========================================================================
 
     Utils::VoidResult MaterialSerializer::saveMaterialLibrary(

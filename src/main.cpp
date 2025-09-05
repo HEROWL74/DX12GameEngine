@@ -8,7 +8,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE,_In_ LPSTR, _In_ 
 {
     using namespace Engine;
 
-    // ƒRƒ“ƒ\[ƒ‹ƒEƒBƒ“ƒhƒE‚ğì¬iƒfƒoƒbƒOƒƒO•\¦—pj
+    // ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆï¼ˆãƒ‡ãƒãƒƒã‚°ãƒ­ã‚°è¡¨ç¤ºç”¨ï¼‰
 #ifdef _DEBUG
     AllocConsole();
     freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
@@ -16,10 +16,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE,_In_ LPSTR, _In_ 
     std::cout << "=== DX12 Game Engine Debug Console ===" << std::endl;
 #endif
 
-    // ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ìì¬
+    // ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®ä½œæˆ
     Core::App app;
 
-    // ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì‰Šú‰»
+    // ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®åˆæœŸåŒ–
     auto initResult = app.initialize(hInstance, nCmdShow);
     if (!initResult)
     {
@@ -34,7 +34,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE,_In_ LPSTR, _In_ 
         return -1;
     }
 
-    // ƒƒCƒ“ƒ‹[ƒv‚ÌÀs
+    // ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ—ã®å®Ÿè¡Œ
     const int exitCode = app.run();
 
 #ifdef _DEBUG

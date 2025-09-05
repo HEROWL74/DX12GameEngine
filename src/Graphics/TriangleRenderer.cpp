@@ -10,7 +10,7 @@ namespace Engine::Graphics
     {
         Utils::log_info("TriangleRenderer::initialize START");
 
-        // ‚æ‚èÚ×‚Ènullƒ`ƒFƒbƒN
+        // ã‚ˆã‚Šè©³ç´°ãªnullãƒã‚§ãƒƒã‚¯
         if (!device) {
             Utils::log_warning("Device is null in TriangleRenderer::initialize");
             return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Device is null"));
@@ -31,20 +31,20 @@ namespace Engine::Graphics
 
         Utils::log_info("Initializing Triangle Renderer...");
 
-        // ’è”ƒoƒbƒtƒ@ƒ}ƒl[ƒWƒƒ[‚ğ‰Šú‰»
+        // å®šæ•°ãƒãƒƒãƒ•ã‚¡ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚’åˆæœŸåŒ–
         Utils::log_info("Initializing constant buffer manager...");
         auto constantBufferResult = m_constantBufferManager.initialize(device);
         if (!constantBufferResult) return constantBufferResult;
 
-        // OŠpŒ`‚Ì’¸“_ƒf[ƒ^‚ğİ’è
+        // ä¸‰è§’å½¢ã®é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
         Utils::log_info("Setting up triangle vertices...");
         setupTriangleVertices();
 
-        // ƒ[ƒ‹ƒhs—ñ‚ğ‰Šú‰»
+        // ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã‚’åˆæœŸåŒ–
         Utils::log_info("Updating world matrix...");
         updateWorldMatrix();
 
-        // ŠeƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ‡Ÿ‰Šú‰»
+        // å„ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’é †æ¬¡åˆæœŸåŒ–
         Utils::log_info("Creating root signature...");
         auto rootSigResult = createRootSignature();
         if (!rootSigResult) return rootSigResult;
@@ -63,13 +63,13 @@ namespace Engine::Graphics
 
     void TriangleRenderer::render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex)
     {
-        // ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹‚ª‚È‚¢ê‡‚Íİ’è
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒãƒ†ãƒªã‚¢ãƒ«ãŒãªã„å ´åˆã¯è¨­å®š
         if (!m_material && m_materialManager)
         {
             m_material = m_materialManager->getDefaultMaterial();
         }
 
-        // ’è”ƒoƒbƒtƒ@‚ğXV
+        // å®šæ•°ãƒãƒƒãƒ•ã‚¡ã‚’æ›´æ–°
         CameraConstants cameraConstants{};
         cameraConstants.viewMatrix = camera.getViewMatrix();
         cameraConstants.projectionMatrix = camera.getProjectionMatrix();
@@ -84,15 +84,15 @@ namespace Engine::Graphics
         m_constantBufferManager.updateCameraConstants(frameIndex, cameraConstants);
         m_constantBufferManager.updateObjectConstants(frameIndex, objectConstants);
 
-        // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚ÆƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚ğİ’è
+        // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ã¨ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã‚’è¨­å®š
         commandList->SetGraphicsRootSignature(m_rootSignature.Get());
         commandList->SetPipelineState(m_pipelineState.Get());
 
-        // ’è”ƒoƒbƒtƒ@‚ğİ’è
+        // å®šæ•°ãƒãƒƒãƒ•ã‚¡ã‚’è¨­å®š
         commandList->SetGraphicsRootConstantBufferView(0, m_constantBufferManager.getCameraConstantsGPUAddress(frameIndex));
         commandList->SetGraphicsRootConstantBufferView(1, m_constantBufferManager.getObjectConstantsGPUAddress(frameIndex));
 
-        // š ƒ}ƒeƒŠƒAƒ‹’è”ƒoƒbƒtƒ@‚ğƒoƒCƒ“ƒh
+        // â˜… ãƒãƒ†ãƒªã‚¢ãƒ«å®šæ•°ãƒãƒƒãƒ•ã‚¡ã‚’ãƒã‚¤ãƒ³ãƒ‰
         if (m_material && m_material->getConstantBuffer())
         {
             commandList->SetGraphicsRootConstantBufferView(2,
@@ -103,40 +103,40 @@ namespace Engine::Graphics
             Utils::log_warning("Material constant buffer is null in TriangleRenderer");
         }
 
-        // ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒW[‚ğİ’èiOŠpŒ`ƒŠƒXƒgj
+        // ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ãƒˆãƒãƒ­ã‚¸ãƒ¼ã‚’è¨­å®šï¼ˆä¸‰è§’å½¢ãƒªã‚¹ãƒˆï¼‰
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // ’¸“_ƒoƒbƒtƒ@‚ğİ’è
+        // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’è¨­å®š
         commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 
-        // OŠpŒ`‚ğ•`‰æi3’¸“_A1ƒCƒ“ƒXƒ^ƒ“ƒXj
+        // ä¸‰è§’å½¢ã‚’æç”»ï¼ˆ3é ‚ç‚¹ã€1ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ï¼‰
         commandList->DrawInstanced(3, 1, 0, 0);
     }
 
     Utils::VoidResult TriangleRenderer::createRootSignature()
     {
-        // 3‚Â‚Ì’è”ƒoƒbƒtƒ@—pƒ‹[ƒgƒVƒOƒlƒ`ƒƒiCamera, Object, Materialj
+        // 3ã¤ã®å®šæ•°ãƒãƒƒãƒ•ã‚¡ç”¨ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ï¼ˆCamera, Object, Materialï¼‰
         D3D12_ROOT_PARAMETER rootParameters[3];
 
-        // ƒJƒƒ‰’è”ƒoƒbƒtƒ@ (b0)
+        // ã‚«ãƒ¡ãƒ©å®šæ•°ãƒãƒƒãƒ•ã‚¡ (b0)
         rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[0].Descriptor.ShaderRegister = 0;
         rootParameters[0].Descriptor.RegisterSpace = 0;
         rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // ƒIƒuƒWƒFƒNƒg’è”ƒoƒbƒtƒ@ (b1)
+        // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå®šæ•°ãƒãƒƒãƒ•ã‚¡ (b1)
         rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[1].Descriptor.ShaderRegister = 1;
         rootParameters[1].Descriptor.RegisterSpace = 0;
         rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // ƒ}ƒeƒŠƒAƒ‹’è”ƒoƒbƒtƒ@ (b2)
+        // ãƒãƒ†ãƒªã‚¢ãƒ«å®šæ•°ãƒãƒƒãƒ•ã‚¡ (b2)
         rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[2].Descriptor.ShaderRegister = 2;
         rootParameters[2].Descriptor.RegisterSpace = 0;
         rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // Static Sampler‚ğ’Ç‰ÁiƒVƒF[ƒ_[‚Ìs0‚É‘Î‰j
+        // Static Samplerã‚’è¿½åŠ ï¼ˆã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®s0ã«å¯¾å¿œï¼‰
         D3D12_STATIC_SAMPLER_DESC samplerDesc{};
         samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
         samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -155,7 +155,7 @@ namespace Engine::Graphics
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
         rootSignatureDesc.NumParameters = _countof(rootParameters);
         rootSignatureDesc.pParameters = rootParameters;
-        rootSignatureDesc.NumStaticSamplers = 1; // 1‚Â‚ÌƒTƒ“ƒvƒ‰[‚ğ’Ç‰Á
+        rootSignatureDesc.NumStaticSamplers = 1; // 1ã¤ã®ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ã‚’è¿½åŠ 
         rootSignatureDesc.pStaticSamplers = &samplerDesc;
         rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
@@ -182,7 +182,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult TriangleRenderer::createShaders()
     {
-        // ShaderCompileDesc ‚ğg—p‚µ‚ÄƒVƒF[ƒ_[‚ğƒ[ƒh
+        // ShaderCompileDesc ã‚’ä½¿ç”¨ã—ã¦ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ãƒ­ãƒ¼ãƒ‰
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
@@ -212,7 +212,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult TriangleRenderer::createPipelineState()
     {
-        // ‚Ü‚¸ƒVƒF[ƒ_[‚ğƒ[ƒhiƒLƒƒƒbƒVƒ…‚É‘¶İ‚µ‚È‚¢ê‡‚Ì‚½‚ßj
+        // ã¾ãšã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ãƒ­ãƒ¼ãƒ‰ï¼ˆã‚­ãƒ£ãƒƒã‚·ãƒ¥ã«å­˜åœ¨ã—ãªã„å ´åˆã®ãŸã‚ï¼‰
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
@@ -239,7 +239,7 @@ namespace Engine::Graphics
             return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load pixel shader"));
         }
 
-        // ƒ[ƒh‚³‚ê‚½ƒVƒF[ƒ_[‚ğg—piloadShader‚Ì–ß‚è’l‚ğ’¼Úg—pj
+        // ãƒ­ãƒ¼ãƒ‰ã•ã‚ŒãŸã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ä½¿ç”¨ï¼ˆloadShaderã®æˆ»ã‚Šå€¤ã‚’ç›´æ¥ä½¿ç”¨ï¼‰
         auto vertexShader = vertexShaderResult;
         auto pixelShader = pixelShaderResult;
 
@@ -248,20 +248,20 @@ namespace Engine::Graphics
         CHECK_CONDITION(pixelShader != nullptr, Utils::ErrorType::ShaderCompilation,
             "Pixel shader is null");
 
-        // “ü—ÍƒŒƒCƒAƒEƒg‚ğ’è‹`
+        // å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã‚’å®šç¾©
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
             { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
             { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
         };
 
-        // ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚Ìİ’è
+        // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã®è¨­å®š
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
         psoDesc.pRootSignature = m_rootSignature.Get();
         psoDesc.VS = { vertexShader->getBytecode(), vertexShader->getBytecodeSize() };
         psoDesc.PS = { pixelShader->getBytecode(), pixelShader->getBytecodeSize() };
 
-        // Œy‚è‚Ìİ’è‚Í“¯‚¶...
+        // è»½ã‚Šã®è¨­å®šã¯åŒã˜...
         psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
         psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
@@ -274,7 +274,7 @@ namespace Engine::Graphics
         psoDesc.RasterizerState.ForcedSampleCount = 0;
         psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-        // ƒuƒŒƒ“ƒhƒXƒe[ƒg
+        // ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆ
         psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
         psoDesc.BlendState.IndependentBlendEnable = FALSE;
         const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc = {
@@ -289,7 +289,7 @@ namespace Engine::Graphics
             psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
         }
 
-        // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
+        // æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆ
         psoDesc.DepthStencilState.DepthEnable = TRUE;
         psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
         psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
@@ -303,7 +303,7 @@ namespace Engine::Graphics
         psoDesc.DepthStencilState.FrontFace = defaultStencilOp;
         psoDesc.DepthStencilState.BackFace = defaultStencilOp;
 
-        // ‚»‚Ì‘¼‚Ìİ’è
+        // ãã®ä»–ã®è¨­å®š
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.NumRenderTargets = 1;
@@ -321,7 +321,7 @@ namespace Engine::Graphics
     {
         const UINT vertexBufferSize = sizeof(m_triangleVertices);
 
-        // ’¸“_ƒoƒbƒtƒ@—p‚Ìƒq[ƒvƒvƒƒpƒeƒBiƒAƒbƒvƒ[ƒhƒq[ƒvj
+        // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ç”¨ã®ãƒ’ãƒ¼ãƒ—ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ï¼ˆã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ãƒ’ãƒ¼ãƒ—ï¼‰
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -329,7 +329,7 @@ namespace Engine::Graphics
         heapProps.CreationNodeMask = 1;
         heapProps.VisibleNodeMask = 1;
 
-        // ƒŠƒ\[ƒX‹Lqq
+        // ãƒªã‚½ãƒ¼ã‚¹è¨˜è¿°å­
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         resourceDesc.Alignment = 0;
@@ -352,9 +352,9 @@ namespace Engine::Graphics
             IID_PPV_ARGS(&m_vertexBuffer)),
             Utils::ErrorType::ResourceCreation, "Failed to create vertex buffer");
 
-        // ’¸“_ƒf[ƒ^‚ğƒoƒbƒtƒ@‚ÉƒRƒs[
+        // é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ•ã‚¡ã«ã‚³ãƒ”ãƒ¼
         UINT8* pVertexDataBegin;
-        D3D12_RANGE readRange{ 0, 0 }; // CPU‚©‚ç“Ç‚İæ‚ç‚È‚¢‚Ì‚Å”ÍˆÍ‚Í0
+        D3D12_RANGE readRange{ 0, 0 }; // CPUã‹ã‚‰èª­ã¿å–ã‚‰ãªã„ã®ã§ç¯„å›²ã¯0
 
         CHECK_HR(m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)),
             Utils::ErrorType::ResourceCreation, "Failed to map vertex buffer");
@@ -362,7 +362,7 @@ namespace Engine::Graphics
         memcpy(pVertexDataBegin, m_triangleVertices.data(), sizeof(m_triangleVertices));
         m_vertexBuffer->Unmap(0, nullptr);
 
-        // ’¸“_ƒoƒbƒtƒ@ƒrƒ…[‚ğİ’è
+        // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ãƒ“ãƒ¥ãƒ¼ã‚’è¨­å®š
         m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
         m_vertexBufferView.StrideInBytes = sizeof(Vertex);
         m_vertexBufferView.SizeInBytes = vertexBufferSize;
@@ -372,17 +372,17 @@ namespace Engine::Graphics
 
     void TriangleRenderer::setupTriangleVertices()
     {
-        // ƒfƒoƒbƒO—pF¬‚³‚ß‚ÌOŠpŒ`
+        // ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šå°ã•ã‚ã®ä¸‰è§’å½¢
         m_triangleVertices = { {
-            { { 0.0f,  0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} },  // ãFÔ
-            { { 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f} },  // ‰E‰ºF—Î
-            { {-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f} }   // ¶‰ºFÂ
+            { { 0.0f,  0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} },  // ä¸Šï¼šèµ¤
+            { { 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f} },  // å³ä¸‹ï¼šç·‘
+            { {-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f} }   // å·¦ä¸‹ï¼šé’
         } };
     }
 
     void TriangleRenderer::updateWorldMatrix()
     {
-        // ƒXƒP[ƒ‹ -> ‰ñ“] -> ˆÚ“®‚Ì‡‚Ås—ñ‚ğ‡¬
+        // ã‚¹ã‚±ãƒ¼ãƒ« -> å›è»¢ -> ç§»å‹•ã®é †ã§è¡Œåˆ—ã‚’åˆæˆ
         Math::Matrix4 scaleMatrix = Math::Matrix4::scaling(m_scale);
         Math::Matrix4 rotationMatrix = Math::Matrix4::rotationX(Math::radians(m_rotation.x)) *
             Math::Matrix4::rotationY(Math::radians(m_rotation.y)) *

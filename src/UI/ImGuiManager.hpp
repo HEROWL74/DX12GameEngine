@@ -88,10 +88,9 @@ namespace Engine::UI
 
 		//初期化ヘルパー
 		[[nodiscard]] Utils::VoidResult createDescriptorHeap();
-		[[nodiscard]] Utils::VoidResult createFontTexture();  // フォント作成専用メソッド
+		[[nodiscard]] Utils::VoidResult reinitializeForResize();
 	};
 
-	// 以下は既存のクラス定義をそのまま維持
 	//======================================================================
 	//ImGuiウィンドウの基底クラス
 	//======================================================================

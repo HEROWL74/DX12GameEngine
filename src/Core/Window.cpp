@@ -40,34 +40,34 @@ namespace Engine::Core {
 		return *this;
 	}
 
-	// ƒpƒuƒŠƒbƒNƒƒ\ƒbƒh
+	// ãƒ‘ãƒ–ãƒªãƒƒã‚¯ãƒ¡ã‚½ãƒƒãƒ‰
 
 	Utils::VoidResult Window::create(HINSTANCE hInstance, const WindowSettings& settings)
 	{
 		m_hInstance = hInstance;
 
-		// ƒEƒBƒ“ƒhƒEƒNƒ‰ƒX‚ğ“o˜^‚·‚é
+		// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¯ãƒ©ã‚¹ã‚’ç™»éŒ²ã™ã‚‹
 		auto result = registerWindowClass(hInstance);
 		if (!result)
 		{
 			return result;
 		}
 
-		// ƒEƒBƒ“ƒhƒEƒXƒ^ƒCƒ‹‚ğŒˆ’è
+		// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¹ã‚¿ã‚¤ãƒ«ã‚’æ±ºå®š
 		DWORD windowStyle = WS_OVERLAPPEDWINDOW;
 		if (!settings.resizable)
 		{
 			windowStyle &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
 		}
 
-		// ƒNƒ‰ƒCƒAƒ“ƒg—Ìˆæ‚ÌƒTƒCƒY‚©‚çƒEƒBƒ“ƒhƒEƒTƒCƒY‚ğŒvZ
+		// ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆé ˜åŸŸã®ã‚µã‚¤ã‚ºã‹ã‚‰ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºã‚’è¨ˆç®—
 		RECT windowRect = { 0,0,settings.width, settings.height };
 		AdjustWindowRect(&windowRect, windowStyle, FALSE);
 
 		const int windowWidth = windowRect.right - windowRect.left;
 		const int windowHeight = windowRect.bottom - windowRect.top;
 
-		// ƒEƒBƒ“ƒhƒEì¬
+		// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½œæˆ
 		m_handle = CreateWindowExW(
 			0,
 			m_className.c_str(),
@@ -86,7 +86,7 @@ namespace Engine::Core {
 		CHECK_CONDITION(m_handle != nullptr, Utils::ErrorType::WindowCreation,
 			"Failed to create window");
 
-		// “ü—ÍƒVƒXƒeƒ€‚ğ‰Šú‰»
+		// å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ ã‚’åˆæœŸåŒ–
 		m_inputManager = std::make_unique<Input::InputManager>();
 		m_inputManager->initialize(m_handle);
 
@@ -118,7 +118,7 @@ namespace Engine::Core {
 			DispatchMessage(&msg);
 		}
 
-		// “ü—ÍƒVƒXƒeƒ€‚ğXV
+		// å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ ã‚’æ›´æ–°
 		if (m_inputManager)
 		{
 			m_inputManager->update();
@@ -152,10 +152,10 @@ namespace Engine::Core {
 		return m_inputManager.get();
 	}
 
-	// ƒvƒ‰ƒCƒx[ƒgƒƒ\ƒbƒh
+	// ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆãƒ¡ã‚½ãƒƒãƒ‰
 	Utils::VoidResult Window::registerWindowClass(HINSTANCE hInstance)
 	{
-		// ƒ†ƒj[ƒN‚ÈƒNƒ‰ƒX–¼‚ğ¶¬
+		// ãƒ¦ãƒ‹ãƒ¼ã‚¯ãªã‚¯ãƒ©ã‚¹åã‚’ç”Ÿæˆ
 		m_className = std::format(L"GameEngineWindow_{}",
 			reinterpret_cast<uintptr_t>(this));
 
@@ -186,14 +186,14 @@ namespace Engine::Core {
 
 		if (uMsg == WM_NCCREATE)
 		{
-			// ƒEƒBƒ“ƒhƒEì¬‚É“n‚³‚ê‚½thisƒ|ƒCƒ“ƒ^‚ğæ“¾
+			// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½œæˆæ™‚ã«æ¸¡ã•ã‚ŒãŸthisãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
 			CREATESTRUCTW* createStruct = reinterpret_cast<CREATESTRUCTW*>(lParam);
 			window = static_cast<Window*>(createStruct->lpCreateParams);
 			SetWindowLongPtrW(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
 		}
 		else
 		{
-			// Šù‚Éİ’è‚³‚ê‚½thisƒ|ƒCƒ“ƒ^‚ğæ“¾
+			// æ—¢ã«è¨­å®šã•ã‚ŒãŸthisãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
 			window = reinterpret_cast<Window*>(GetWindowLongPtrW(hWnd, GWLP_USERDATA));
 		}
 
@@ -207,34 +207,50 @@ namespace Engine::Core {
 
 	LRESULT Window::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		// ImGui‚ÉƒƒbƒZ[ƒW‚ğ“]‘—iImGui‚ªˆ—‚·‚éê‡‚Ítrue‚ğ•Ô‚·j
+		// ãƒ‡ãƒãƒƒã‚°: é‡è¦ãªãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ãƒ­ã‚°å‡ºåŠ›
+		if (uMsg == WM_SIZE || uMsg == WM_SIZING || uMsg == WM_ENTERSIZEMOVE || uMsg == WM_EXITSIZEMOVE)
+		{
+			Utils::log_info(std::format("Window message received: 0x{:04x}", uMsg));
+			if (uMsg == WM_SIZE)
+			{
+				int width = LOWORD(lParam);
+				int height = HIWORD(lParam);
+				Utils::log_info(std::format("WM_SIZE: {}x{}, wParam: {}", width, height, wParam));
+			}
+		}
+
+		// ImGuiã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸è»¢é€ï¼ˆImGuiä½¿ç”¨æ™‚ã¯trueãŒè¿”ã‚‹ï¼‰
 		if (m_imguiManager) {
+			Utils::log_info(std::format("Forwarding message 0x{:04x} to ImGui", uMsg));
 			m_imguiManager->handleWindowMessage(hWnd, uMsg, wParam, lParam);
 
-			// ImGui‚ª“ü—Í‚ğƒLƒƒƒvƒ`ƒƒ‚µ‚Ä‚¢‚éê‡‚ÍAƒQ[ƒ€“ü—Í‚ğˆ—‚µ‚È‚¢
+			// ImGuiãŒå…¥åŠ›ã‚­ãƒ£ãƒ—ãƒãƒ£ä¸­ã®å ´åˆã¯ã‚²ãƒ¼ãƒ å´ã§ã¯å‡¦ç†ã—ãªã„
+			ImGui::SetCurrentContext(m_imguiManager->getContext());
 			ImGuiIO& io = ImGui::GetIO();
 
-			// ƒL[ƒ{[ƒhƒƒbƒZ[ƒW
+			// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 			if ((uMsg == WM_KEYDOWN || uMsg == WM_KEYUP || uMsg == WM_CHAR) && io.WantCaptureKeyboard)
 			{
-				return 0;  // ImGui‚ªˆ—‚µ‚½‚Ì‚ÅA‚±‚êˆÈãˆ—‚µ‚È‚¢
+				Utils::log_info("ImGui captured keyboard message");
+				return 0;
 			}
 
-			// ƒ}ƒEƒXƒƒbƒZ[ƒW
+			// ãƒã‚¦ã‚¹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 			if ((uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONUP || uMsg == WM_RBUTTONDOWN ||
 				uMsg == WM_RBUTTONUP || uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONUP ||
 				uMsg == WM_MOUSEWHEEL || uMsg == WM_MOUSEMOVE) && io.WantCaptureMouse)
 			{
-				return 0;  // ImGui‚ªˆ—‚µ‚½‚Ì‚ÅA‚±‚êˆÈãˆ—‚µ‚È‚¢
+				Utils::log_info("ImGui captured mouse message");
+				return 0;
 			}
 		}
 
-		// “ü—ÍƒVƒXƒeƒ€‚ÉƒƒbƒZ[ƒW‚ğ“]‘—iImGui‚ªƒLƒƒƒvƒ`ƒƒ‚µ‚Ä‚¢‚È‚¢ê‡‚Ì‚İj
+		// å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸è»¢é€ï¼ˆImGuiãŒã‚­ãƒ£ãƒ—ãƒãƒ£ã—ã¦ã„ãªã„å ´åˆã®ã¿ï¼‰
 		if (m_inputManager)
 		{
-			// ImGui‚ª“ü—Í‚ğƒLƒƒƒvƒ`ƒƒ‚µ‚Ä‚¢‚È‚¢ê‡‚Ì‚İˆ—
+			// ImGuiãŒå…¥åŠ›ã‚­ãƒ£ãƒ—ãƒãƒ£ã—ã¦ã„ãªã„å ´åˆã®ã¿
 			ImGuiIO* io = nullptr;
-			if (m_imguiManager && m_imguiManager->getContext())
+			if (m_imguiManager && m_imguiManager->isInitialized() && m_imguiManager->getContext())
 			{
 				ImGui::SetCurrentContext(m_imguiManager->getContext());
 				io = &ImGui::GetIO();
@@ -251,6 +267,7 @@ namespace Engine::Core {
 
 			if (shouldProcessInput && m_inputManager->handleWindowMessage(hWnd, uMsg, wParam, lParam))
 			{
+				Utils::log_info(std::format("Input manager handled message 0x{:04x}", uMsg));
 				return 0;
 			}
 		}
@@ -262,23 +279,55 @@ namespace Engine::Core {
 			const int width = LOWORD(lParam);
 			const int height = HIWORD(lParam);
 
-			// Å¬‰»ƒ`ƒFƒbƒN
-			if (wParam == SIZE_MINIMIZED)
+			Utils::log_info(std::format("WM_SIZE received: {}x{}, wParam: {}", width, height, wParam));
+
+			// æœ€å°åŒ–ã‚„ç„¡åŠ¹ãªã‚µã‚¤ã‚ºã‚’ã‚¹ã‚­ãƒƒãƒ—
+			if (wParam == SIZE_MINIMIZED || width <= 0 || height <= 0)
 			{
-				// Å¬‰»‚Í‰½‚à‚µ‚È‚¢
+				Utils::log_info("Skipping resize (minimized or invalid size)");
 				return 0;
 			}
 
-			if (m_resizeCallback && width > 0 && height > 0)
+			// ãƒªã‚µã‚¤ã‚ºå‡¦ç†ä¸­ã®é‡è¤‡å‘¼ã³å‡ºã—ã‚’é˜²ã
+			static bool isResizing = false;
+			if (isResizing)
 			{
-				m_resizeCallback(width, height);
+				Utils::log_info("Resize already in progress, skipping");
+				return 0;
 			}
+
+			isResizing = true;
+
+			// ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒªã‚µã‚¤ã‚ºã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã®ã¿å‘¼ã¶
+			// ImGuiã®å‡¦ç†ã¯Appå´ã§è¡Œã†
+			if (m_resizeCallback)
+			{
+				Utils::log_info("Calling application resize callback");
+				m_resizeCallback(width, height);
+				Utils::log_info("Application resize callback completed");
+			}
+
+			isResizing = false;
+			return 0;
 		}
 		break;
 
+		case WM_ENTERSIZEMOVE:
+			Utils::log_info("WM_ENTERSIZEMOVE received");
+			break;
+
+		case WM_EXITSIZEMOVE:
+			Utils::log_info("WM_EXITSIZEMOVE received");
+			break;
+
+		case WM_SIZING:
+			Utils::log_info("WM_SIZING received");
+			break;
+
 		case WM_ACTIVATE:
 		{
-			// ƒEƒBƒ“ƒhƒE‚ªƒAƒNƒeƒBƒu‚Å‚È‚­‚È‚Á‚½‚ç‘Š‘Îƒ‚[ƒh‚ğ‰ğœ
+			Utils::log_info(std::format("WM_ACTIVATE: wParam = {}", LOWORD(wParam)));
+			// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã§ãªããªã£ãŸã‚‰ç›¸å¯¾ãƒ¢ãƒ¼ãƒ‰è§£é™¤
 			if (LOWORD(wParam) == WA_INACTIVE && m_inputManager)
 			{
 				if (m_inputManager->getMouseState().isRelativeMode)
@@ -292,7 +341,8 @@ namespace Engine::Core {
 
 		case WM_KILLFOCUS:
 		{
-			// ƒtƒH[ƒJƒX‚ğ¸‚Á‚½‚à‘Š‘Îƒ‚[ƒh‚ğ‰ğœ
+			Utils::log_info("WM_KILLFOCUS received");
+			// ãƒ•ã‚©ãƒ¼ã‚«ã‚¹å–ªå¤±æ™‚ã‚‚ç›¸å¯¾ãƒ¢ãƒ¼ãƒ‰è§£é™¤
 			if (m_inputManager && m_inputManager->getMouseState().isRelativeMode)
 			{
 				m_inputManager->setRelativeMouseMode(false);
@@ -303,7 +353,8 @@ namespace Engine::Core {
 
 		case WM_CLOSE:
 		{
-			// I—¹‘O‚É‘Š‘Îƒ‚[ƒh‚ğ‰ğœ
+			Utils::log_info("WM_CLOSE received");
+			// çµ‚äº†æ™‚ã«ç›¸å¯¾ãƒ¢ãƒ¼ãƒ‰è§£é™¤
 			if (m_inputManager)
 			{
 				m_inputManager->setRelativeMouseMode(false);
@@ -318,7 +369,8 @@ namespace Engine::Core {
 
 		case WM_KEYDOWN:
 		{
-			// F1ƒL[‚Åƒ}ƒEƒX‘Š‘Îƒ‚[ƒh‚ÌØ‚è‘Ö‚¦
+			Utils::log_info(std::format("WM_KEYDOWN: key = {}", wParam));
+			// F1ã‚­ãƒ¼ã§ãƒã‚¦ã‚¹ç›¸å¯¾ãƒ¢ãƒ¼ãƒ‰ã®åˆ‡ã‚Šæ›¿ãˆ
 			if (wParam == VK_F1)
 			{
 				if (m_inputManager)
@@ -327,47 +379,55 @@ namespace Engine::Core {
 					m_inputManager->setRelativeMouseMode(!currentMode);
 					Utils::log_info(std::format("Mouse relative mode: {}", !currentMode ? "ON" : "OFF"));
 				}
-
-				// Alt+F4‚Å‚ÌI—¹‚àˆ—
-				if (wParam == VK_F4 && (GetKeyState(VK_MENU) & 0x8000))
-				{
-					if (m_inputManager)
-					{
-						m_inputManager->setRelativeMouseMode(false);
-					}
-					PostQuitMessage(0);
-					return 0;
-				}
-				// ESCƒL[‚Å‚ÌI—¹
-				else if (wParam == VK_ESCAPE)
-				{
-					if (m_inputManager)
-					{
-						m_inputManager->setRelativeMouseMode(false);
-					}
-					PostQuitMessage(0);
-					return 0;
-				}
 			}
-			break;
+
+			// Alt+F4ã§ã®çµ‚äº†
+			if (wParam == VK_F4 && (GetKeyState(VK_MENU) & 0x8000))
+			{
+				Utils::log_info("Alt+F4 pressed");
+				if (m_inputManager)
+				{
+					m_inputManager->setRelativeMouseMode(false);
+				}
+				PostQuitMessage(0);
+				return 0;
+			}
+			// ESCã‚­ãƒ¼ã§ã®çµ‚äº†
+			else if (wParam == VK_ESCAPE)
+			{
+				Utils::log_info("ESC pressed");
+				if (m_inputManager)
+				{
+					m_inputManager->setRelativeMouseMode(false);
+				}
+				PostQuitMessage(0);
+				return 0;
+			}
+		}
+		break;
 
 		case WM_DESTROY:
 		{
+			Utils::log_info("WM_DESTROY received");
 			PostQuitMessage(0);
 		}
 		break;
 
 		default:
+			// é »ç¹ãªãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¯é™¤å¤–ã—ã¦ãƒ­ã‚°å‡ºåŠ›
+			if (uMsg != WM_MOUSEMOVE && uMsg != WM_NCHITTEST && uMsg != WM_SETCURSOR &&
+				uMsg != WM_GETTEXT && uMsg != WM_GETTEXTLENGTH && uMsg != WM_PAINT)
+			{
+				Utils::log_info(std::format("Unhandled message: 0x{:04x}", uMsg));
+			}
 			return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 		}
 
 		return 0;
-		}
-
-
 	}
+
 	void Window::destroy() noexcept {
-		// “ü—ÍƒVƒXƒeƒ€‚ğƒVƒƒƒbƒgƒ_ƒEƒ“
+		// å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ ã‚’ã‚·ãƒ£ãƒƒãƒˆãƒ€ã‚¦ãƒ³
 		if (m_inputManager)
 		{
 			m_inputManager->shutdown();

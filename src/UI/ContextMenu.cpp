@@ -63,7 +63,7 @@ namespace Engine::UI
 
     void ContextMenu::drawModals()
     {
-        // DeleteŠm”Fƒ_ƒCƒAƒƒO
+        // Deleteç¢ºèªãƒ€ã‚¤ã‚¢ãƒ­ã‚°
         if (m_showDeleteConfirm && m_deleteTarget)
         {
             ImGui::OpenPopup("Delete Confirmation");
@@ -102,7 +102,7 @@ namespace Engine::UI
             }
         }
 
-        // Renameƒ_ƒCƒAƒƒO
+        // Renameãƒ€ã‚¤ã‚¢ãƒ­ã‚°
         if (m_showRenameDialog && m_renameTarget)
         {
             ImGui::OpenPopup("Rename Object");
@@ -159,16 +159,16 @@ namespace Engine::UI
         {
             draw3DObjectMenu();
 
-            // «—ˆ“I‚É’Ç‰Á—\’è
+            // å°†æ¥çš„ã«è¿½åŠ äºˆå®š
             if (ImGui::BeginMenu("Light"))
             {
                 if (ImGui::MenuItem("Directional Light"))
                 {
-                    // TODO: ƒ‰ƒCƒgì¬
+                    // TODO: ãƒ©ã‚¤ãƒˆä½œæˆ
                 }
                 if (ImGui::MenuItem("Point Light"))
                 {
-                    // TODO: ƒ|ƒCƒ“ƒgƒ‰ƒCƒgì¬
+                    // TODO: ãƒã‚¤ãƒ³ãƒˆãƒ©ã‚¤ãƒˆä½œæˆ
                 }
                 ImGui::EndMenu();
             }
@@ -177,7 +177,7 @@ namespace Engine::UI
             {
                 if (ImGui::MenuItem("Camera"))
                 {
-                    // TODO: ƒJƒƒ‰ì¬
+                    // TODO: ã‚«ãƒ¡ãƒ©ä½œæˆ
                 }
                 ImGui::EndMenu();
             }
@@ -253,7 +253,7 @@ namespace Engine::UI
             return "GameObject";
         }
 
-        // ƒVƒ“ƒvƒ‹‚ÈƒJƒEƒ“ƒ^ƒx[ƒX‚ÌÀ‘•
+        // ã‚·ãƒ³ãƒ—ãƒ«ãªã‚«ã‚¦ãƒ³ã‚¿ãƒ™ãƒ¼ã‚¹ã®å®Ÿè£…
         static int globalCounter = 0;
         globalCounter++;
 

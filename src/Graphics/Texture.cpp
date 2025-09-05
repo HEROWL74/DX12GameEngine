@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <algorithm>
 
-// STB‰æ‘œƒ‰ƒCƒuƒ‰ƒŠiƒwƒbƒ_[ƒIƒ“ƒŠ[ƒ‰ƒCƒuƒ‰ƒŠj
+// STBç”»åƒãƒ©ã‚¤ãƒ–ãƒ©ãƒªï¼ˆãƒ˜ãƒƒãƒ€ãƒ¼ã‚ªãƒ³ãƒªãƒ¼ãƒ©ã‚¤ãƒ–ãƒ©ãƒªï¼‰
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image.h"
@@ -14,7 +14,7 @@
 namespace Engine::Graphics
 {
     //=========================================================================
-    // TextureÀ‘•
+    // Textureå®Ÿè£…
     //=========================================================================
 
     Utils::Result<std::shared_ptr<Texture>> Texture::createFromFile(
@@ -23,20 +23,20 @@ namespace Engine::Graphics
         bool generateMips,
         bool sRGB)
     {
-        // ‰æ‘œƒf[ƒ^‚ğ“Ç‚İ‚İ
+        // ç”»åƒãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã¿
         auto imageResult = TextureLoader::loadFromFile(filePath);
         if (!imageResult)
         {
             return std::unexpected(imageResult.error());
         }
 
-        // ƒeƒNƒXƒ`ƒƒİ’è‚ğì¬
+        // ãƒ†ã‚¯ã‚¹ãƒãƒ£è¨­å®šã‚’ä½œæˆ
         TextureDesc desc;
         desc.width = imageResult->width;
         desc.height = imageResult->height;
         desc.format = sRGB ? TextureFormat::R8G8B8A8_SRGB : imageResult->format;
         desc.generateMips = generateMips;
-        desc.mipLevels = generateMips ? 0 : 1; // 0 = ©“®ŒvZ
+        desc.mipLevels = generateMips ? 0 : 1; // 0 = è‡ªå‹•è¨ˆç®—
         desc.usage = TextureUsage::ShaderResource;
         desc.debugName = std::filesystem::path(filePath).filename().string();
 
@@ -98,7 +98,7 @@ namespace Engine::Graphics
         m_device = device;
         m_desc = desc;
 
-        // ƒ~ƒbƒvƒŒƒxƒ‹‚Ì©“®ŒvZ
+        // ãƒŸãƒƒãƒ—ãƒ¬ãƒ™ãƒ«ã®è‡ªå‹•è¨ˆç®—
         if (m_desc.mipLevels == 0)
         {
             m_desc.mipLevels = static_cast<uint32_t>(std::floor(std::log2(max(m_desc.width, m_desc.height)))) + 1;
@@ -159,7 +159,7 @@ namespace Engine::Graphics
         D3D12_CLEAR_VALUE* clearValue = nullptr;
         D3D12_CLEAR_VALUE optimizedClearValue{};
 
-        // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚Ü‚½‚Í[“xƒXƒeƒ“ƒVƒ‹‚Ìê‡AÅ“K‰»ƒNƒŠƒA’l‚ğİ’è
+        // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¾ãŸã¯æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã®å ´åˆã€æœ€é©åŒ–ã‚¯ãƒªã‚¢å€¤ã‚’è¨­å®š
         if ((m_desc.usage & TextureUsage::RenderTarget) != TextureUsage::None)
         {
             optimizedClearValue.Format = resourceDesc.Format;
@@ -192,20 +192,20 @@ namespace Engine::Graphics
 
     Utils::VoidResult Texture::createViews()
     {
-        // Œ»İ‚ÍŠî–{“I‚ÈÀ‘•‚Ì‚İ
-        // Š®‘S‚ÈƒfƒXƒNƒŠƒvƒ^ŠÇ—‚ÍŒã‚ÅÀ‘•
+        // ç¾åœ¨ã¯åŸºæœ¬çš„ãªå®Ÿè£…ã®ã¿
+        // å®Œå…¨ãªãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ç®¡ç†ã¯å¾Œã§å®Ÿè£…
         return {};
     }
 
     Utils::VoidResult Texture::uploadData(const ImageData& imageData)
     {
-        // Œ»İ‚ÍŠÈˆÕÀ‘•
-        // Š®‘S‚ÈƒAƒbƒvƒ[ƒh‹@”\‚ÍŒã‚ÅÀ‘•
+        // ç¾åœ¨ã¯ç°¡æ˜“å®Ÿè£…
+        // å®Œå…¨ãªã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰æ©Ÿèƒ½ã¯å¾Œã§å®Ÿè£…
         return {};
     }
 
     //=========================================================================
-    // TextureLoaderÀ‘•
+    // TextureLoaderå®Ÿè£…
     //=========================================================================
 
     Utils::Result<ImageData> TextureLoader::loadFromFile(const std::string& filePath)
@@ -256,7 +256,7 @@ namespace Engine::Graphics
         ImageData imageData;
         imageData.width = static_cast<uint32_t>(width);
         imageData.height = static_cast<uint32_t>(height);
-        imageData.channels = 4; // STBI_rgb_alpha‚Å‹­§“I‚É4ƒ`ƒƒƒ“ƒlƒ‹
+        imageData.channels = 4; // STBI_rgb_alphaã§å¼·åˆ¶çš„ã«4ãƒãƒ£ãƒ³ãƒãƒ«
         imageData.format = TextureFormat::R8G8B8A8_UNORM;
 
         size_t dataSize = width * height * 4;
@@ -300,7 +300,7 @@ namespace Engine::Graphics
 
     Utils::Result<ImageData> TextureLoader::loadDDS(const std::string& filePath)
     {
-        // DDS“Ç‚İ‚İ‚Í•¡G‚È‚Ì‚ÅAŒ»İ‚Í–¢À‘•
+        // DDSèª­ã¿è¾¼ã¿ã¯è¤‡é›‘ãªã®ã§ã€ç¾åœ¨ã¯æœªå®Ÿè£…
         return std::unexpected(Utils::make_error(Utils::ErrorType::FileI0, "DDS format not implemented yet"));
     }
 
@@ -362,7 +362,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // TextureManagerÀ‘•
+    // TextureManagerå®Ÿè£…
     //=========================================================================
 
     Utils::VoidResult TextureManager::initialize(Device* device)
@@ -394,19 +394,19 @@ namespace Engine::Graphics
             return nullptr;
         }
 
-        // ƒLƒƒƒbƒVƒ…ƒ`ƒFƒbƒN
+        // ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒã‚§ãƒƒã‚¯
         std::string key = filePath;
         if (hasTexture(key))
         {
             return getTexture(key);
         }
 
-        // ƒeƒNƒXƒ`ƒƒ‚ğ“Ç‚İ‚İ
+        // ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’èª­ã¿è¾¼ã¿
         auto textureResult = Texture::createFromFile(m_device, filePath, generateMips, sRGB);
         if (!textureResult)
         {
             Utils::log_warning(std::format("Failed to load texture '{}': {}", filePath, textureResult.error().message));
-            return getWhiteTexture(); // ƒtƒH[ƒ‹ƒoƒbƒN
+            return getWhiteTexture(); // ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯
         }
 
         m_textures[key] = *textureResult;
@@ -436,13 +436,13 @@ namespace Engine::Graphics
 
     size_t TextureManager::getTotalMemoryUsage() const
     {
-        // ŠÈˆÕÀ‘•
-        return m_textures.size() * 1024 * 1024; // ‰¼‚Ì’l
+        // ç°¡æ˜“å®Ÿè£…
+        return m_textures.size() * 1024 * 1024; // ä»®ã®å€¤
     }
 
     void TextureManager::clearCache()
     {
-        // ƒfƒtƒHƒ‹ƒgƒeƒNƒXƒ`ƒƒˆÈŠO‚ğƒNƒŠƒA
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ†ã‚¯ã‚¹ãƒãƒ£ä»¥å¤–ã‚’ã‚¯ãƒªã‚¢
         auto whiteTexture = m_whiteTexture;
         auto blackTexture = m_blackTexture;
         auto defaultNormalTexture = m_defaultNormalTexture;
@@ -456,28 +456,28 @@ namespace Engine::Graphics
 
     Utils::VoidResult TextureManager::createDefaultTextures()
     {
-        // ”’ƒeƒNƒXƒ`ƒƒi1x1j
+        // ç™½ãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼ˆ1x1ï¼‰
         auto whiteResult = createSolidColorTexture(m_whiteTexture, 0xFFFFFFFF, "DefaultWhite");
         if (!whiteResult)
         {
             return whiteResult;
         }
 
-        // •ƒeƒNƒXƒ`ƒƒi1x1j
+        // é»’ãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼ˆ1x1ï¼‰
         auto blackResult = createSolidColorTexture(m_blackTexture, 0xFF000000, "DefaultBlack");
         if (!blackResult)
         {
             return blackResult;
         }
 
-        // ƒfƒtƒHƒ‹ƒg–@üƒ}ƒbƒvi1x1A–@ü‚ªãŒü‚«j
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆæ³•ç·šãƒãƒƒãƒ—ï¼ˆ1x1ã€æ³•ç·šãŒä¸Šå‘ãï¼‰
         auto normalResult = createSolidColorTexture(m_defaultNormalTexture, 0xFFFF8080, "DefaultNormal");
         if (!normalResult)
         {
             return normalResult;
         }
 
-        // ƒLƒƒƒbƒVƒ…‚É“o˜^
+        // ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã«ç™»éŒ²
         m_textures["__white__"] = m_whiteTexture;
         m_textures["__black__"] = m_blackTexture;
         m_textures["__default_normal__"] = m_defaultNormalTexture;
@@ -490,7 +490,7 @@ namespace Engine::Graphics
         uint32_t color,
         const std::string& name)
     {
-        // 1x1‚ÌƒCƒ[ƒWƒf[ƒ^‚ğì¬
+        // 1x1ã®ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒ‡ãƒ¼ã‚¿ã‚’ä½œæˆ
         ImageData imageData;
         imageData.width = 1;
         imageData.height = 1;
@@ -498,7 +498,7 @@ namespace Engine::Graphics
         imageData.format = TextureFormat::R8G8B8A8_UNORM;
         imageData.pixels.resize(4);
 
-        // ƒJƒ‰[ƒf[ƒ^‚ğİ’èiRGBAj
+        // ã‚«ãƒ©ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®šï¼ˆRGBAï¼‰
         imageData.pixels[0] = (color >> 16) & 0xFF; // R
         imageData.pixels[1] = (color >> 8) & 0xFF;  // G
         imageData.pixels[2] = color & 0xFF;         // B
@@ -525,7 +525,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // ƒ†[ƒeƒBƒŠƒeƒBŠÖ”À‘•
+    // ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£é–¢æ•°å®Ÿè£…
     //=========================================================================
 
     uint32_t getBytesPerPixel(TextureFormat format)
@@ -546,12 +546,12 @@ namespace Engine::Graphics
         case TextureFormat::D24_UNORM_S8_UINT:
             return 4;
         case TextureFormat::BC1_UNORM:
-            return 0; // ˆ³kƒtƒH[ƒ}ƒbƒg‚Í“Á•ÊŒvZ
+            return 0; // åœ§ç¸®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã¯ç‰¹åˆ¥è¨ˆç®—
         case TextureFormat::BC3_UNORM:
         case TextureFormat::BC7_UNORM:
-            return 0; // ˆ³kƒtƒH[ƒ}ƒbƒg‚Í“Á•ÊŒvZ
+            return 0; // åœ§ç¸®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã¯ç‰¹åˆ¥è¨ˆç®—
         default:
-            return 4; // ƒfƒtƒHƒ‹ƒg
+            return 4; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
         }
     }
 
@@ -584,7 +584,7 @@ namespace Engine::Graphics
         {
         case TextureFormat::R8G8B8A8_UNORM:  return DXGI_FORMAT_R8G8B8A8_UNORM;
         case TextureFormat::R8G8B8A8_SRGB:   return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        case TextureFormat::R8G8B8_UNORM:    return DXGI_FORMAT_R8G8B8A8_UNORM; // 3ƒ`ƒƒƒ“ƒlƒ‹‚Í4ƒ`ƒƒƒ“ƒlƒ‹‚Æ‚µ‚Äˆµ‚¤
+        case TextureFormat::R8G8B8_UNORM:    return DXGI_FORMAT_R8G8B8A8_UNORM; // 3ãƒãƒ£ãƒ³ãƒãƒ«ã¯4ãƒãƒ£ãƒ³ãƒãƒ«ã¨ã—ã¦æ‰±ã†
         case TextureFormat::R8_UNORM:        return DXGI_FORMAT_R8_UNORM;
         case TextureFormat::R16G16B16A16_FLOAT: return DXGI_FORMAT_R16G16B16A16_FLOAT;
         case TextureFormat::BC1_UNORM:       return DXGI_FORMAT_BC1_UNORM;
@@ -637,7 +637,7 @@ namespace Engine::Graphics
 
     D3D12_RESOURCE_STATES textureUsageToD3D12State(TextureUsage usage)
     {
-        // Å‚àˆê”Ê“I‚È‰Šúó‘Ô‚ğ•Ô‚·
+        // æœ€ã‚‚ä¸€èˆ¬çš„ãªåˆæœŸçŠ¶æ…‹ã‚’è¿”ã™
         if ((usage & TextureUsage::RenderTarget) != TextureUsage::None)
         {
             return D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -653,7 +653,7 @@ namespace Engine::Graphics
             return D3D12_RESOURCE_STATE_COPY_DEST;
         }
 
-        // ƒfƒtƒHƒ‹ƒg‚ÍƒVƒF[ƒ_[ƒŠƒ\[ƒX
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒªã‚½ãƒ¼ã‚¹
         return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     }
 }
