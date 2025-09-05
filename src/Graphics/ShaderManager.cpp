@@ -8,19 +8,19 @@
 namespace Engine::Graphics
 {
     //=========================================================================
-    // ShaderÀ‘•
+    // Shaderå®Ÿè£…
     //=========================================================================
 
     Utils::Result<std::shared_ptr<Shader>> Shader::compileFromFile(const ShaderCompileDesc& desc)
     {
-        // ƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+        // ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
         auto codeResult = readShaderFile(desc.filePath);
         if (!codeResult)
         {
             return std::unexpected(codeResult.error());
         }
 
-        // ƒCƒ“ƒNƒ‹[ƒhˆ—
+        // ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰å‡¦ç†
         std::string baseDir = std::filesystem::path(desc.filePath).parent_path().string();
         std::string processedCode = processIncludes(*codeResult, baseDir);
 
@@ -63,7 +63,7 @@ namespace Engine::Graphics
         m_entryPoint = entryPoint;
         m_filePath = filePath;
 
-        // ƒRƒ“ƒpƒCƒ‹ƒtƒ‰ƒO
+        // ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ãƒ•ãƒ©ã‚°
         UINT compileFlags = 0;
         if (enableDebug)
         {
@@ -74,10 +74,10 @@ namespace Engine::Graphics
             compileFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
         }
 
-        // ƒ}ƒNƒ•ÏŠ·
+        // ãƒã‚¯ãƒ­å¤‰æ›
         auto d3dMacros = convertMacros(macros);
 
-        // ƒVƒF[ƒ_[ƒ^[ƒQƒbƒg
+        // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆ
         std::string target = shaderTypeToTarget(type);
 
         ComPtr<ID3DBlob> errorBlob;
@@ -136,7 +136,7 @@ namespace Engine::Graphics
             d3dMacros.push_back(d3dMacro);
         }
 
-        // I’[
+        // çµ‚ç«¯
         D3D_SHADER_MACRO endMacro = { nullptr, nullptr };
         d3dMacros.push_back(endMacro);
 
@@ -144,7 +144,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // PipelineStateÀ‘•
+    // PipelineStateå®Ÿè£…
     //=========================================================================
 
     Utils::Result<std::shared_ptr<PipelineState>> PipelineState::create(
@@ -209,7 +209,7 @@ namespace Engine::Graphics
         std::vector<D3D12_ROOT_PARAMETER1> rootParams;
         rootParams.reserve(m_desc.rootParameters.size());
 
-        // DescriptorTable—p‚ÌƒŒƒ“ƒW‚ğ•Û‚·‚éƒxƒNƒ^[
+        // DescriptorTableç”¨ã®ãƒ¬ãƒ³ã‚¸ã‚’ä¿æŒã™ã‚‹ãƒ™ã‚¯ã‚¿ãƒ¼
         std::vector<std::vector<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
         descriptorRanges.resize(m_desc.rootParameters.size());
 
@@ -248,7 +248,7 @@ namespace Engine::Graphics
 
             case RootParameterDesc::DescriptorTable:
                 rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-                // ƒŒƒ“ƒW‚ğƒRƒs[
+                // ãƒ¬ãƒ³ã‚¸ã‚’ã‚³ãƒ”ãƒ¼
                 descriptorRanges[i] = param.ranges;
                 rootParam.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(descriptorRanges[i].size());
                 rootParam.DescriptorTable.pDescriptorRanges = descriptorRanges[i].data();
@@ -261,7 +261,7 @@ namespace Engine::Graphics
             rootParams.push_back(rootParam);
         }
 
-        // ƒXƒ^ƒeƒBƒbƒNƒTƒ“ƒvƒ‰[ˆ—
+        // ã‚¹ã‚¿ãƒ†ã‚£ãƒƒã‚¯ã‚µãƒ³ãƒ—ãƒ©ãƒ¼å‡¦ç†
         std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
         staticSamplers.reserve(m_desc.staticSamplers.size());
 
@@ -285,7 +285,7 @@ namespace Engine::Graphics
             staticSamplers.push_back(samplerDesc);
         }
 
-        // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‹Lq
+        // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£è¨˜è¿°
         D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc = {};
         rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
         rootSigDesc.Desc_1_1.NumParameters = static_cast<UINT>(rootParams.size());
@@ -322,7 +322,7 @@ namespace Engine::Graphics
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 
-        // ƒVƒF[ƒ_[İ’è
+        // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼è¨­å®š
         if (m_desc.vertexShader && m_desc.vertexShader->isValid())
         {
             psoDesc.VS.pShaderBytecode = m_desc.vertexShader->getBytecode();
@@ -341,17 +341,17 @@ namespace Engine::Graphics
             psoDesc.GS.BytecodeLength = m_desc.geometryShader->getBytecodeSize();
         }
 
-        // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ
+        // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£
         psoDesc.pRootSignature = m_rootSignature.Get();
 
-        // “ü—ÍƒŒƒCƒAƒEƒg
+        // å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ
         psoDesc.InputLayout.pInputElementDescs = m_desc.inputLayout.empty() ? nullptr : m_desc.inputLayout.data();
         psoDesc.InputLayout.NumElements = static_cast<UINT>(m_desc.inputLayout.size());
 
-        // ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒW[
+        // ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ãƒˆãƒãƒ­ã‚¸ãƒ¼
         psoDesc.PrimitiveTopologyType = m_desc.primitiveTopology;
 
-        // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg
+        // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆ
         psoDesc.NumRenderTargets = static_cast<UINT>(m_desc.rtvFormats.size());
         for (size_t i = 0; i < m_desc.rtvFormats.size() && i < 8; ++i)
         {
@@ -359,12 +359,12 @@ namespace Engine::Graphics
         }
         psoDesc.DSVFormat = m_desc.dsvFormat;
 
-        // ƒTƒ“ƒvƒ‹İ’è
+        // ã‚µãƒ³ãƒ—ãƒ«è¨­å®š
         psoDesc.SampleDesc.Count = 1;
         psoDesc.SampleDesc.Quality = 0;
         psoDesc.SampleMask = UINT_MAX;
 
-        // ƒuƒŒƒ“ƒhƒXƒe[ƒg
+        // ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆ
         psoDesc.BlendState.RenderTarget[0].BlendEnable = m_desc.enableBlending;
         psoDesc.BlendState.RenderTarget[0].SrcBlend = m_desc.srcBlend;
         psoDesc.BlendState.RenderTarget[0].DestBlend = m_desc.destBlend;
@@ -374,7 +374,7 @@ namespace Engine::Graphics
         psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
         psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-        // ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒg
+        // ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆ
         psoDesc.RasterizerState.FillMode = m_desc.fillMode;
         psoDesc.RasterizerState.CullMode = m_desc.cullMode;
         psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
@@ -387,7 +387,7 @@ namespace Engine::Graphics
         psoDesc.RasterizerState.ForcedSampleCount = 0;
         psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-        // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
+        // æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆ
         psoDesc.DepthStencilState.DepthEnable = m_desc.enableDepthTest;
         psoDesc.DepthStencilState.DepthWriteMask = m_desc.enableDepthWrite ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
         psoDesc.DepthStencilState.DepthFunc = m_desc.depthFunc;
@@ -401,7 +401,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // ShaderManagerÀ‘•
+    // ShaderManagerå®Ÿè£…
     //=========================================================================
 
     Utils::VoidResult ShaderManager::initialize(Device* device)
@@ -430,7 +430,7 @@ namespace Engine::Graphics
 
     std::shared_ptr<Shader> ShaderManager::loadShader(const ShaderCompileDesc& desc)
     {
-        // ƒfƒoƒbƒO: thisƒ|ƒCƒ“ƒ^‚ÌŠm”F
+        // ãƒ‡ãƒãƒƒã‚°: thisãƒã‚¤ãƒ³ã‚¿ã®ç¢ºèª
         Utils::log_info(std::format("ShaderManager::loadShader called, this = {}",
             static_cast<void*>(this)));
 
@@ -540,7 +540,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult ShaderManager::createDefaultShaders()
     {
-        // HLSLƒtƒ@ƒCƒ‹‚©‚çƒVƒF[ƒ_[‚ğƒRƒ“ƒpƒCƒ‹
+        // HLSLãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/PBR_VS.hlsl";
         vsDesc.entryPoint = "main";
@@ -594,43 +594,43 @@ namespace Engine::Graphics
 
     Utils::VoidResult ShaderManager::createDefaultPipelines()
     {
-        // PBRƒpƒCƒvƒ‰ƒCƒ“ì¬
+        // PBRãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ä½œæˆ
         PipelineStateDesc pbrDesc;
         pbrDesc.vertexShader = getShader("DefaultPBR_VS");
         pbrDesc.pixelShader = getShader("DefaultPBR_PS");
         pbrDesc.inputLayout = StandardInputLayouts::PBRVertex;
         pbrDesc.debugName = "DefaultPBR";
 
-        // Scene’è”ƒoƒbƒtƒ@ (b0)
+        // Sceneå®šæ•°ãƒãƒƒãƒ•ã‚¡ (b0)
         RootParameterDesc sceneConstants;
         sceneConstants.type = RootParameterDesc::ConstantBufferView;
         sceneConstants.shaderRegister = 0;
         sceneConstants.visibility = D3D12_SHADER_VISIBILITY_ALL;
 
-        // Object’è”ƒoƒbƒtƒ@ (b1)
+        // Objectå®šæ•°ãƒãƒƒãƒ•ã‚¡ (b1)
         RootParameterDesc objectConstants;
         objectConstants.type = RootParameterDesc::ConstantBufferView;
         objectConstants.shaderRegister = 1;
         objectConstants.visibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // Material’è”ƒoƒbƒtƒ@ (b2)
+        // Materialå®šæ•°ãƒãƒƒãƒ•ã‚¡ (b2)
         RootParameterDesc materialConstants;
         materialConstants.type = RootParameterDesc::ConstantBufferView;
         materialConstants.shaderRegister = 2;
         materialConstants.visibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // PBRƒeƒNƒXƒ`ƒƒ—pƒfƒBƒXƒNƒŠƒvƒ^ƒe[ƒuƒ‹
+        // PBRãƒ†ã‚¯ã‚¹ãƒãƒ£ç”¨ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ†ãƒ¼ãƒ–ãƒ«
         RootParameterDesc textureTable;
         textureTable.type = RootParameterDesc::DescriptorTable;
         textureTable.visibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // 6‚Â‚ÌƒeƒNƒXƒ`ƒƒ‚·‚×‚Ä‚ğ1‚Â‚ÌƒŒƒ“ƒW‚Å’è‹` (t0-t5)
+        // 6ã¤ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã™ã¹ã¦ã‚’1ã¤ã®ãƒ¬ãƒ³ã‚¸ã§å®šç¾© (t0-t5)
         std::vector<D3D12_DESCRIPTOR_RANGE1> srvRanges;
 
         D3D12_DESCRIPTOR_RANGE1 pbrTextureRange{};
         pbrTextureRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-        pbrTextureRange.NumDescriptors = 6;  // t0, t1, t2, t3, t4, t5 ‚Ì6‚Â
-        pbrTextureRange.BaseShaderRegister = 0;  // t0‚©‚çŠJn
+        pbrTextureRange.NumDescriptors = 6;  // t0, t1, t2, t3, t4, t5 ã®6ã¤
+        pbrTextureRange.BaseShaderRegister = 0;  // t0ã‹ã‚‰é–‹å§‹
         pbrTextureRange.RegisterSpace = 0;
         pbrTextureRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
         pbrTextureRange.OffsetInDescriptorsFromTableStart = 0;
@@ -638,10 +638,10 @@ namespace Engine::Graphics
         srvRanges.push_back(pbrTextureRange);
         textureTable.ranges = srvRanges;
 
-        // ƒ‹[ƒgƒpƒ‰ƒ[ƒ^‚ğİ’è
+        // ãƒ«ãƒ¼ãƒˆãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’è¨­å®š
         pbrDesc.rootParameters = { sceneConstants, objectConstants, materialConstants, textureTable };
 
-        // ƒXƒ^ƒeƒBƒbƒNƒTƒ“ƒvƒ‰[ (s0)
+        // ã‚¹ã‚¿ãƒ†ã‚£ãƒƒã‚¯ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ (s0)
         StaticSamplerDesc linearSampler;
         linearSampler.shaderRegister = 0;
         linearSampler.filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -651,7 +651,7 @@ namespace Engine::Graphics
 
         pbrDesc.staticSamplers = { linearSampler };
 
-        // ƒpƒCƒvƒ‰ƒCƒ“ì¬
+        // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ä½œæˆ
         auto pbrPipelineResult = PipelineState::create(m_device, pbrDesc);
         if (!pbrPipelineResult)
         {
@@ -683,7 +683,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // •W€“ü—ÍƒŒƒCƒAƒEƒg’è‹`
+    // æ¨™æº–å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆå®šç¾©
     //=========================================================================
 
     namespace StandardInputLayouts
@@ -716,7 +716,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // ƒ†[ƒeƒBƒŠƒeƒBŠÖ”À‘•
+    // ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£é–¢æ•°å®Ÿè£…
     //=========================================================================
 
     Utils::Result<std::string> readShaderFile(const std::string& filePath)
@@ -735,7 +735,7 @@ namespace Engine::Graphics
 
     std::string processIncludes(const std::string& shaderCode, const std::string& baseDir)
     {
-        // ŠÈ’P‚ÈƒCƒ“ƒNƒ‹[ƒhˆ—i#include "filename"‚ÌŒ`®‚Ì‚İ‘Î‰j
+        // ç°¡å˜ãªã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰å‡¦ç†ï¼ˆ#include "filename"ã®å½¢å¼ã®ã¿å¯¾å¿œï¼‰
         std::string result = shaderCode;
         std::string includePattern = "#include \"";
 
@@ -753,7 +753,7 @@ namespace Engine::Graphics
                 auto includeResult = readShaderFile(fullPath);
                 if (includeResult)
                 {
-                    // ƒCƒ“ƒNƒ‹[ƒh•¶‚ğÀÛ‚Ìƒtƒ@ƒCƒ‹“à—e‚Å’uŠ·
+                    // ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰æ–‡ã‚’å®Ÿéš›ã®ãƒ•ã‚¡ã‚¤ãƒ«å†…å®¹ã§ç½®æ›
                     size_t lineEnd = result.find("\n", pos);
                     if (lineEnd == std::string::npos) lineEnd = result.length();
 

@@ -5,14 +5,14 @@ namespace Engine::Graphics
 {
     Utils::VoidResult ConstantBufferManager::initialize(Device* device, UINT frameCount)
     {
-        // ƒJƒƒ‰’è”ƒoƒbƒtƒ@‚Ì‰Šú‰»
+        // ã‚«ãƒ¡ãƒ©å®šæ•°ãƒãƒƒãƒ•ã‚¡ã®åˆæœŸåŒ–
         auto cameraResult = m_cameraConstants.initialize(device, frameCount);
         if (!cameraResult)
         {
             return cameraResult;
         }
 
-        // ƒIƒuƒWƒFƒNƒg’è”ƒoƒbƒtƒ@‚Ì‰Šú‰»
+        // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå®šæ•°ãƒãƒƒãƒ•ã‚¡ã®åˆæœŸåŒ–
         auto objectResult = m_objectConstants.initialize(device, frameCount);
         if (!objectResult)
         {

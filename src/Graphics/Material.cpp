@@ -1,18 +1,18 @@
 //src/Graphics/Material.cpp
 #include "Material.hpp"
-//#include "Texture.hpp" // Ÿ‚ÌƒXƒeƒbƒv‚Åì¬—\’è
+//#include "Texture.hpp" // æ¬¡ã®ã‚¹ãƒ†ãƒƒãƒ—ã§ä½œæˆäºˆå®š
 #include <format>
 
 namespace Engine::Graphics
 {
     //=========================================================================
-    // MaterialÀ‘•
+    // Materialå®Ÿè£…
     //=========================================================================
 
     Material::Material(const std::string& name)
         : m_name(name)
     {
-        // ƒfƒtƒHƒ‹ƒgƒvƒƒpƒeƒB‚Í\‘¢‘Ì‚Ì‰Šú‰»‚Åİ’èÏ‚İ
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã¯æ§‹é€ ä½“ã®åˆæœŸåŒ–ã§è¨­å®šæ¸ˆã¿
     }
 
     Utils::VoidResult Material::initialize(Device* device)
@@ -32,7 +32,7 @@ namespace Engine::Graphics
         m_device = device;
         Utils::log_info(std::format("Device assigned to material '{}'", m_name));
 
-        // ’è”ƒoƒbƒtƒ@‚ğì¬
+        // å®šæ•°ãƒãƒƒãƒ•ã‚¡ã‚’ä½œæˆ
         Utils::log_info(std::format("Calling createConstantBuffer for '{}'", m_name));
         auto cbResult = createConstantBuffer();
         if (!cbResult)
@@ -42,7 +42,7 @@ namespace Engine::Graphics
         }
         Utils::log_info(std::format("createConstantBuffer succeeded for '{}'", m_name));
 
-        // ƒfƒXƒNƒŠƒvƒ^‚ğì¬
+        // ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ã‚’ä½œæˆ
         Utils::log_info(std::format("Calling createDescriptors for '{}'", m_name));
         auto descResult = createDescriptors();
         if (!descResult)
@@ -52,7 +52,7 @@ namespace Engine::Graphics
         }
         Utils::log_info(std::format("createDescriptors succeeded for '{}'", m_name));
 
-        // ‰Šú‰»ƒtƒ‰ƒO‚ğİ’è
+        // åˆæœŸåŒ–ãƒ•ãƒ©ã‚°ã‚’è¨­å®š
         Utils::log_info(std::format("Setting m_initialized = true for '{}'", m_name));
         m_initialized = true;
         Utils::log_info(std::format("m_initialized is now: {} for '{}'", m_initialized, m_name));
@@ -102,7 +102,7 @@ namespace Engine::Graphics
         Utils::log_info(std::format("m_device: {}", m_device ? "not null" : "null"));
         Utils::log_info(std::format("m_constantBufferData: {}", m_constantBufferData ? "not null" : "null"));
 
-        // ‚æ‚èÚ×‚È‰Šú‰»ƒ`ƒFƒbƒN
+        // ã‚ˆã‚Šè©³ç´°ãªåˆæœŸåŒ–ãƒã‚§ãƒƒã‚¯
         if (!m_initialized) {
             Utils::log_warning(std::format("Material '{}' not initialized (m_initialized = {})", m_name, m_initialized));
             return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
@@ -129,19 +129,19 @@ namespace Engine::Graphics
 
         Utils::log_info(std::format("All checks passed, updating constant buffer for '{}'", m_name));
 
-        // GPU—p‚Ì’è”ƒoƒbƒtƒ@ƒf[ƒ^‚ğ€”õ
+        // GPUç”¨ã®å®šæ•°ãƒãƒƒãƒ•ã‚¡ãƒ‡ãƒ¼ã‚¿ã‚’æº–å‚™
         MaterialConstantBuffer cbData{};
 
-        // albedo‚Æmetallic
+        // albedoã¨metallic
         cbData.albedo = Math::Vector4(m_properties.albedo.x, m_properties.albedo.y, m_properties.albedo.z, m_properties.metallic);
 
         // roughness, ao, emissiveStrength
         cbData.roughnessAoEmissiveStrength = Math::Vector4(m_properties.roughness, m_properties.ao, m_properties.emissiveStrength, 0.0f);
 
-        // emissive‚ÆnormalStrength
+        // emissiveã¨normalStrength
         cbData.emissive = Math::Vector4(m_properties.emissive.x, m_properties.emissive.y, m_properties.emissive.z, m_properties.normalStrength);
 
-        // alphaƒpƒ‰ƒ[ƒ^
+        // alphaãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
         cbData.alphaParams = Math::Vector4(
             m_properties.alpha,
             m_properties.useAlphaTest ? 1.0f : 0.0f,
@@ -149,10 +149,10 @@ namespace Engine::Graphics
             m_properties.heightScale
         );
 
-        // UVƒgƒ‰ƒ“ƒXƒtƒH[ƒ€
+        // UVãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ 
         cbData.uvTransform = Math::Vector4(m_properties.uvScale.x, m_properties.uvScale.y, m_properties.uvOffset.x, m_properties.uvOffset.y);
 
-        // ’è”ƒoƒbƒtƒ@‚Éƒf[ƒ^‚ğƒRƒs[
+        // å®šæ•°ãƒãƒƒãƒ•ã‚¡ã«ãƒ‡ãƒ¼ã‚¿ã‚’ã‚³ãƒ”ãƒ¼
         memcpy(m_constantBufferData, &cbData, sizeof(MaterialConstantBuffer));
 
         m_isDirty = false;
@@ -174,13 +174,13 @@ namespace Engine::Graphics
             return;
         }
 
-        // ’è”ƒoƒbƒtƒ@ƒrƒ…[‚ğ’¼ÚƒoƒCƒ“ƒhiƒVƒ“ƒvƒ‹‚È•û–@j
+        // å®šæ•°ãƒãƒƒãƒ•ã‚¡ãƒ“ãƒ¥ãƒ¼ã‚’ç›´æ¥ãƒã‚¤ãƒ³ãƒ‰ï¼ˆã‚·ãƒ³ãƒ—ãƒ«ãªæ–¹æ³•ï¼‰
         commandList->SetGraphicsRootConstantBufferView(
             rootParameterIndex,
             m_constantBuffer->GetGPUVirtualAddress()
         );
 
-        // ƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv
+        // ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—
         /*
         if (m_cbvDescriptorHeap)
         {
@@ -192,7 +192,7 @@ namespace Engine::Graphics
     }
     Utils::VoidResult Material::createConstantBuffer()
     {
-        // ‚æ‚èÚ×‚ÈƒfƒoƒCƒXƒ`ƒFƒbƒN
+        // ã‚ˆã‚Šè©³ç´°ãªãƒ‡ãƒã‚¤ã‚¹ãƒã‚§ãƒƒã‚¯
         if (!m_device) {
             return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
                 std::format("Device is null for material '{}'", m_name)));
@@ -213,7 +213,7 @@ namespace Engine::Graphics
         Utils::log_info(std::format("Creating constant buffer of size {} bytes for material '{}'",
             constantBufferSize, m_name));
 
-        // ƒq[ƒvƒvƒƒpƒeƒB‚Ìİ’è
+        // ãƒ’ãƒ¼ãƒ—ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã®è¨­å®š
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -221,7 +221,7 @@ namespace Engine::Graphics
         heapProps.CreationNodeMask = 1;
         heapProps.VisibleNodeMask = 1;
 
-        // ƒŠƒ\[ƒX‹Lqq
+        // ãƒªã‚½ãƒ¼ã‚¹è¨˜è¿°å­
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         resourceDesc.Alignment = 0;
@@ -251,7 +251,7 @@ namespace Engine::Graphics
 
         Utils::log_info(std::format("D3D12 constant buffer resource created for material '{}'", m_name));
 
-        // ‰i‘±“I‚Éƒ}ƒbƒv
+        // æ°¸ç¶šçš„ã«ãƒãƒƒãƒ—
         D3D12_RANGE readRange{ 0, 0 };
         hr = m_constantBuffer->Map(0, &readRange, &m_constantBufferData);
 
@@ -269,7 +269,7 @@ namespace Engine::Graphics
     {
         Utils::log_info(std::format("Creating descriptors for material '{}'", m_name));
 
-        // CBV + SRV—pƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv‚Ìì¬
+        // CBV + SRVç”¨ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—ã®ä½œæˆ
         D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc{};
         srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         srvHeapDesc.NumDescriptors = 2; // CBV(1) + SRV(1)
@@ -287,23 +287,23 @@ namespace Engine::Graphics
                     m_name, static_cast<unsigned>(hr)), hr));
         }
 
-        // CBV‚ğì¬
+        // CBVã‚’ä½œæˆ
         D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
         cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
-        cbvDesc.SizeInBytes = (sizeof(MaterialConstantBuffer) + 255) & ~255; // 256ƒoƒCƒgƒAƒ‰ƒCƒ“
+        cbvDesc.SizeInBytes = (sizeof(MaterialConstantBuffer) + 255) & ~255; // 256ãƒã‚¤ãƒˆã‚¢ãƒ©ã‚¤ãƒ³
 
         D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle = m_srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
         m_device->getDevice()->CreateConstantBufferView(&cbvDesc, cbvHandle);
 
-        // SRViƒeƒNƒXƒ`ƒƒj‚ğì¬
+        // SRVï¼ˆãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼‰ã‚’ä½œæˆ
         UINT descriptorSize = m_device->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = cbvHandle;
         srvHandle.ptr += descriptorSize;
 
-        // ƒfƒtƒHƒ‹ƒg‚Å‚Í”’ƒeƒNƒXƒ`ƒƒ‚ÌSRV‚ğì¬iŒã‚Åƒ}ƒeƒŠƒAƒ‹ƒ}ƒl[ƒWƒƒ[‚©‚çæ“¾j
-        // ‚±‚±‚Å‚Í‰¼À‘•
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã§ã¯ç™½ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®SRVã‚’ä½œæˆï¼ˆå¾Œã§ãƒãƒ†ãƒªã‚¢ãƒ«ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‹ã‚‰å–å¾—ï¼‰
+        // ã“ã“ã§ã¯ä»®å®Ÿè£…
         m_srvGpuHandle = m_srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
-        m_srvGpuHandle.ptr += descriptorSize; // SRV‚ÌGPUƒnƒ“ƒhƒ‹
+        m_srvGpuHandle.ptr += descriptorSize; // SRVã®GPUãƒãƒ³ãƒ‰ãƒ«
 
         Utils::log_info(std::format("Descriptors created successfully for material '{}'", m_name));
         return {};
@@ -311,18 +311,18 @@ namespace Engine::Graphics
 
     Utils::VoidResult Material::saveToFile(const std::string& filePath) const
     {
-        // Œã‚ÅÀ‘•iJSONŒ`®‚Å•Û‘¶—\’èj
+        // å¾Œã§å®Ÿè£…ï¼ˆJSONå½¢å¼ã§ä¿å­˜äºˆå®šï¼‰
         return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Not implemented yet"));
     }
 
     Utils::VoidResult Material::loadFromFile(const std::string& filePath)
     {
-        // Œã‚ÅÀ‘•iJSONŒ`®‚©‚ç“Ç‚İ‚İ—\’èj
+        // å¾Œã§å®Ÿè£…ï¼ˆJSONå½¢å¼ã‹ã‚‰èª­ã¿è¾¼ã¿äºˆå®šï¼‰
         return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Not implemented yet"));
     }
 
     //=========================================================================
-    // MaterialManagerÀ‘•
+    // MaterialManagerå®Ÿè£…
     //=========================================================================
     Utils::VoidResult MaterialManager::initialize(Device* device)
     {
@@ -336,16 +336,16 @@ namespace Engine::Graphics
 
         m_device = device;
 
-        // ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹‚ğì¬
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒãƒ†ãƒªã‚¢ãƒ«ã‚’ä½œæˆ
         auto defaultResult = createDefaultMaterial();
         if (!defaultResult) {
-            // ¸”s‚µ‚½ê‡‚ÍƒfƒoƒCƒX‚ğƒŠƒZƒbƒg
+            // å¤±æ•—ã—ãŸå ´åˆã¯ãƒ‡ãƒã‚¤ã‚¹ã‚’ãƒªã‚»ãƒƒãƒˆ
             m_device = nullptr;
             Utils::log_warning(std::format("Failed to create default material: {}", defaultResult.error().message));
             return defaultResult;
         }
 
-        // ‘S‚Ä¬Œ÷‚µ‚½ê‡‚Ì‚İ‰Šú‰»ƒtƒ‰ƒO‚ğİ’è
+        // å…¨ã¦æˆåŠŸã—ãŸå ´åˆã®ã¿åˆæœŸåŒ–ãƒ•ãƒ©ã‚°ã‚’è¨­å®š
         m_initialized = true;
 
         Utils::log_info("MaterialManager initialized successfully");
@@ -361,7 +361,7 @@ namespace Engine::Graphics
             return nullptr;
         }
 
-        // Šù‚É‘¶İ‚·‚éê‡‚ÍV‚µ‚¢–¼‘O‚ğ¶¬i‹¤—L‚ğ”ğ‚¯‚éj
+        // æ—¢ã«å­˜åœ¨ã™ã‚‹å ´åˆã¯æ–°ã—ã„åå‰ã‚’ç”Ÿæˆï¼ˆå…±æœ‰ã‚’é¿ã‘ã‚‹ï¼‰
         std::string uniqueName = name;
         int counter = 1;
         while (hasMaterial(uniqueName))
@@ -419,10 +419,10 @@ namespace Engine::Graphics
 
     Utils::VoidResult MaterialManager::createDefaultMaterial()
     {
-        // ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹‚ğì¬
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒãƒ†ãƒªã‚¢ãƒ«ã‚’ä½œæˆ
         m_defaultMaterial = std::make_shared<Material>("DefaultMaterial");
 
-        // Device ‚Ì—LŒø«‚ğÄŠm”F
+        // Device ã®æœ‰åŠ¹æ€§ã‚’å†ç¢ºèª
         if (!m_device || !m_device->isValid()) {
             Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
                 "Device is invalid when creating default material"));
@@ -430,7 +430,7 @@ namespace Engine::Graphics
                 "Device is invalid"));
         }
 
-        // Material ‚ğ‰Šú‰»
+        // Material ã‚’åˆæœŸåŒ–
         auto initResult = m_defaultMaterial->initialize(m_device);
         if (!initResult) {
             Utils::log_warning(std::format("Failed to initialize default material: {}",
@@ -439,17 +439,17 @@ namespace Engine::Graphics
             return initResult;
         }
 
-        // ‰Šú‰»‚ª¬Œ÷‚µ‚½Œã‚ÉƒvƒƒpƒeƒB‚ğİ’è
+        // åˆæœŸåŒ–ãŒæˆåŠŸã—ãŸå¾Œã«ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’è¨­å®š
         MaterialProperties defaultProps;
         defaultProps.albedo = Math::Vector3(0.8f, 0.8f, 0.8f);
         defaultProps.metallic = 0.0f;
         defaultProps.roughness = 0.5f;
         defaultProps.ao = 1.0f;
 
-        // setProperties ‚ğg—p‚µ‚Äİ’èi“à•”‚Å updateConstantBuffer ‚àŒÄ‚Î‚ê‚éj
+        // setProperties ã‚’ä½¿ç”¨ã—ã¦è¨­å®šï¼ˆå†…éƒ¨ã§ updateConstantBuffer ã‚‚å‘¼ã°ã‚Œã‚‹ï¼‰
         m_defaultMaterial->setProperties(defaultProps);
 
-        // ƒ}ƒeƒŠƒAƒ‹ƒ}ƒbƒv‚É“o˜^
+        // ãƒãƒ†ãƒªã‚¢ãƒ«ãƒãƒƒãƒ—ã«ç™»éŒ²
         m_materials["DefaultMaterial"] = m_defaultMaterial;
 
         Utils::log_info("Default material created successfully");
@@ -465,7 +465,7 @@ namespace Engine::Graphics
         m_properties = properties;
         m_isDirty = true;
 
-        // ‰Šú‰»Ï‚İ‚Ìê‡‚Ì‚İupdateConstantBuffer()‚ğŒÄ‚Ô
+        // åˆæœŸåŒ–æ¸ˆã¿ã®å ´åˆã®ã¿updateConstantBuffer()ã‚’å‘¼ã¶
         if (m_initialized && m_device && m_device->isValid()) {
             Utils::log_info(std::format("Calling updateConstantBuffer for '{}'", m_name));
             auto result = updateConstantBuffer();
@@ -487,7 +487,7 @@ namespace Engine::Graphics
 
 
     //=========================================================================
-    // ƒ†[ƒeƒBƒŠƒeƒBŠÖ”À‘•
+    // ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£é–¢æ•°å®Ÿè£…
     //=========================================================================
 
     std::string textureTypeToString(TextureType type)
@@ -516,6 +516,6 @@ namespace Engine::Graphics
         if (str == "Height")    return TextureType::Height;
 
         Utils::log_warning(std::format("Unknown texture type: {}", str));
-        return TextureType::Albedo; // ƒfƒtƒHƒ‹ƒg
+        return TextureType::Albedo; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
     }
 }

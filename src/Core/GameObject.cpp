@@ -5,7 +5,7 @@
 namespace Engine::Core
 {
 	//=========================================
-	//TransformÀ‘•
+	//Transformå®Ÿè£…
 	//=========================================
 	const Math::Matrix4& Transform::getWorldMatrix()
 	{
@@ -44,8 +44,8 @@ namespace Engine::Core
 
 	void Transform::updateWorldMatrix() const
 	{
-		//TODO: ƒWƒ“ƒoƒ‹ƒƒbƒN‚ğ–h‚®‚½‚ß‚ÉƒNƒH[ƒ^ƒjƒIƒ“‚àÀ‘•—\’è
-		//ƒXƒP[ƒ‹ -> ‰ñ“] -> ˆÚ“®‚Ì‡‚Ås—ñ‚ğ‡‘Ì
+		//TODO: ã‚¸ãƒ³ãƒãƒ«ãƒ­ãƒƒã‚¯ã‚’é˜²ããŸã‚ã«ã‚¯ã‚©ãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ã‚‚å®Ÿè£…äºˆå®š
+		//ã‚¹ã‚±ãƒ¼ãƒ« -> å›è»¢ -> ç§»å‹•ã®é †ã§è¡Œåˆ—ã‚’åˆä½“
 		Math::Matrix4 scaleMatrix = Math::Matrix4::scaling(m_scale);
 		Math::Matrix4 rotationMatrix = Math::Matrix4::rotationX(Math::radians(m_rotation.x)) *
 			Math::Matrix4::rotationY(Math::radians(m_rotation.y)) *
@@ -56,12 +56,12 @@ namespace Engine::Core
 	}
 
 	//============================================
-	//GameObjectÀ‘•
+	//GameObjectå®Ÿè£…
 	//============================================
 	GameObject::GameObject(const std::string& name)
 		:m_name(name)
 	{
-		//Transform‚ÍA•K{ƒRƒ“ƒ|[ƒlƒ“ƒg‚Æ‚µ‚Ä©“®’Ç‰Á
+		//Transformã¯ã€å¿…é ˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã¨ã—ã¦è‡ªå‹•è¿½åŠ 
 		m_transform = addComponent<Transform>();
 	}
 
@@ -74,7 +74,7 @@ namespace Engine::Core
 	{
 		if (m_started || !m_active) return;
 
-		//‘S‚Ä‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚ğŠJn
+		//å…¨ã¦ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’é–‹å§‹
 		for (auto& [type, component] : m_components)
 		{
 			if (component->isEnabled())
@@ -83,7 +83,7 @@ namespace Engine::Core
 			}
 		}
 
-		//qƒIƒuƒWƒFƒNƒg‚àŠJn
+		//å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚‚é–‹å§‹
 		for (auto& child : m_children)
 		{
 			if (child->isActive())
@@ -99,13 +99,13 @@ namespace Engine::Core
 	{
 		if (!m_active) return;
 
-		//‚Ü‚¾ŠJn‚³‚ê‚Ä‚¢‚È‚¢ê‡‚ÍŠJn
+		//ã¾ã é–‹å§‹ã•ã‚Œã¦ã„ãªã„å ´åˆã¯é–‹å§‹
 		if (!m_started)
 		{
 			start();
 		}
 
-		//‘S‚Ä‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚ğXV
+		//å…¨ã¦ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’æ›´æ–°
 		for (auto& [type, component] : m_components)
 		{
 			if (component->isEnabled())
@@ -114,7 +114,7 @@ namespace Engine::Core
 			}
 		}
 
-		//qƒIƒuƒWƒFƒNƒg‚àXV
+		//å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚‚æ›´æ–°
 		for (auto& child : m_children)
 		{
 			if (child->isActive())
@@ -128,7 +128,7 @@ namespace Engine::Core
 	{
 		if (!m_active) return;
 
-		//‘S‚Ä‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚ğŒãXV
+		//å…¨ã¦ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å¾Œæ›´æ–°
 		for (auto& [type, component] : m_components)
 		{
 			if (component->isEnabled())
@@ -137,7 +137,7 @@ namespace Engine::Core
 			}
 		}
 
-		//qƒIƒuƒWƒFƒNƒg‚àŒãXV
+		//å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚‚å¾Œæ›´æ–°
 		for (auto& child : m_children)
 		{
 			if (child->isActive())
@@ -149,13 +149,13 @@ namespace Engine::Core
 
 	void GameObject::destroy()
 	{
-		// ƒAƒNƒeƒBƒuƒtƒ‰ƒO‚ğæ‚Éfalse‚É
+		// ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãƒ•ãƒ©ã‚°ã‚’å…ˆã«falseã«
 		m_active = false;
 
-		// qƒIƒuƒWƒFƒNƒg‚ğæ‚É”jŠü
+		// å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å…ˆã«ç ´æ£„
 		m_children.clear();
 
-		// ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ”jŠü
+		// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’ç ´æ£„
 		for (auto& [type, component] : m_components)
 		{
 			if (component)

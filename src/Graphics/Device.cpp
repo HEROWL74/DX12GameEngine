@@ -6,7 +6,7 @@
 namespace Engine::Graphics
 {
     // =============================================================================
-   // AdapterInfoÀ‘•
+   // AdapterInfoå®Ÿè£…
    // =============================================================================
 
     std::string AdapterInfo::getMemoryInfoString() const noexcept
@@ -21,42 +21,42 @@ namespace Engine::Graphics
         );
     }
     // =============================================================================
-    //DeviceÀ‘•
+    //Deviceå®Ÿè£…
     // =============================================================================
 
     Utils::VoidResult Device::initialize(const DeviceSettings& settings)
     {
         Utils::log_info("Initializing Graphics Device...");
 
-        //ƒfƒoƒbƒOƒŒƒCƒ„[‚Ì‰Šú‰»
+        //ãƒ‡ãƒãƒƒã‚°ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®åˆæœŸåŒ–
         auto debugResult = initializeDebugLayer(settings);
         if (!debugResult)
         {
             return debugResult;
         }
 
-        //DXGIƒtƒ@ƒNƒgƒŠ‚Ìì¬
+        //DXGIãƒ•ã‚¡ã‚¯ãƒˆãƒªã®ä½œæˆ
         auto factoryResult = createDXGIFactory();
         if (!factoryResult)
         {
             return factoryResult;
         }
 
-        //Å“K‚ÈƒAƒ_ƒvƒ^[‚Ì‘I‘ğ
+        //æœ€é©ãªã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã®é¸æŠ
         auto adapterResult = selectBestAdapter(settings);
         if (!adapterResult)
         {
             return adapterResult;
         }
 
-        //D3D12ƒfƒoƒCƒX‚Ìì¬
+        //D3D12ãƒ‡ãƒã‚¤ã‚¹ã®ä½œæˆ
         auto deviceResult = createDevice(settings);
         if (!deviceResult)
         {
             return deviceResult;
         }
 
-        //ƒfƒBƒXƒNƒŠƒvƒ^ƒTƒCƒY‚ÌƒLƒƒƒbƒVƒ…
+        //ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ã‚µã‚¤ã‚ºã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥
         cacheDescriptorSizes();
 
         Utils::log_info(std::format("Graphics Device initialized successfully"));
@@ -121,7 +121,7 @@ namespace Engine::Graphics
     }
 
     //======================================================================
-    //ƒvƒ‰ƒCƒx[ƒgƒƒ\ƒbƒhÀ‘•
+    //ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆãƒ¡ã‚½ãƒƒãƒ‰å®Ÿè£…
 
     Utils::VoidResult Device::initializeDebugLayer(const DeviceSettings& settings)
     {
@@ -135,7 +135,7 @@ namespace Engine::Graphics
                 m_debugLayerEnabled = true;
                 Utils::log_info("D3D12 Debug Layer enabled");
 
-                //GPUŒŸØ‚Ì—LŒø‰»
+                //GPUæ¤œè¨¼ã®æœ‰åŠ¹åŒ–
                 if (settings.enableGpuValidation)
                 {
                     ComPtr<ID3D12Debug1> debugController1;
@@ -152,7 +152,7 @@ namespace Engine::Graphics
             }
         }
         #else
-        //ƒŠƒŠ[ƒXƒrƒ‹ƒh‚Å‚ÍAƒfƒoƒbƒOƒŒƒCƒ„[‚ğ–³Œø‚É‚·‚é
+        //ãƒªãƒªãƒ¼ã‚¹ãƒ“ãƒ«ãƒ‰ã§ã¯ã€ãƒ‡ãƒãƒƒã‚°ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’ç„¡åŠ¹ã«ã™ã‚‹
         UNREFERENCED_PARAMETER(settings);
         #endif
 
@@ -187,7 +187,7 @@ namespace Engine::Graphics
         {
             AdapterInfo info = getAdapterInfo(adapter.Get());
 
-            //D3D12‘Î‰ƒ`ƒFƒbƒN
+            //D3D12å¯¾å¿œãƒã‚§ãƒƒã‚¯
             if (!isAdapterCompatible(adapter.Get(), settings.minFeatureLevel))
             {
                 Utils::log_info(std::format("Skipping incompatible adapter: {}",
@@ -201,12 +201,12 @@ namespace Engine::Graphics
                 std::string(info.description.begin(), info.description.end()),
                 info.getMemoryInfoString()));
 
-            //ƒAƒ_ƒvƒ^[‘I‘ğƒƒWƒbƒN
+            //ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼é¸æŠãƒ­ã‚¸ãƒƒã‚¯
             bool shouldSelect = false;
 
             if (settings.preferHighPerformanceAdapter)
             {
-                // ‚«”\—DæFƒn[ƒhƒEƒFƒAƒAƒ_ƒvƒ^[‚ÅÅ‘åƒrƒfƒIƒƒ‚ƒŠ
+                // é«˜æ€§èƒ½å„ªå…ˆï¼šãƒãƒ¼ãƒ‰ã‚¦ã‚§ã‚¢ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã§æœ€å¤§ãƒ“ãƒ‡ã‚ªãƒ¡ãƒ¢ãƒª
                 if (info.isHardware && info.dedicatedVideoMemory > maxVideoMemory)
                 {
                     shouldSelect = true;
@@ -218,7 +218,7 @@ namespace Engine::Graphics
             }
             else
             {
-                //Å‰‚ÉŒ©‚Â‚©‚Á‚½‘Î‰ƒAƒ_ƒvƒ^[‚ğg—p
+                //æœ€åˆã«è¦‹ã¤ã‹ã£ãŸå¯¾å¿œã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½¿ç”¨
                 if (!bestAdapter)
                 {
                     shouldSelect = true;
@@ -245,7 +245,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult Device::createDevice(const DeviceSettings& settings)
     {
-        //ƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚éÅ‚‚Ì‹@”\ƒŒƒxƒ‹‚ğs
+        //ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹æœ€é«˜ã®æ©Ÿèƒ½ãƒ¬ãƒ™ãƒ«ã‚’è©¦è¡Œ
         const D3D_FEATURE_LEVEL featureLevels[] = {
             D3D_FEATURE_LEVEL_12_2,
             D3D_FEATURE_LEVEL_12_1,

@@ -27,7 +27,7 @@ namespace Engine::UI
             Material,
             Shader,
             Unknown
-        } type;
+        } type{};
 
         std::shared_ptr<Graphics::Texture> texture; // テクスチャプレビュー用
         std::shared_ptr<Graphics::Material> material; // マテリアル用
