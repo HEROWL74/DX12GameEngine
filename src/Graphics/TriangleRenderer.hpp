@@ -1,4 +1,4 @@
-// src/Graphics/TriangleRenderer.hpp
+ï»¿// src/Graphics/TriangleRenderer.hpp
 #pragma once
 
 #include <Windows.h>
@@ -18,40 +18,40 @@ using Microsoft::WRL::ComPtr;
 
 namespace Engine::Graphics
 {
-    // OŠpŒ`•`‰æê—p‚ÌƒŒƒ“ƒ_ƒ‰[
+    // ä¸‰è§’å½¢æç”»å°‚ç”¨ã®ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼
     class TriangleRenderer
     {
     public:
         TriangleRenderer() = default;
         ~TriangleRenderer() = default;
 
-        // ƒRƒs[Eƒ€[ƒu‹Ö~
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
         TriangleRenderer(const TriangleRenderer&) = delete;
         TriangleRenderer& operator=(const TriangleRenderer&) = delete;
         TriangleRenderer(TriangleRenderer&&) = delete;
         TriangleRenderer& operator=(TriangleRenderer&&) = delete;
 
-        // ‰Šú‰»
+        // åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initialize(Device* device, ShaderManager* shaderManager);
 
-        // OŠpŒ`‚ğ•`‰æ
+        // ä¸‰è§’å½¢ã‚’æç”»
         void render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex);
 
-        // 3D‹óŠÔ‚Å‚ÌˆÊ’uE‰ñ“]EƒXƒP[ƒ‹‚ğİ’è
+        // 3Dç©ºé–“ã§ã®ä½ç½®ãƒ»å›è»¢ãƒ»ã‚¹ã‚±ãƒ¼ãƒ«ã‚’è¨­å®š
         void setPosition(const Math::Vector3& position) { m_position = position; updateWorldMatrix(); }
         void setRotation(const Math::Vector3& rotation) { m_rotation = rotation; updateWorldMatrix(); }
         void setScale(const Math::Vector3& scale) { m_scale = scale; updateWorldMatrix(); }
 
-        //ƒ}ƒeƒŠƒAƒ‹İ’è
+        //ãƒãƒ†ãƒªã‚¢ãƒ«è¨­å®š
         void setMaterial(std::shared_ptr<Graphics::Material> material) { m_material = material; }
         void setMaterialManager(Graphics::MaterialManager* manager) { m_materialManager = manager; }
 
-        // ƒQƒbƒ^[
+        // ã‚²ãƒƒã‚¿ãƒ¼
         const Math::Vector3& getPosition() const { return m_position; }
         const Math::Vector3& getRotation() const { return m_rotation; }
         const Math::Vector3& getScale() const { return m_scale; }
 
-        // —LŒø‚©ƒ`ƒFƒbƒN
+        // æœ‰åŠ¹ã‹ãƒã‚§ãƒƒã‚¯
         [[nodiscard]] bool isValid() const noexcept { return m_rootSignature != nullptr && m_constantBufferManager.isValid(); }
 
     private:
@@ -59,35 +59,35 @@ namespace Engine::Graphics
         ShaderManager* m_shaderManager = nullptr;
         ConstantBufferManager m_constantBufferManager;
 
-        // 3D•ÏŠ·ƒpƒ‰ƒ[ƒ^
+        // 3Då¤‰æ›ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
         Math::Vector3 m_position = Math::Vector3::zero();
         Math::Vector3 m_rotation = Math::Vector3::zero();
         Math::Vector3 m_scale = Math::Vector3::one();
         Math::Matrix4 m_worldMatrix;
 
-        //ƒ}ƒeƒŠƒAƒ‹ŠÇ—ƒ|ƒCƒ“ƒ^
+        //ãƒãƒ†ãƒªã‚¢ãƒ«ç®¡ç†ãƒã‚¤ãƒ³ã‚¿
         std::shared_ptr<Graphics::Material> m_material;
         Graphics::MaterialManager* m_materialManager = nullptr;
 
-        // •`‰æƒŠƒ\[ƒX
-        ComPtr<ID3D12RootSignature> m_rootSignature;        // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ
-        ComPtr<ID3D12PipelineState> m_pipelineState;        // ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg
-        ComPtr<ID3D12Resource> m_vertexBuffer;              // ’¸“_ƒoƒbƒtƒ@
-        D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView{};      // ’¸“_ƒoƒbƒtƒ@ƒrƒ…[
+        // æç”»ãƒªã‚½ãƒ¼ã‚¹
+        ComPtr<ID3D12RootSignature> m_rootSignature;        // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£
+        ComPtr<ID3D12PipelineState> m_pipelineState;        // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆ
+        ComPtr<ID3D12Resource> m_vertexBuffer;              // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
+        D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView{};      // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ãƒ“ãƒ¥ãƒ¼
 
-        // OŠpŒ`‚Ì’¸“_ƒf[ƒ^
+        // ä¸‰è§’å½¢ã®é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿
         std::array<Vertex, 3> m_triangleVertices;
 
-        // ‰Šú‰»—pƒƒ\ƒbƒh
+        // åˆæœŸåŒ–ç”¨ãƒ¡ã‚½ãƒƒãƒ‰
         [[nodiscard]] Utils::VoidResult createRootSignature();
         [[nodiscard]] Utils::VoidResult createShaders();
         [[nodiscard]] Utils::VoidResult createPipelineState();
         [[nodiscard]] Utils::VoidResult createVertexBuffer();
 
-        // OŠpŒ`‚Ì’¸“_ƒf[ƒ^‚ğİ’è
+        // ä¸‰è§’å½¢ã®é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
         void setupTriangleVertices();
 
-        // ƒ[ƒ‹ƒhs—ñ‚ğXV
+        // ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã‚’æ›´æ–°
         void updateWorldMatrix();
     };
 }

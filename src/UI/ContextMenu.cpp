@@ -1,4 +1,4 @@
-//src/UI/ContextMenu.cpp
+﻿//src/UI/ContextMenu.cpp
 #include "ContextMenu.hpp"
 #include "imgui.h"
 #include "../Utils/Common.hpp"
@@ -63,7 +63,7 @@ namespace Engine::UI
 
     void ContextMenu::drawModals()
     {
-        // Delete確認ダイアログ
+        // Delete遒ｺ隱阪ム繧､繧｢繝ｭ繧ｰ
         if (m_showDeleteConfirm && m_deleteTarget)
         {
             ImGui::OpenPopup("Delete Confirmation");
@@ -102,7 +102,7 @@ namespace Engine::UI
             }
         }
 
-        // Renameダイアログ
+        // Rename繝繧､繧｢繝ｭ繧ｰ
         if (m_showRenameDialog && m_renameTarget)
         {
             ImGui::OpenPopup("Rename Object");
@@ -159,16 +159,16 @@ namespace Engine::UI
         {
             draw3DObjectMenu();
 
-            // 将来的に追加予定
+            // 蟆・擂逧・↓霑ｽ蜉莠亥ｮ・
             if (ImGui::BeginMenu("Light"))
             {
                 if (ImGui::MenuItem("Directional Light"))
                 {
-                    // TODO: ライト作成
+                    // TODO: 繝ｩ繧､繝井ｽ懈・
                 }
                 if (ImGui::MenuItem("Point Light"))
                 {
-                    // TODO: ポイントライト作成
+                    // TODO: 繝昴う繝ｳ繝医Λ繧､繝井ｽ懈・
                 }
                 ImGui::EndMenu();
             }
@@ -177,7 +177,7 @@ namespace Engine::UI
             {
                 if (ImGui::MenuItem("Camera"))
                 {
-                    // TODO: カメラ作成
+                    // TODO: 繧ｫ繝｡繝ｩ菴懈・
                 }
                 ImGui::EndMenu();
             }
@@ -253,7 +253,7 @@ namespace Engine::UI
             return "GameObject";
         }
 
-        // シンプルなカウンタベースの実装
+        // 繧ｷ繝ｳ繝励Ν縺ｪ繧ｫ繧ｦ繝ｳ繧ｿ繝吶・繧ｹ縺ｮ螳溯｣・
         static int globalCounter = 0;
         globalCounter++;
 

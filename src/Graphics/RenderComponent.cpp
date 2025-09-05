@@ -1,11 +1,11 @@
-// src/Graphics/RenderComponent.cpp
+﻿// src/Graphics/RenderComponent.cpp
 #include "RenderComponent.hpp"
 #include <algorithm>
 
 namespace Engine::Graphics
 {
 	//==========================================================================================
-	//RenderComponent実装
+	//RenderComponent螳溯｣・
 	//==========================================================================================
 	RenderComponent::RenderComponent(RenderableType type)
 		:m_renderableType(type)
@@ -29,7 +29,7 @@ namespace Engine::Graphics
 
 		Utils::log_info("RenderComponent::initialize - Device and ShaderManager assigned successfully");
 
-		// ShaderManagerの有効性を再確認
+		// ShaderManager縺ｮ譛牙柑諤ｧ繧貞・遒ｺ隱・
 		if (!m_shaderManager) {
 			Utils::log_warning("ShaderManager became null after assignment");
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null after assignment"));
@@ -54,29 +54,29 @@ namespace Engine::Graphics
 			return;
 		}
 
-		// Transformから位置・回転・スケールを取得
+		// Transform縺九ｉ菴咲ｽｮ繝ｻ蝗櫁ｻ｢繝ｻ繧ｹ繧ｱ繝ｼ繝ｫ繧貞叙蠕・
 		auto* transform = getGameObject()->getTransform();
 		if (!transform)
 		{
 			return;
 		}
 
-		// デフォルトマテリアルがない場合は設定
+		// 繝・ヵ繧ｩ繝ｫ繝医・繝・Μ繧｢繝ｫ縺後↑縺・ｴ蜷医・險ｭ螳・
 		if (!m_material && m_materialManager)
 		{
 			m_material = m_materialManager->getDefaultMaterial();
 		}
 		/*
-		// マテリアルの色をRenderComponentの色と組み合わせる
+		// 繝槭ユ繝ｪ繧｢繝ｫ縺ｮ濶ｲ繧坦enderComponent縺ｮ濶ｲ縺ｨ邨・∩蜷医ｏ縺帙ｋ
 		if (m_material)
 		{
 			auto props = m_material->getProperties();
 
-			// RenderComponentのm_colorをマテリアルのalbedoに反映
+			// RenderComponent縺ｮm_color繧偵・繝・Μ繧｢繝ｫ縺ｮalbedo縺ｫ蜿肴丐
 			props.albedo = m_color;
 			m_material->setProperties(props);
 
-			// マテリアルの定数バッファを更新
+			// 繝槭ユ繝ｪ繧｢繝ｫ縺ｮ螳壽焚繝舌ャ繝輔ぃ繧呈峩譁ｰ
 			auto updateResult = m_material->updateConstantBuffer();
 			if (!updateResult)
 			{
@@ -86,7 +86,7 @@ namespace Engine::Graphics
 		}
 		*/
 
-		// レンダラーのTransformを更新
+		// 繝ｬ繝ｳ繝繝ｩ繝ｼ縺ｮTransform繧呈峩譁ｰ
 		switch (m_renderableType)
 		{
 		case RenderableType::Triangle:
@@ -145,17 +145,17 @@ namespace Engine::Graphics
 
 	Utils::VoidResult RenderComponent::initializeRenderer()
 	{
-		// 既存のレンダラーをクリア
+		// 譌｢蟄倥・繝ｬ繝ｳ繝繝ｩ繝ｼ繧偵け繝ｪ繧｢
 		m_triangleRenderer.reset();
 		m_cubeRenderer.reset();
 
-		// ShaderManagerの有効性を確認
+		// ShaderManager縺ｮ譛牙柑諤ｧ繧堤｢ｺ隱・
 		if (!m_shaderManager) {
 			Utils::log_warning("ShaderManager is null in RenderComponent::initializeRenderer");
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null in RenderComponent"));
 		}
 
-		// レンダラータイプに応じて作成
+		// 繝ｬ繝ｳ繝繝ｩ繝ｼ繧ｿ繧､繝励↓蠢懊§縺ｦ菴懈・
 		switch (m_renderableType)
 		{
 		case RenderableType::Triangle:
@@ -194,7 +194,7 @@ namespace Engine::Graphics
 	}
 
 	//==========================================================================================
-	//Scene実装
+	//Scene螳溯｣・
 	//==========================================================================================
 	Utils::VoidResult Scene::initialize(Device* device)
 	{
@@ -222,22 +222,22 @@ namespace Engine::Graphics
 			return;
 		}
 
-		// オブジェクト名を保存
+		// 繧ｪ繝悶ず繧ｧ繧ｯ繝亥錐繧剃ｿ晏ｭ・
 		std::string objectName = gameObject->getName();
 
-		// イテレータで検索
+		// 繧､繝・Ξ繝ｼ繧ｿ縺ｧ讀懃ｴ｢
 		auto it = m_gameObjects.begin();
 		while (it != m_gameObjects.end())
 		{
 			if (it->get() == gameObject)
 			{
-				// オブジェクトを非アクティブ化
+				// 繧ｪ繝悶ず繧ｧ繧ｯ繝医ｒ髱槭い繧ｯ繝・ぅ繝門喧
 				(*it)->setActive(false);
 
-				// 破棄処理を実行
+				// 遐ｴ譽・・逅・ｒ螳溯｡・
 				(*it)->destroy();
 
-				// vectorから削除
+				// vector縺九ｉ蜑企勁
 				it = m_gameObjects.erase(it);
 
 				Utils::log_info(std::format("GameObject '{}' destroyed successfully", objectName));

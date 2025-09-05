@@ -1,24 +1,24 @@
-#pragma once
+ï»¿#pragma once
 // src/Graphics/VertexTypes.hpp
 #pragma once
 
 namespace Engine::Graphics
 {
-    // ’¸“_ƒf[ƒ^\‘¢‘Ì
+    // é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿æ§‹é€ ä½“
     struct Vertex
     {
         float position[3];  // x, y, z
         float color[3];     // r, g, b
     };
 
-    // «—ˆ“I‚É‚ÍƒeƒNƒXƒ`ƒƒÀ•W•t‚«‚Ì’¸“_‚à’Ç‰Á—\’è
+    // å°†æ¥çš„ã«ã¯ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ä»˜ãã®é ‚ç‚¹ã‚‚è¿½åŠ äºˆå®š
     struct VertexPosTexture
     {
         float position[3];  // x, y, z
         float texCoord[2];  // u, v
     };
 
-    // –@ü•t‚«‚Ì’¸“_iƒ‰ƒCƒeƒBƒ“ƒO—pj
+    // æ³•ç·šä»˜ãã®é ‚ç‚¹ï¼ˆãƒ©ã‚¤ãƒ†ã‚£ãƒ³ã‚°ç”¨ï¼‰
     struct VertexPosNormal
     {
         float position[3];  // x, y, z

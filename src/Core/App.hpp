@@ -1,4 +1,4 @@
-// src/Core/App.hpp
+ï»¿// src/Core/App.hpp
 #pragma once
 
 #include <Windows.h>
@@ -19,6 +19,7 @@
 #include "../Graphics/ShaderManager.hpp"
 #include "../UI/ProjectWindow.hpp"
 #include "../UI/ContextMenu.hpp"
+#include "../Scripting/ScriptManager.hpp"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -34,73 +35,73 @@ namespace Engine::Core
         App() = default;
         ~App() = default;
 
-        // ƒVƒ“ƒOƒ‹ƒgƒ““I‚Èg—p‚ğ‘z’è‚µ‚Ä‚¢‚é‚Ì‚ÅƒRƒs[Eƒ€[ƒu‹Ö~
+        // ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³çš„ãªä½¿ç”¨ã‚’æƒ³å®šã—ã¦ã„ã‚‹ã®ã§ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
         App(const App&) = delete;
         App& operator=(const App&) = delete;
         App(App&&) = delete;
         App& operator=(App&&) = delete;
 
-        // ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì‰Šú‰»
+        // ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initialize(HINSTANCE hInstance, int nCmdShow);
 
-        // ƒƒCƒ“ƒ‹[ƒv‚ğÀs
+        // ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ—ã‚’å®Ÿè¡Œ
         [[nodiscard]] int run();
 
     private:
-        // ƒEƒBƒ“ƒhƒE‚ÆƒfƒoƒCƒXŠÇ—
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã¨ãƒ‡ãƒã‚¤ã‚¹ç®¡ç†
         Window m_window;
         Graphics::Device m_device;
         Graphics::TriangleRenderer m_triangleRenderer;
         Graphics::CubeRenderer m_cubeRenderer;
-        std::vector<Graphics::CubeRenderer> m_cubes; //•¡”‚Ì—§•û‘Ì—p
+        std::vector<Graphics::CubeRenderer> m_cubes; //è¤‡æ•°ã®ç«‹æ–¹ä½“ç”¨
         Graphics::Camera m_camera;
         std::unique_ptr<Graphics::FPSCameraController> m_cameraController;
         Graphics::Scene m_scene;
 
-        // ƒXƒƒbƒvƒ`ƒF[ƒ“ŠÖŒW
-        ComPtr<ID3D12CommandQueue> m_commandQueue;      // GPU–½—ß‚Ì‘—Mæ
-        ComPtr<IDXGISwapChain3> m_swapChain;            // ‰æ–Ê•\¦—pƒoƒbƒtƒ@ŠÇ—
-        ComPtr<ID3D12DescriptorHeap> m_rtvHeap;         // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[—pƒfƒXƒNƒŠƒvƒ^ƒq[ƒv
-        ComPtr<ID3D12Resource> m_renderTargets[2];      // •`‰ææƒoƒbƒtƒ@iƒ_ƒuƒ‹ƒoƒbƒtƒ@ƒŠƒ“ƒOj
+        // ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ãƒ¼ãƒ³é–¢ä¿‚
+        ComPtr<ID3D12CommandQueue> m_commandQueue;      // GPUå‘½ä»¤ã®é€ä¿¡å…ˆ
+        ComPtr<IDXGISwapChain3> m_swapChain;            // ç”»é¢è¡¨ç¤ºç”¨ãƒãƒƒãƒ•ã‚¡ç®¡ç†
+        ComPtr<ID3D12DescriptorHeap> m_rtvHeap;         // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ç”¨ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—
+        ComPtr<ID3D12Resource> m_renderTargets[2];      // æç”»å…ˆãƒãƒƒãƒ•ã‚¡ï¼ˆãƒ€ãƒ–ãƒ«ãƒãƒƒãƒ•ã‚¡ãƒªãƒ³ã‚°ï¼‰
 
-        //[“xƒoƒbƒtƒ@ŠÖŒW
+        //æ·±åº¦ãƒãƒƒãƒ•ã‚¡é–¢ä¿‚
         ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
         ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
-        // ƒRƒ}ƒ“ƒhŠÖŒW
-        ComPtr<ID3D12CommandAllocator> m_commandAllocator;  // ƒRƒ}ƒ“ƒhƒŠƒXƒg—pƒƒ‚ƒŠŠÇ—
-        ComPtr<ID3D12GraphicsCommandList> m_commandList;    // GPU–½—ß‚Ì‹L˜^
+        // ã‚³ãƒãƒ³ãƒ‰é–¢ä¿‚
+        ComPtr<ID3D12CommandAllocator> m_commandAllocator;  // ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆç”¨ãƒ¡ãƒ¢ãƒªç®¡ç†
+        ComPtr<ID3D12GraphicsCommandList> m_commandList;    // GPUå‘½ä»¤ã®è¨˜éŒ²
 
-        // “¯Šú—p
-        ComPtr<ID3D12Fence> m_fence;        // CPU-GPU“¯Šú—p
-        UINT64 m_fenceValue = 0;            // ƒtƒFƒ“ƒX’l
-        HANDLE m_fenceEvent = nullptr;      // ƒtƒFƒ“ƒXƒCƒxƒ“ƒg
+        // åŒæœŸç”¨
+        ComPtr<ID3D12Fence> m_fence;        // CPU-GPUåŒæœŸç”¨
+        UINT64 m_fenceValue = 0;            // ãƒ•ã‚§ãƒ³ã‚¹å€¤
+        HANDLE m_fenceEvent = nullptr;      // ãƒ•ã‚§ãƒ³ã‚¹ã‚¤ãƒ™ãƒ³ãƒˆ
 
-        // •`‰æŠÖŒW
-        UINT m_frameIndex = 0;              // Œ»İ‚ÌƒtƒŒ[ƒ€ƒCƒ“ƒfƒbƒNƒX
+        // æç”»é–¢ä¿‚
+        UINT m_frameIndex = 0;              // ç¾åœ¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
 
         bool m_isResizing = false;
         std::mutex m_resizeMutex;
-        // ŠÔŠÇ—
+        // æ™‚é–“ç®¡ç†
         std::chrono::high_resolution_clock::time_point m_lastFrameTime{};
         float m_deltaTime = 0.0f;
         float m_currentFPS = 0.0f;
         int m_frameCount = 0;
         float m_frameTimeAccumulator = 0.0f;
 
-        //ImGuiŠÖŒW‚ÌƒXƒ}[ƒgƒ|ƒCƒ“ƒ^
+        //ImGuié–¢ä¿‚ã®ã‚¹ãƒãƒ¼ãƒˆãƒã‚¤ãƒ³ã‚¿
         UI::ImGuiManager m_imguiManager;
         std::unique_ptr<UI::DebugWindow> m_debugWindow;
         std::unique_ptr<UI::SceneHierarchyWindow> m_hierarchyWindow;
         std::unique_ptr<UI::InspectorWindow> m_inspectorWindow;
         std::unique_ptr<UI::ProjectWindow> m_projectWindow;
 
-        //ƒ}ƒeƒŠƒAƒ‹ŠÖŒW
+        //ãƒãƒ†ãƒªã‚¢ãƒ«é–¢ä¿‚
         Graphics::MaterialManager m_materialManager;
         Graphics::TextureManager m_textureManager;
         std::unique_ptr<Graphics::ShaderManager> m_shaderManager;
         
-        //ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[ŠÖŒW
+        //ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼é–¢ä¿‚
         Core::GameObject* createPrimitiveObject(UI::PrimitiveType type, const std::string& name);
         void deleteGameObject(Core::GameObject* object);
         Core::GameObject* duplicateGameObject(Core::GameObject* original);
@@ -108,10 +109,12 @@ namespace Engine::Core
         Graphics::RenderableType primitiveToRenderableType(UI::PrimitiveType type);
         UI::PrimitiveType renderableToPrimitiveType(Graphics::RenderableType renderType);
         std::string generateUniqueName(const std::string& baseName);
-        // unique_ptr‚É•ÏX
+        // unique_ptrã«å¤‰æ›´
+
+        std::unique_ptr<Scripting::ScriptManager> m_scriptManager;
      
 
-        // ‰Šú‰»ˆ—
+        // åˆæœŸåŒ–å‡¦ç†
         [[nodiscard]] Utils::VoidResult initD3D();
         [[nodiscard]] Utils::VoidResult initializeInput();
         [[nodiscard]] Utils::VoidResult createCommandQueue();
@@ -121,25 +124,25 @@ namespace Engine::Core
         [[nodiscard]] Utils::VoidResult createCommandObjects();
         [[nodiscard]] Utils::VoidResult createSyncObjects();
 
-        // XVE•`‰æˆ—
+        // æ›´æ–°ãƒ»æç”»å‡¦ç†
         void update();
         void render();
 
-        // ŠÔŠÇ—
+        // æ™‚é–“ç®¡ç†
         void updateDeltaTime();
         void processInput();
 
-        // ƒtƒŒ[ƒ€Š®—¹‘Ò‚¿
+        // ãƒ•ãƒ¬ãƒ¼ãƒ å®Œäº†å¾…ã¡
         void waitForPreviousFrame();
 
-        // ƒŠƒ\[ƒX‚Ì”jŠü
+        // ãƒªã‚½ãƒ¼ã‚¹ã®ç ´æ£„
         void cleanup();
 
-        // ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰
+        // ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©
         void onWindowResize(int width, int height);
         void onWindowClose();
 
-        // “ü—ÍƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰
+        // å…¥åŠ›ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©
         void onKeyPressed(Input::KeyCode key);
         void onKeyReleased(Input::KeyCode key);
         void onMouseMove(int x, int y, int deltaX, int deltaY);

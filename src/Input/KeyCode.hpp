@@ -1,4 +1,4 @@
-// src/Input/KeyCode.hpp
+ï»¿// src/Input/KeyCode.hpp
 #pragma once
 
 #include <Windows.h>
@@ -6,49 +6,49 @@
 
 namespace Engine::Input
 {
-    // ƒL[ƒR[ƒh’è‹`
-    // Win32 Virtual Key Codes‚ğƒx[ƒX‚Æ‚µ‚Ä‚¢‚é‚ªA
-    // ƒGƒ“ƒWƒ““Æ©‚ÌŠg’£‚à‰Â”\
+    // ã‚­ãƒ¼ã‚³ãƒ¼ãƒ‰å®šç¾©
+    // Win32 Virtual Key Codesã‚’ãƒ™ãƒ¼ã‚¹ã¨ã—ã¦ã„ã‚‹ãŒã€
+    // ã‚¨ãƒ³ã‚¸ãƒ³ç‹¬è‡ªã®æ‹¡å¼µã‚‚å¯èƒ½
     enum class KeyCode : uint32_t
     {
-        // •¶šƒL[
+        // æ–‡å­—ã‚­ãƒ¼
         A = 0x41, B = 0x42, C = 0x43, D = 0x44, E = 0x45, F = 0x46,
         G = 0x47, H = 0x48, I = 0x49, J = 0x4A, K = 0x4B, L = 0x4C,
         M = 0x4D, N = 0x4E, O = 0x4F, P = 0x50, Q = 0x51, R = 0x52,
         S = 0x53, T = 0x54, U = 0x55, V = 0x56, W = 0x57, X = 0x58,
         Y = 0x59, Z = 0x5A,
 
-        // ”šƒL[iƒƒCƒ“j
+        // æ•°å­—ã‚­ãƒ¼ï¼ˆãƒ¡ã‚¤ãƒ³ï¼‰
         Key0 = 0x30, Key1 = 0x31, Key2 = 0x32, Key3 = 0x33, Key4 = 0x34,
         Key5 = 0x35, Key6 = 0x36, Key7 = 0x37, Key8 = 0x38, Key9 = 0x39,
 
-        // ”šƒL[iƒeƒ“ƒL[j
+        // æ•°å­—ã‚­ãƒ¼ï¼ˆãƒ†ãƒ³ã‚­ãƒ¼ï¼‰
         Numpad0 = VK_NUMPAD0, Numpad1 = VK_NUMPAD1, Numpad2 = VK_NUMPAD2,
         Numpad3 = VK_NUMPAD3, Numpad4 = VK_NUMPAD4, Numpad5 = VK_NUMPAD5,
         Numpad6 = VK_NUMPAD6, Numpad7 = VK_NUMPAD7, Numpad8 = VK_NUMPAD8,
         Numpad9 = VK_NUMPAD9,
 
-        // ‹@”\ƒL[
+        // æ©Ÿèƒ½ã‚­ãƒ¼
         F1 = VK_F1, F2 = VK_F2, F3 = VK_F3, F4 = VK_F4,
         F5 = VK_F5, F6 = VK_F6, F7 = VK_F7, F8 = VK_F8,
         F9 = VK_F9, F10 = VK_F10, F11 = VK_F11, F12 = VK_F12,
 
-        // –îˆóƒL[
+        // çŸ¢å°ã‚­ãƒ¼
         Up = VK_UP, Down = VK_DOWN, Left = VK_LEFT, Right = VK_RIGHT,
 
-        // CüƒL[
+        // ä¿®é£¾ã‚­ãƒ¼
         LeftShift = VK_LSHIFT, RightShift = VK_RSHIFT,
         LeftCtrl = VK_LCONTROL, RightCtrl = VK_RCONTROL,
         LeftAlt = VK_LMENU, RightAlt = VK_RMENU,
         LeftWin = VK_LWIN, RightWin = VK_RWIN,
 
-        // “ÁêƒL[
+        // ç‰¹æ®Šã‚­ãƒ¼
         Space = VK_SPACE, Enter = VK_RETURN, Escape = VK_ESCAPE,
         Tab = VK_TAB, Backspace = VK_BACK, Delete = VK_DELETE,
         Insert = VK_INSERT, Home = VK_HOME, End = VK_END,
         PageUp = VK_PRIOR, PageDown = VK_NEXT,
 
-        // ‹æØ‚è•¶š
+        // åŒºåˆ‡ã‚Šæ–‡å­—
         Semicolon = VK_OEM_1,        // ; :
         Plus = VK_OEM_PLUS,          // + =
         Comma = VK_OEM_COMMA,        // , <
@@ -61,18 +61,18 @@ namespace Engine::Input
         RightBracket = VK_OEM_6,     // ] }
         Quote = VK_OEM_7,            // ' "
 
-        // ƒ}ƒEƒXƒ{ƒ^ƒ“i“ü—ÍƒVƒXƒeƒ€‚Ì“ˆê«‚Ì‚½‚ßj
+        // ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ï¼ˆå…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ ã®çµ±ä¸€æ€§ã®ãŸã‚ï¼‰
         MouseLeft = VK_LBUTTON,
         MouseRight = VK_RBUTTON,
         MouseMiddle = VK_MBUTTON,
         MouseX1 = VK_XBUTTON1,
         MouseX2 = VK_XBUTTON2,
 
-        // –³Œø’l
+        // ç„¡åŠ¹å€¤
         None = 0
     };
 
-    // ƒL[ƒR[ƒh‚ğ•¶š—ñ‚É•ÏŠ·iƒfƒoƒbƒO—pj
+    // ã‚­ãƒ¼ã‚³ãƒ¼ãƒ‰ã‚’æ–‡å­—åˆ—ã«å¤‰æ›ï¼ˆãƒ‡ãƒãƒƒã‚°ç”¨ï¼‰
     inline const char* keyCodeToString(KeyCode keyCode)
     {
         switch (keyCode)
@@ -147,14 +147,14 @@ namespace Engine::Input
         }
     }
 
-    // •¶š—ñ‚ğƒL[ƒR[ƒh‚É•ÏŠ·iİ’èƒtƒ@ƒCƒ‹“Ç‚İ‚İ—pj
+    // æ–‡å­—åˆ—ã‚’ã‚­ãƒ¼ã‚³ãƒ¼ãƒ‰ã«å¤‰æ›ï¼ˆè¨­å®šãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿ç”¨ï¼‰
     inline KeyCode stringToKeyCode(const char* str)
     {
         if (!str) return KeyCode::None;
 
         std::string s(str);
 
-        // •¶šƒL[
+        // æ–‡å­—ã‚­ãƒ¼
         if (s == "A") return KeyCode::A;
         if (s == "B") return KeyCode::B;
         if (s == "C") return KeyCode::C;
@@ -182,7 +182,7 @@ namespace Engine::Input
         if (s == "Y") return KeyCode::Y;
         if (s == "Z") return KeyCode::Z;
 
-        // ”šƒL[
+        // æ•°å­—ã‚­ãƒ¼
         if (s == "0") return KeyCode::Key0;
         if (s == "1") return KeyCode::Key1;
         if (s == "2") return KeyCode::Key2;
@@ -194,7 +194,7 @@ namespace Engine::Input
         if (s == "8") return KeyCode::Key8;
         if (s == "9") return KeyCode::Key9;
 
-        // “ÁêƒL[
+        // ç‰¹æ®Šã‚­ãƒ¼
         if (s == "Space") return KeyCode::Space;
         if (s == "Enter") return KeyCode::Enter;
         if (s == "Escape") return KeyCode::Escape;
@@ -206,7 +206,7 @@ namespace Engine::Input
         if (s == "LeftAlt") return KeyCode::LeftAlt;
         if (s == "RightAlt") return KeyCode::RightAlt;
 
-        // –îˆóƒL[
+        // çŸ¢å°ã‚­ãƒ¼
         if (s == "Up") return KeyCode::Up;
         if (s == "Down") return KeyCode::Down;
         if (s == "Left") return KeyCode::Left;

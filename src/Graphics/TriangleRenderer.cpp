@@ -1,4 +1,4 @@
-// src/Graphics/TriangleRenderer.cpp
+﻿// src/Graphics/TriangleRenderer.cpp
 #include "TriangleRenderer.hpp"
 #include <format>
 
@@ -10,7 +10,7 @@ namespace Engine::Graphics
     {
         Utils::log_info("TriangleRenderer::initialize START");
 
-        // より詳細なnullチェック
+        // 繧医ｊ隧ｳ邏ｰ縺ｪnull繝√ぉ繝・け
         if (!device) {
             Utils::log_warning("Device is null in TriangleRenderer::initialize");
             return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Device is null"));
@@ -31,20 +31,20 @@ namespace Engine::Graphics
 
         Utils::log_info("Initializing Triangle Renderer...");
 
-        // 定数バッファマネージャーを初期化
+        // 螳壽焚繝舌ャ繝輔ぃ繝槭ロ繝ｼ繧ｸ繝｣繝ｼ繧貞・譛溷喧
         Utils::log_info("Initializing constant buffer manager...");
         auto constantBufferResult = m_constantBufferManager.initialize(device);
         if (!constantBufferResult) return constantBufferResult;
 
-        // 三角形の頂点データを設定
+        // 荳芽ｧ貞ｽ｢縺ｮ鬆らせ繝・・繧ｿ繧定ｨｭ螳・
         Utils::log_info("Setting up triangle vertices...");
         setupTriangleVertices();
 
-        // ワールド行列を初期化
+        // 繝ｯ繝ｼ繝ｫ繝芽｡悟・繧貞・譛溷喧
         Utils::log_info("Updating world matrix...");
         updateWorldMatrix();
 
-        // 各コンポーネントを順次初期化
+        // 蜷・さ繝ｳ繝昴・繝阪Φ繝医ｒ鬆・ｬ｡蛻晄悄蛹・
         Utils::log_info("Creating root signature...");
         auto rootSigResult = createRootSignature();
         if (!rootSigResult) return rootSigResult;
@@ -63,13 +63,13 @@ namespace Engine::Graphics
 
     void TriangleRenderer::render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex)
     {
-        // デフォルトマテリアルがない場合は設定
+        // 繝・ヵ繧ｩ繝ｫ繝医・繝・Μ繧｢繝ｫ縺後↑縺・ｴ蜷医・險ｭ螳・
         if (!m_material && m_materialManager)
         {
             m_material = m_materialManager->getDefaultMaterial();
         }
 
-        // 定数バッファを更新
+        // 螳壽焚繝舌ャ繝輔ぃ繧呈峩譁ｰ
         CameraConstants cameraConstants{};
         cameraConstants.viewMatrix = camera.getViewMatrix();
         cameraConstants.projectionMatrix = camera.getProjectionMatrix();
@@ -84,15 +84,15 @@ namespace Engine::Graphics
         m_constantBufferManager.updateCameraConstants(frameIndex, cameraConstants);
         m_constantBufferManager.updateObjectConstants(frameIndex, objectConstants);
 
-        // ルートシグネチャとパイプラインステートを設定
+        // 繝ｫ繝ｼ繝医す繧ｰ繝阪メ繝｣縺ｨ繝代う繝励Λ繧､繝ｳ繧ｹ繝・・繝医ｒ險ｭ螳・
         commandList->SetGraphicsRootSignature(m_rootSignature.Get());
         commandList->SetPipelineState(m_pipelineState.Get());
 
-        // 定数バッファを設定
+        // 螳壽焚繝舌ャ繝輔ぃ繧定ｨｭ螳・
         commandList->SetGraphicsRootConstantBufferView(0, m_constantBufferManager.getCameraConstantsGPUAddress(frameIndex));
         commandList->SetGraphicsRootConstantBufferView(1, m_constantBufferManager.getObjectConstantsGPUAddress(frameIndex));
 
-        // ★ マテリアル定数バッファをバインド
+        // 笘・繝槭ユ繝ｪ繧｢繝ｫ螳壽焚繝舌ャ繝輔ぃ繧偵ヰ繧､繝ｳ繝・
         if (m_material && m_material->getConstantBuffer())
         {
             commandList->SetGraphicsRootConstantBufferView(2,
@@ -103,40 +103,40 @@ namespace Engine::Graphics
             Utils::log_warning("Material constant buffer is null in TriangleRenderer");
         }
 
-        // プリミティブトポロジーを設定（三角形リスト）
+        // 繝励Μ繝溘ユ繧｣繝悶ヨ繝昴Ο繧ｸ繝ｼ繧定ｨｭ螳夲ｼ井ｸ芽ｧ貞ｽ｢繝ｪ繧ｹ繝茨ｼ・
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // 頂点バッファを設定
+        // 鬆らせ繝舌ャ繝輔ぃ繧定ｨｭ螳・
         commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 
-        // 三角形を描画（3頂点、1インスタンス）
+        // 荳芽ｧ貞ｽ｢繧呈緒逕ｻ・・鬆らせ縲・繧､繝ｳ繧ｹ繧ｿ繝ｳ繧ｹ・・
         commandList->DrawInstanced(3, 1, 0, 0);
     }
 
     Utils::VoidResult TriangleRenderer::createRootSignature()
     {
-        // 3つの定数バッファ用ルートシグネチャ（Camera, Object, Material）
+        // 3縺､縺ｮ螳壽焚繝舌ャ繝輔ぃ逕ｨ繝ｫ繝ｼ繝医す繧ｰ繝阪メ繝｣・・amera, Object, Material・・
         D3D12_ROOT_PARAMETER rootParameters[3];
 
-        // カメラ定数バッファ (b0)
+        // 繧ｫ繝｡繝ｩ螳壽焚繝舌ャ繝輔ぃ (b0)
         rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[0].Descriptor.ShaderRegister = 0;
         rootParameters[0].Descriptor.RegisterSpace = 0;
         rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // オブジェクト定数バッファ (b1)
+        // 繧ｪ繝悶ず繧ｧ繧ｯ繝亥ｮ壽焚繝舌ャ繝輔ぃ (b1)
         rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[1].Descriptor.ShaderRegister = 1;
         rootParameters[1].Descriptor.RegisterSpace = 0;
         rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // マテリアル定数バッファ (b2)
+        // 繝槭ユ繝ｪ繧｢繝ｫ螳壽焚繝舌ャ繝輔ぃ (b2)
         rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[2].Descriptor.ShaderRegister = 2;
         rootParameters[2].Descriptor.RegisterSpace = 0;
         rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // Static Samplerを追加（シェーダーのs0に対応）
+        // Static Sampler繧定ｿｽ蜉・医す繧ｧ繝ｼ繝繝ｼ縺ｮs0縺ｫ蟇ｾ蠢懶ｼ・
         D3D12_STATIC_SAMPLER_DESC samplerDesc{};
         samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
         samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -155,7 +155,7 @@ namespace Engine::Graphics
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
         rootSignatureDesc.NumParameters = _countof(rootParameters);
         rootSignatureDesc.pParameters = rootParameters;
-        rootSignatureDesc.NumStaticSamplers = 1; // 1つのサンプラーを追加
+        rootSignatureDesc.NumStaticSamplers = 1; // 1縺､縺ｮ繧ｵ繝ｳ繝励Λ繝ｼ繧定ｿｽ蜉
         rootSignatureDesc.pStaticSamplers = &samplerDesc;
         rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
@@ -182,7 +182,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult TriangleRenderer::createShaders()
     {
-        // ShaderCompileDesc を使用してシェーダーをロード
+        // ShaderCompileDesc 繧剃ｽｿ逕ｨ縺励※繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵Ο繝ｼ繝・
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
@@ -212,7 +212,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult TriangleRenderer::createPipelineState()
     {
-        // まずシェーダーをロード（キャッシュに存在しない場合のため）
+        // 縺ｾ縺壹す繧ｧ繝ｼ繝繝ｼ繧偵Ο繝ｼ繝会ｼ医く繝｣繝・す繝･縺ｫ蟄伜惠縺励↑縺・ｴ蜷医・縺溘ａ・・
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
@@ -239,7 +239,7 @@ namespace Engine::Graphics
             return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load pixel shader"));
         }
 
-        // ロードされたシェーダーを使用（loadShaderの戻り値を直接使用）
+        // 繝ｭ繝ｼ繝峨＆繧後◆繧ｷ繧ｧ繝ｼ繝繝ｼ繧剃ｽｿ逕ｨ・・oadShader縺ｮ謌ｻ繧雁､繧堤峩謗･菴ｿ逕ｨ・・
         auto vertexShader = vertexShaderResult;
         auto pixelShader = pixelShaderResult;
 
@@ -248,20 +248,20 @@ namespace Engine::Graphics
         CHECK_CONDITION(pixelShader != nullptr, Utils::ErrorType::ShaderCompilation,
             "Pixel shader is null");
 
-        // 入力レイアウトを定義
+        // 蜈･蜉帙Ξ繧､繧｢繧ｦ繝医ｒ螳夂ｾｩ
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
             { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
             { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
         };
 
-        // パイプラインステートの設定
+        // 繝代う繝励Λ繧､繝ｳ繧ｹ繝・・繝医・險ｭ螳・
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
         psoDesc.pRootSignature = m_rootSignature.Get();
         psoDesc.VS = { vertexShader->getBytecode(), vertexShader->getBytecodeSize() };
         psoDesc.PS = { pixelShader->getBytecode(), pixelShader->getBytecodeSize() };
 
-        // 軽りの設定は同じ...
+        // 霆ｽ繧翫・險ｭ螳壹・蜷後§...
         psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
         psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
@@ -274,7 +274,7 @@ namespace Engine::Graphics
         psoDesc.RasterizerState.ForcedSampleCount = 0;
         psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-        // ブレンドステート
+        // 繝悶Ξ繝ｳ繝峨せ繝・・繝・
         psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
         psoDesc.BlendState.IndependentBlendEnable = FALSE;
         const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc = {
@@ -289,7 +289,7 @@ namespace Engine::Graphics
             psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
         }
 
-        // 深度ステンシルステート
+        // 豺ｱ蠎ｦ繧ｹ繝・Φ繧ｷ繝ｫ繧ｹ繝・・繝・
         psoDesc.DepthStencilState.DepthEnable = TRUE;
         psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
         psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
@@ -303,7 +303,7 @@ namespace Engine::Graphics
         psoDesc.DepthStencilState.FrontFace = defaultStencilOp;
         psoDesc.DepthStencilState.BackFace = defaultStencilOp;
 
-        // その他の設定
+        // 縺昴・莉悶・險ｭ螳・
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.NumRenderTargets = 1;
@@ -321,7 +321,7 @@ namespace Engine::Graphics
     {
         const UINT vertexBufferSize = sizeof(m_triangleVertices);
 
-        // 頂点バッファ用のヒーププロパティ（アップロードヒープ）
+        // 鬆らせ繝舌ャ繝輔ぃ逕ｨ縺ｮ繝偵・繝励・繝ｭ繝代ユ繧｣・医い繝・・繝ｭ繝ｼ繝峨ヲ繝ｼ繝暦ｼ・
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -329,7 +329,7 @@ namespace Engine::Graphics
         heapProps.CreationNodeMask = 1;
         heapProps.VisibleNodeMask = 1;
 
-        // リソース記述子
+        // 繝ｪ繧ｽ繝ｼ繧ｹ險倩ｿｰ蟄・
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         resourceDesc.Alignment = 0;
@@ -352,9 +352,9 @@ namespace Engine::Graphics
             IID_PPV_ARGS(&m_vertexBuffer)),
             Utils::ErrorType::ResourceCreation, "Failed to create vertex buffer");
 
-        // 頂点データをバッファにコピー
+        // 鬆らせ繝・・繧ｿ繧偵ヰ繝・ヵ繧｡縺ｫ繧ｳ繝斐・
         UINT8* pVertexDataBegin;
-        D3D12_RANGE readRange{ 0, 0 }; // CPUから読み取らないので範囲は0
+        D3D12_RANGE readRange{ 0, 0 }; // CPU縺九ｉ隱ｭ縺ｿ蜿悶ｉ縺ｪ縺・・縺ｧ遽・峇縺ｯ0
 
         CHECK_HR(m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)),
             Utils::ErrorType::ResourceCreation, "Failed to map vertex buffer");
@@ -362,7 +362,7 @@ namespace Engine::Graphics
         memcpy(pVertexDataBegin, m_triangleVertices.data(), sizeof(m_triangleVertices));
         m_vertexBuffer->Unmap(0, nullptr);
 
-        // 頂点バッファビューを設定
+        // 鬆らせ繝舌ャ繝輔ぃ繝薙Η繝ｼ繧定ｨｭ螳・
         m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
         m_vertexBufferView.StrideInBytes = sizeof(Vertex);
         m_vertexBufferView.SizeInBytes = vertexBufferSize;
@@ -372,17 +372,17 @@ namespace Engine::Graphics
 
     void TriangleRenderer::setupTriangleVertices()
     {
-        // デバッグ用：小さめの三角形
+        // 繝・ヰ繝・げ逕ｨ・壼ｰ上＆繧√・荳芽ｧ貞ｽ｢
         m_triangleVertices = { {
-            { { 0.0f,  0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} },  // 上：赤
-            { { 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f} },  // 右下：緑
-            { {-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f} }   // 左下：青
+            { { 0.0f,  0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} },  // 荳奇ｼ夊ｵ､
+            { { 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f} },  // 蜿ｳ荳具ｼ夂ｷ・
+            { {-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f} }   // 蟾ｦ荳具ｼ夐搨
         } };
     }
 
     void TriangleRenderer::updateWorldMatrix()
     {
-        // スケール -> 回転 -> 移動の順で行列を合成
+        // 繧ｹ繧ｱ繝ｼ繝ｫ -> 蝗櫁ｻ｢ -> 遘ｻ蜍輔・鬆・〒陦悟・繧貞粋謌・
         Math::Matrix4 scaleMatrix = Math::Matrix4::scaling(m_scale);
         Math::Matrix4 rotationMatrix = Math::Matrix4::rotationX(Math::radians(m_rotation.x)) *
             Math::Matrix4::rotationY(Math::radians(m_rotation.y)) *

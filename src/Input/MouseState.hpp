@@ -1,4 +1,4 @@
-// src/Input/MouseState.hpp
+ï»¿// src/Input/MouseState.hpp
 #pragma once
 
 #include <Windows.h>
@@ -6,71 +6,71 @@
 
 namespace Engine::Input
 {
-    // ƒ}ƒEƒXƒ{ƒ^ƒ“‚Ìó‘Ô‚ğ•\‚·—ñ‹“Œ^
+    // ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ã®çŠ¶æ…‹ã‚’è¡¨ã™åˆ—æŒ™å‹
     enum class MouseButton : uint8_t
     {
         Left = 0,
         Right = 1,
         Middle = 2,
-        X1 = 3,     // ƒTƒCƒhƒ{ƒ^ƒ“1
-        X2 = 4,     // ƒTƒCƒhƒ{ƒ^ƒ“2
-        Count = 5   // ƒ{ƒ^ƒ“”
+        X1 = 3,     // ã‚µã‚¤ãƒ‰ãƒœã‚¿ãƒ³1
+        X2 = 4,     // ã‚µã‚¤ãƒ‰ãƒœã‚¿ãƒ³2
+        Count = 5   // ãƒœã‚¿ãƒ³æ•°
     };
 
-    // ƒ}ƒEƒX‚ÌŒ»İó‘Ô‚ğ•Û‚·‚é\‘¢‘Ì
+    // ãƒã‚¦ã‚¹ã®ç¾åœ¨çŠ¶æ…‹ã‚’ä¿æŒã™ã‚‹æ§‹é€ ä½“
     struct MouseState
     {
-        // Œ»İ‚Ì‰æ–ÊÀ•WˆÊ’u
+        // ç¾åœ¨ã®ç”»é¢åº§æ¨™ä½ç½®
         int x = 0;
         int y = 0;
 
-        // ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌˆÚ“®—Ê
+        // å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã‚‰ã®ç§»å‹•é‡
         int deltaX = 0;
         int deltaY = 0;
 
-        // ƒzƒC[ƒ‹‚Ì‰ñ“]—Êi‚’¼j
+        // ãƒ›ã‚¤ãƒ¼ãƒ«ã®å›è»¢é‡ï¼ˆå‚ç›´ï¼‰
         float wheelDelta = 0.0f;
 
-        // …•½ƒzƒC[ƒ‹‚Ì‰ñ“]—Êi‘Î‰ƒ}ƒEƒX‚Ì‚İj
+        // æ°´å¹³ãƒ›ã‚¤ãƒ¼ãƒ«ã®å›è»¢é‡ï¼ˆå¯¾å¿œãƒã‚¦ã‚¹ã®ã¿ï¼‰
         float horizontalWheelDelta = 0.0f;
 
-        // Šeƒ{ƒ^ƒ“‚Ì‰Ÿ‰ºó‘Ô
+        // å„ãƒœã‚¿ãƒ³ã®æŠ¼ä¸‹çŠ¶æ…‹
         bool buttonStates[static_cast<size_t>(MouseButton::Count)] = { false };
 
-        // ‘OƒtƒŒ[ƒ€‚ÌŠeƒ{ƒ^ƒ“‚Ì‰Ÿ‰ºó‘Ô
+        // å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®å„ãƒœã‚¿ãƒ³ã®æŠ¼ä¸‹çŠ¶æ…‹
         bool prevButtonStates[static_cast<size_t>(MouseButton::Count)] = { false };
 
-        // ƒ}ƒEƒX‚ªƒEƒBƒ“ƒhƒE“à‚É‚ ‚é‚©‚Ç‚¤‚©
+        // ãƒã‚¦ã‚¹ãŒã‚¦ã‚£ãƒ³ãƒ‰ã‚¦å†…ã«ã‚ã‚‹ã‹ã©ã†ã‹
         bool isInWindow = false;
 
-        // ƒ}ƒEƒXƒLƒƒƒvƒ`ƒƒ’†‚©‚Ç‚¤‚©
+        // ãƒã‚¦ã‚¹ã‚­ãƒ£ãƒ—ãƒãƒ£ä¸­ã‹ã©ã†ã‹
         bool isCaptured = false;
 
-        // ƒ}ƒEƒX‚ª‘Š‘Îƒ‚[ƒhiFPSƒQ[ƒ€—pj‚©‚Ç‚¤‚©
+        // ãƒã‚¦ã‚¹ãŒç›¸å¯¾ãƒ¢ãƒ¼ãƒ‰ï¼ˆFPSã‚²ãƒ¼ãƒ ç”¨ï¼‰ã‹ã©ã†ã‹
         bool isRelativeMode = false;
 
-        // ‰‰ñXVƒtƒ‰ƒOideltaŒvZ—pj
+        // åˆå›æ›´æ–°ãƒ•ãƒ©ã‚°ï¼ˆdeltaè¨ˆç®—ç”¨ï¼‰
         bool firstUpdate = true;
 
-        // ƒfƒtƒHƒ‹ƒgƒRƒ“ƒXƒgƒ‰ƒNƒ^
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
         MouseState() = default;
 
-        // ƒRƒs[ƒRƒ“ƒXƒgƒ‰ƒNƒ^‚ÆƒRƒs[‘ã“ü‰‰Zq
+        // ã‚³ãƒ”ãƒ¼ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã¨ã‚³ãƒ”ãƒ¼ä»£å…¥æ¼”ç®—å­
         MouseState(const MouseState& other) = default;
         MouseState& operator=(const MouseState& other) = default;
 
-        // ƒ€[ƒuƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Æƒ€[ƒu‘ã“ü‰‰Zq
+        // ãƒ ãƒ¼ãƒ–ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã¨ãƒ ãƒ¼ãƒ–ä»£å…¥æ¼”ç®—å­
         MouseState(MouseState&& other) noexcept = default;
         MouseState& operator=(MouseState&& other) noexcept = default;
 
-        // w’è‚µ‚½ƒ{ƒ^ƒ“‚ª‰Ÿ‚³‚ê‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN
+        // æŒ‡å®šã—ãŸãƒœã‚¿ãƒ³ãŒæŠ¼ã•ã‚Œã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
         bool isButtonDown(MouseButton button) const
         {
             size_t index = static_cast<size_t>(button);
             return index < static_cast<size_t>(MouseButton::Count) && buttonStates[index];
         }
 
-        // w’è‚µ‚½ƒ{ƒ^ƒ“‚ª¡ƒtƒŒ[ƒ€‚Å‰Ÿ‚³‚ê‚½‚©ƒ`ƒFƒbƒN
+        // æŒ‡å®šã—ãŸãƒœã‚¿ãƒ³ãŒä»Šãƒ•ãƒ¬ãƒ¼ãƒ ã§æŠ¼ã•ã‚ŒãŸã‹ãƒã‚§ãƒƒã‚¯
         bool isButtonPressed(MouseButton button) const
         {
             size_t index = static_cast<size_t>(button);
@@ -78,7 +78,7 @@ namespace Engine::Input
                 buttonStates[index] && !prevButtonStates[index];
         }
 
-        // w’è‚µ‚½ƒ{ƒ^ƒ“‚ª¡ƒtƒŒ[ƒ€‚Å—£‚³‚ê‚½‚©ƒ`ƒFƒbƒN
+        // æŒ‡å®šã—ãŸãƒœã‚¿ãƒ³ãŒä»Šãƒ•ãƒ¬ãƒ¼ãƒ ã§é›¢ã•ã‚ŒãŸã‹ãƒã‚§ãƒƒã‚¯
         bool isButtonReleased(MouseButton button) const
         {
             size_t index = static_cast<size_t>(button);
@@ -86,7 +86,7 @@ namespace Engine::Input
                 !buttonStates[index] && prevButtonStates[index];
         }
 
-        // ‘OƒtƒŒ[ƒ€‚Ìó‘Ô‚ğ•Û‘¶
+        // å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®çŠ¶æ…‹ã‚’ä¿å­˜
         void savePreviousState()
         {
             for (size_t i = 0; i < static_cast<size_t>(MouseButton::Count); ++i)
@@ -95,7 +95,7 @@ namespace Engine::Input
             }
         }
 
-        // ƒ{ƒ^ƒ“ó‘Ô‚ğİ’è
+        // ãƒœã‚¿ãƒ³çŠ¶æ…‹ã‚’è¨­å®š
         void setButtonState(MouseButton button, bool pressed)
         {
             size_t index = static_cast<size_t>(button);
@@ -105,7 +105,7 @@ namespace Engine::Input
             }
         }
 
-        // ˆÊ’u‚ğİ’è‚µ‚Äƒfƒ‹ƒ^‚ğŒvZ
+        // ä½ç½®ã‚’è¨­å®šã—ã¦ãƒ‡ãƒ«ã‚¿ã‚’è¨ˆç®—
         void setPosition(int newX, int newY)
         {
             if (firstUpdate)
@@ -124,14 +124,14 @@ namespace Engine::Input
             y = newY;
         }
 
-        // ƒzƒC[ƒ‹’l‚ğİ’è
+        // ãƒ›ã‚¤ãƒ¼ãƒ«å€¤ã‚’è¨­å®š
         void setWheelDelta(float vertical, float horizontal = 0.0f)
         {
             wheelDelta = vertical;
             horizontalWheelDelta = horizontal;
         }
 
-        // ó‘Ô‚ğƒŠƒZƒbƒg
+        // çŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆ
         void reset()
         {
             deltaX = 0;
@@ -152,7 +152,7 @@ namespace Engine::Input
         }
     };
 
-    // ƒ}ƒEƒXƒ{ƒ^ƒ“‚ğ•¶š—ñ‚É•ÏŠ·iƒfƒoƒbƒO—pj
+    // ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ã‚’æ–‡å­—åˆ—ã«å¤‰æ›ï¼ˆãƒ‡ãƒãƒƒã‚°ç”¨ï¼‰
     inline const char* mouseButtonToString(MouseButton button)
     {
         switch (button)
@@ -166,7 +166,7 @@ namespace Engine::Input
         }
     }
 
-    // Win32‚Ìƒ}ƒEƒXƒ{ƒ^ƒ“ƒƒbƒZ[ƒW‚ğMouseButton‚É•ÏŠ·
+    // Win32ã®ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’MouseButtonã«å¤‰æ›
     inline MouseButton win32ToMouseButton(UINT message, WPARAM wParam = 0)
     {
         switch (message)
@@ -182,7 +182,7 @@ namespace Engine::Input
             return MouseButton::Middle;
         case WM_XBUTTONDOWN:
         case WM_XBUTTONUP:
-            // wParam‚ÌHIWORD‚ÅX1/X2‚ğ”»’è
+            // wParamã®HIWORDã§X1/X2ã‚’åˆ¤å®š
             return (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? MouseButton::X1 : MouseButton::X2;
         default:
             return static_cast<MouseButton>(255);

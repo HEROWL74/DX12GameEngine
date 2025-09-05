@@ -35,6 +35,9 @@
     <Filter Include="ソース ファイル\assets\shaders">
       <UniqueIdentifier>{d1c0b3e1-b76f-4152-86e1-9284aa771f40}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\src\Scripting">
+      <UniqueIdentifier>{d740b1c4-3bb4-41a0-9b74-9cab4d6f14da}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Utils\Common.hpp">
@@ -133,6 +136,9 @@
     <ClInclude Include="src\UI\ContextMenu.hpp">
       <Filter>ソース ファイル\src\UI</Filter>
     </ClInclude>
+    <ClInclude Include="src\Scripting\ScriptManager.hpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -209,6 +215,9 @@
     </ClCompile>
     <ClCompile Include="src\UI\ContextMenu.cpp">
       <Filter>ソース ファイル\src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scripting\ScriptManager.cpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

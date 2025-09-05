@@ -1,4 +1,4 @@
-//src/Graphics/ShaderManager.hpp
+ï»¿//src/Graphics/ShaderManager.hpp
 #pragma once
 
 #include <string>
@@ -18,7 +18,7 @@ using Microsoft::WRL::ComPtr;
 namespace Engine::Graphics
 {
     //=========================================================================
-    // ƒVƒF[ƒ_[ƒ^ƒCƒv—ñ‹“Œ^
+    // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚¿ã‚¤ãƒ—åˆ—æŒ™å‹
     //=========================================================================
     enum class ShaderType
     {
@@ -31,7 +31,7 @@ namespace Engine::Graphics
     };
 
     //=========================================================================
-    // ƒVƒF[ƒ_[ƒ}ƒNƒ\‘¢‘Ì
+    // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒã‚¯ãƒ­æ§‹é€ ä½“
     //=========================================================================
     struct ShaderMacro
     {
@@ -42,7 +42,7 @@ namespace Engine::Graphics
     };
 
     //=========================================================================
-    // ƒVƒF[ƒ_[ƒRƒ“ƒpƒCƒ‹İ’è
+    // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«è¨­å®š
     //=========================================================================
     struct ShaderCompileDesc
     {
@@ -55,7 +55,7 @@ namespace Engine::Graphics
     };
 
     //=========================================================================
-    // ƒVƒF[ƒ_[ƒNƒ‰ƒX
+    // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚¯ãƒ©ã‚¹
     //=========================================================================
     class Shader
     {
@@ -63,18 +63,18 @@ namespace Engine::Graphics
         Shader() = default;
         ~Shader() = default;
 
-        // ƒRƒs[Eƒ€[ƒu
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–
         Shader(const Shader&) = delete;
         Shader& operator=(const Shader&) = delete;
         Shader(Shader&&) = default;
         Shader& operator=(Shader&&) = default;
 
-        // ƒtƒ@ƒCƒ‹‚©‚ç‚ÌƒRƒ“ƒpƒCƒ‹
+        // ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰ã®ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«
         [[nodiscard]] static Utils::Result<std::shared_ptr<Shader>> compileFromFile(
             const ShaderCompileDesc& desc
         );
 
-        // •¶š—ñ‚©‚ç‚ÌƒRƒ“ƒpƒCƒ‹
+        // æ–‡å­—åˆ—ã‹ã‚‰ã®ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«
         [[nodiscard]] static Utils::Result<std::shared_ptr<Shader>> compileFromString(
             const std::string& shaderCode,
             const std::string& entryPoint,
@@ -83,17 +83,17 @@ namespace Engine::Graphics
             bool enableDebug = false
         );
 
-        // Šî–{î•ñ‚Ìæ“¾
+        // åŸºæœ¬æƒ…å ±ã®å–å¾—
         ShaderType getType() const { return m_type; }
         const std::string& getEntryPoint() const { return m_entryPoint; }
         const std::string& getFilePath() const { return m_filePath; }
 
-        // ƒoƒCƒgƒR[ƒh‚Ìæ“¾
+        // ãƒã‚¤ãƒˆã‚³ãƒ¼ãƒ‰ã®å–å¾—
         const void* getBytecode() const { return m_bytecode->GetBufferPointer(); }
         size_t getBytecodeSize() const { return m_bytecode->GetBufferSize(); }
         ID3DBlob* getBytecodeBlob() const { return m_bytecode.Get(); }
 
-        // —LŒø«ƒ`ƒFƒbƒN
+        // æœ‰åŠ¹æ€§ãƒã‚§ãƒƒã‚¯
         bool isValid() const { return m_bytecode != nullptr; }
 
     private:
@@ -102,7 +102,7 @@ namespace Engine::Graphics
         std::string m_filePath;
         ComPtr<ID3DBlob> m_bytecode;
 
-        // “à•”‰Šú‰»
+        // å†…éƒ¨åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initialize(
             const std::string& shaderCode,
             const std::string& entryPoint,
@@ -112,13 +112,13 @@ namespace Engine::Graphics
             const std::string& filePath = ""
         );
 
-        // ƒwƒ‹ƒp[ŠÖ”
+        // ãƒ˜ãƒ«ãƒ‘ãƒ¼é–¢æ•°
         static std::string shaderTypeToTarget(ShaderType type);
         static std::vector<D3D_SHADER_MACRO> convertMacros(const std::vector<ShaderMacro>& macros);
     };
 
     //=========================================================================
-    // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‹Lq
+    // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£è¨˜è¿°
     //=========================================================================
     struct RootParameterDesc
     {
@@ -136,10 +136,10 @@ namespace Engine::Graphics
         uint32_t registerSpace = 0;
         D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL;
 
-        // DescriptorTable—p
+        // DescriptorTableç”¨
         std::vector<D3D12_DESCRIPTOR_RANGE1> ranges;
 
-        // Constants—p
+        // Constantsç”¨
         uint32_t numConstants = 0;
     };
 
@@ -155,7 +155,7 @@ namespace Engine::Graphics
     };
 
     //=========================================================================
-    // ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‹Lq
+    // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆè¨˜è¿°
     //=========================================================================
     struct PipelineStateDesc
     {
@@ -163,30 +163,30 @@ namespace Engine::Graphics
         std::shared_ptr<Shader> pixelShader;
         std::shared_ptr<Shader> geometryShader;
 
-        // “ü—ÍƒŒƒCƒAƒEƒg
+        // å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ
         std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout;
 
-        // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ
+        // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£
         std::vector<RootParameterDesc> rootParameters;
         std::vector<StaticSamplerDesc> staticSamplers;
 
-        // ƒŒƒ“ƒ_[ƒXƒe[ƒg
+        // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆ
         D3D12_PRIMITIVE_TOPOLOGY_TYPE primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         std::vector<DXGI_FORMAT> rtvFormats = { DXGI_FORMAT_R8G8B8A8_UNORM };
         DXGI_FORMAT dsvFormat = DXGI_FORMAT_D32_FLOAT;
 
-        // ƒuƒŒƒ“ƒhƒXƒe[ƒg
+        // ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆ
         bool enableBlending = false;
         D3D12_BLEND srcBlend = D3D12_BLEND_ONE;
         D3D12_BLEND destBlend = D3D12_BLEND_ZERO;
         D3D12_BLEND_OP blendOp = D3D12_BLEND_OP_ADD;
 
-        // ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒg
+        // ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆ
         D3D12_CULL_MODE cullMode = D3D12_CULL_MODE_BACK;
         D3D12_FILL_MODE fillMode = D3D12_FILL_MODE_SOLID;
         bool enableDepthClip = true;
 
-        // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
+        // æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆ
         bool enableDepthTest = true;
         bool enableDepthWrite = true;
         D3D12_COMPARISON_FUNC depthFunc = D3D12_COMPARISON_FUNC_LESS;
@@ -195,7 +195,7 @@ namespace Engine::Graphics
     };
 
     //=========================================================================
-    // ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒgƒNƒ‰ƒX
+    // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã‚¯ãƒ©ã‚¹
     //=========================================================================
     class PipelineState
     {
@@ -203,29 +203,29 @@ namespace Engine::Graphics
         PipelineState() = default;
         ~PipelineState() = default;
 
-        // ƒRƒs[Eƒ€[ƒu
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–
         PipelineState(const PipelineState&) = delete;
         PipelineState& operator=(const PipelineState&) = delete;
         PipelineState(PipelineState&&) = default;
         PipelineState& operator=(PipelineState&&) = default;
 
-        // ì¬
+        // ä½œæˆ
         [[nodiscard]] static Utils::Result<std::shared_ptr<PipelineState>> create(
             Device* device,
             const PipelineStateDesc& desc
         );
 
-        // D3D12ƒIƒuƒWƒFƒNƒg‚Ìæ“¾
+        // D3D12ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å–å¾—
         ID3D12PipelineState* getPipelineState() const { return m_pipelineState.Get(); }
         ID3D12RootSignature* getRootSignature() const { return m_rootSignature.Get(); }
 
-        // Šî–{î•ñ
+        // åŸºæœ¬æƒ…å ±
         const PipelineStateDesc& getDesc() const { return m_desc; }
 
-        // —LŒø«ƒ`ƒFƒbƒN
+        // æœ‰åŠ¹æ€§ãƒã‚§ãƒƒã‚¯
         bool isValid() const { return m_pipelineState != nullptr && m_rootSignature != nullptr; }
 
-        // ƒfƒoƒbƒO–¼‚Ìİ’è
+        // ãƒ‡ãƒãƒƒã‚°åã®è¨­å®š
         void setDebugName(const std::string& name);
 
     private:
@@ -234,14 +234,14 @@ namespace Engine::Graphics
         ComPtr<ID3D12PipelineState> m_pipelineState;
         ComPtr<ID3D12RootSignature> m_rootSignature;
 
-        // ‰Šú‰»
+        // åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initialize(Device* device, const PipelineStateDesc& desc);
         [[nodiscard]] Utils::VoidResult createRootSignature();
         [[nodiscard]] Utils::VoidResult createPipelineState();
     };
 
     //=========================================================================
-    // ƒVƒF[ƒ_[ƒ}ƒl[ƒWƒƒ[ƒNƒ‰ƒX
+    // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚¯ãƒ©ã‚¹
     //=========================================================================
     class ShaderManager
     {
@@ -249,20 +249,20 @@ namespace Engine::Graphics
         ShaderManager() = default;
         ~ShaderManager() = default;
 
-        // ƒRƒs[Eƒ€[ƒu‹Ö~
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
         ShaderManager(const ShaderManager&) = delete;
         ShaderManager& operator=(const ShaderManager&) = delete;
 
-        // ‰Šú‰»
+        // åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initialize(Device* device);
 
-        // ƒVƒF[ƒ_[ŠÇ—
+        // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ç®¡ç†
         std::shared_ptr<Shader> loadShader(const ShaderCompileDesc& desc);
         std::shared_ptr<Shader> getShader(const std::string& name) const;
         bool hasShader(const std::string& name) const;
         void removeShader(const std::string& name);
 
-        // ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒgŠÇ—
+        // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆç®¡ç†
         std::shared_ptr<PipelineState> createPipelineState(
             const std::string& name,
             const PipelineStateDesc& desc
@@ -278,64 +278,64 @@ namespace Engine::Graphics
             const std::string& shaderName = "InlineShader"
         );
 
-        // ƒfƒtƒHƒ‹ƒgƒVƒF[ƒ_[‚Ìæ“¾
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®å–å¾—
         std::shared_ptr<PipelineState> getDefaultPBRPipeline() const { return m_defaultPBRPipeline; }
         std::shared_ptr<PipelineState> getDefaultUnlitPipeline() const { return m_defaultUnlitPipeline; }
 
-        // “Œvî•ñ
+        // çµ±è¨ˆæƒ…å ±
         size_t getShaderCount() const { return m_shaders.size(); }
         size_t getPipelineStateCount() const { return m_pipelineStates.size(); }
 
-        // —LŒø«ƒ`ƒFƒbƒN
+        // æœ‰åŠ¹æ€§ãƒã‚§ãƒƒã‚¯
         bool isValid() const { return m_initialized && m_device != nullptr; }
 
     private:
         Device* m_device = nullptr;
         bool m_initialized = false;
 
-        // ƒVƒF[ƒ_[ƒLƒƒƒbƒVƒ…
+        // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚­ãƒ£ãƒƒã‚·ãƒ¥
         std::unordered_map<std::string, std::shared_ptr<Shader>> m_shaders;
 
-        // ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒgƒLƒƒƒbƒVƒ…
+        // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã‚­ãƒ£ãƒƒã‚·ãƒ¥
         std::unordered_map<std::string, std::shared_ptr<PipelineState>> m_pipelineStates;
 
-        // ƒfƒtƒHƒ‹ƒgƒpƒCƒvƒ‰ƒCƒ“
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³
         std::shared_ptr<PipelineState> m_defaultPBRPipeline;
         std::shared_ptr<PipelineState> m_defaultUnlitPipeline;
 
-        // ‰Šú‰»ƒwƒ‹ƒp[
+        // åˆæœŸåŒ–ãƒ˜ãƒ«ãƒ‘ãƒ¼
         [[nodiscard]] Utils::VoidResult createDefaultShaders();
         [[nodiscard]] Utils::VoidResult createDefaultPipelines();
 
-        // ƒ†[ƒeƒBƒŠƒeƒB
+        // ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£
         std::string generateShaderKey(const ShaderCompileDesc& desc) const;
     };
 
     //=========================================================================
-    // •W€“ü—ÍƒŒƒCƒAƒEƒg’è‹`
+    // æ¨™æº–å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆå®šç¾©
     //=========================================================================
     namespace StandardInputLayouts
     {
-        // ˆÊ’u‚Ì‚İ
+        // ä½ç½®ã®ã¿
         extern const std::vector<D3D12_INPUT_ELEMENT_DESC> Position;
 
-        // ˆÊ’u + UV
+        // ä½ç½® + UV
         extern const std::vector<D3D12_INPUT_ELEMENT_DESC> PositionUV;
 
-        // ˆÊ’u + –@ü + UV
+        // ä½ç½® + æ³•ç·š + UV
         extern const std::vector<D3D12_INPUT_ELEMENT_DESC> PositionNormalUV;
 
-        // PBR—piˆÊ’u + –@ü + UV + Úüj
+        // PBRç”¨ï¼ˆä½ç½® + æ³•ç·š + UV + æ¥ç·šï¼‰
         extern const std::vector<D3D12_INPUT_ELEMENT_DESC> PBRVertex;
     }
 
     //=========================================================================
-    // ƒ†[ƒeƒBƒŠƒeƒBŠÖ”
+    // ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£é–¢æ•°
     //=========================================================================
 
-    // ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+    // ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
     Utils::Result<std::string> readShaderFile(const std::string& filePath);
 
-    // ƒCƒ“ƒNƒ‹[ƒhƒtƒ@ƒCƒ‹‚Ìˆ—
+    // ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ«ã®å‡¦ç†
     std::string processIncludes(const std::string& shaderCode, const std::string& baseDir);
 }

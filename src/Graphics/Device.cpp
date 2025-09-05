@@ -1,4 +1,4 @@
-//src/Graphics/Device.cpp
+﻿//src/Graphics/Device.cpp
 #include "Device.hpp"
 #include <format>
 #include <algorithm>
@@ -6,7 +6,7 @@
 namespace Engine::Graphics
 {
     // =============================================================================
-   // AdapterInfo実装
+   // AdapterInfo螳溯｣・
    // =============================================================================
 
     std::string AdapterInfo::getMemoryInfoString() const noexcept
@@ -21,42 +21,42 @@ namespace Engine::Graphics
         );
     }
     // =============================================================================
-    //Device実装
+    //Device螳溯｣・
     // =============================================================================
 
     Utils::VoidResult Device::initialize(const DeviceSettings& settings)
     {
         Utils::log_info("Initializing Graphics Device...");
 
-        //デバッグレイヤーの初期化
+        //繝・ヰ繝・げ繝ｬ繧､繝､繝ｼ縺ｮ蛻晄悄蛹・
         auto debugResult = initializeDebugLayer(settings);
         if (!debugResult)
         {
             return debugResult;
         }
 
-        //DXGIファクトリの作成
+        //DXGI繝輔ぃ繧ｯ繝医Μ縺ｮ菴懈・
         auto factoryResult = createDXGIFactory();
         if (!factoryResult)
         {
             return factoryResult;
         }
 
-        //最適なアダプターの選択
+        //譛驕ｩ縺ｪ繧｢繝繝励ち繝ｼ縺ｮ驕ｸ謚・
         auto adapterResult = selectBestAdapter(settings);
         if (!adapterResult)
         {
             return adapterResult;
         }
 
-        //D3D12デバイスの作成
+        //D3D12繝・ヰ繧､繧ｹ縺ｮ菴懈・
         auto deviceResult = createDevice(settings);
         if (!deviceResult)
         {
             return deviceResult;
         }
 
-        //ディスクリプタサイズのキャッシュ
+        //繝・ぅ繧ｹ繧ｯ繝ｪ繝励ち繧ｵ繧､繧ｺ縺ｮ繧ｭ繝｣繝・す繝･
         cacheDescriptorSizes();
 
         Utils::log_info(std::format("Graphics Device initialized successfully"));
@@ -121,7 +121,7 @@ namespace Engine::Graphics
     }
 
     //======================================================================
-    //プライベートメソッド実装
+    //繝励Λ繧､繝吶・繝医Γ繧ｽ繝・ラ螳溯｣・
 
     Utils::VoidResult Device::initializeDebugLayer(const DeviceSettings& settings)
     {
@@ -135,7 +135,7 @@ namespace Engine::Graphics
                 m_debugLayerEnabled = true;
                 Utils::log_info("D3D12 Debug Layer enabled");
 
-                //GPU検証の有効化
+                //GPU讀懆ｨｼ縺ｮ譛牙柑蛹・
                 if (settings.enableGpuValidation)
                 {
                     ComPtr<ID3D12Debug1> debugController1;
@@ -152,7 +152,7 @@ namespace Engine::Graphics
             }
         }
         #else
-        //リリースビルドでは、デバッグレイヤーを無効にする
+        //繝ｪ繝ｪ繝ｼ繧ｹ繝薙Ν繝峨〒縺ｯ縲√ョ繝舌ャ繧ｰ繝ｬ繧､繝､繝ｼ繧堤┌蜉ｹ縺ｫ縺吶ｋ
         UNREFERENCED_PARAMETER(settings);
         #endif
 
@@ -187,7 +187,7 @@ namespace Engine::Graphics
         {
             AdapterInfo info = getAdapterInfo(adapter.Get());
 
-            //D3D12対応チェック
+            //D3D12蟇ｾ蠢懊メ繧ｧ繝・け
             if (!isAdapterCompatible(adapter.Get(), settings.minFeatureLevel))
             {
                 Utils::log_info(std::format("Skipping incompatible adapter: {}",
@@ -201,12 +201,12 @@ namespace Engine::Graphics
                 std::string(info.description.begin(), info.description.end()),
                 info.getMemoryInfoString()));
 
-            //アダプター選択ロジック
+            //繧｢繝繝励ち繝ｼ驕ｸ謚槭Ο繧ｸ繝・け
             bool shouldSelect = false;
 
             if (settings.preferHighPerformanceAdapter)
             {
-                // 高性能優先：ハードウェアアダプターで最大ビデオメモリ
+                // 鬮俶ｧ閭ｽ蜆ｪ蜈茨ｼ壹ワ繝ｼ繝峨え繧ｧ繧｢繧｢繝繝励ち繝ｼ縺ｧ譛螟ｧ繝薙ョ繧ｪ繝｡繝｢繝ｪ
                 if (info.isHardware && info.dedicatedVideoMemory > maxVideoMemory)
                 {
                     shouldSelect = true;
@@ -218,7 +218,7 @@ namespace Engine::Graphics
             }
             else
             {
-                //最初に見つかった対応アダプターを使用
+                //譛蛻昴↓隕九▽縺九▲縺溷ｯｾ蠢懊い繝繝励ち繝ｼ繧剃ｽｿ逕ｨ
                 if (!bestAdapter)
                 {
                     shouldSelect = true;
@@ -245,7 +245,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult Device::createDevice(const DeviceSettings& settings)
     {
-        //サポートされている最高の機能レベルを試行
+        //繧ｵ繝昴・繝医＆繧後※縺・ｋ譛鬮倥・讖溯・繝ｬ繝吶Ν繧定ｩｦ陦・
         const D3D_FEATURE_LEVEL featureLevels[] = {
             D3D_FEATURE_LEVEL_12_2,
             D3D_FEATURE_LEVEL_12_1,

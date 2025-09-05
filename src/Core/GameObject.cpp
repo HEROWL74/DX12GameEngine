@@ -1,11 +1,11 @@
-//src/Core/GameObject.cpp
+﻿//src/Core/GameObject.cpp
 #include "GameObject.hpp"
 #include <algorithm>
 
 namespace Engine::Core
 {
 	//=========================================
-	//Transform実装
+	//Transform螳溯｣・
 	//=========================================
 	const Math::Matrix4& Transform::getWorldMatrix()
 	{
@@ -44,8 +44,8 @@ namespace Engine::Core
 
 	void Transform::updateWorldMatrix() const
 	{
-		//TODO: ジンバルロックを防ぐためにクォータニオンも実装予定
-		//スケール -> 回転 -> 移動の順で行列を合体
+		//TODO: 繧ｸ繝ｳ繝舌Ν繝ｭ繝・け繧帝亟縺舌◆繧√↓繧ｯ繧ｩ繝ｼ繧ｿ繝九が繝ｳ繧ょｮ溯｣・ｺ亥ｮ・
+		//繧ｹ繧ｱ繝ｼ繝ｫ -> 蝗櫁ｻ｢ -> 遘ｻ蜍輔・鬆・〒陦悟・繧貞粋菴・
 		Math::Matrix4 scaleMatrix = Math::Matrix4::scaling(m_scale);
 		Math::Matrix4 rotationMatrix = Math::Matrix4::rotationX(Math::radians(m_rotation.x)) *
 			Math::Matrix4::rotationY(Math::radians(m_rotation.y)) *
@@ -56,12 +56,12 @@ namespace Engine::Core
 	}
 
 	//============================================
-	//GameObject実装
+	//GameObject螳溯｣・
 	//============================================
 	GameObject::GameObject(const std::string& name)
 		:m_name(name)
 	{
-		//Transformは、必須コンポーネントとして自動追加
+		//Transform縺ｯ縲∝ｿ・医さ繝ｳ繝昴・繝阪Φ繝医→縺励※閾ｪ蜍戊ｿｽ蜉
 		m_transform = addComponent<Transform>();
 	}
 
@@ -74,7 +74,7 @@ namespace Engine::Core
 	{
 		if (m_started || !m_active) return;
 
-		//全てのコンポーネントを開始
+		//蜈ｨ縺ｦ縺ｮ繧ｳ繝ｳ繝昴・繝阪Φ繝医ｒ髢句ｧ・
 		for (auto& [type, component] : m_components)
 		{
 			if (component->isEnabled())
@@ -83,7 +83,7 @@ namespace Engine::Core
 			}
 		}
 
-		//子オブジェクトも開始
+		//蟄舌が繝悶ず繧ｧ繧ｯ繝医ｂ髢句ｧ・
 		for (auto& child : m_children)
 		{
 			if (child->isActive())
@@ -99,13 +99,13 @@ namespace Engine::Core
 	{
 		if (!m_active) return;
 
-		//まだ開始されていない場合は開始
+		//縺ｾ縺髢句ｧ九＆繧後※縺・↑縺・ｴ蜷医・髢句ｧ・
 		if (!m_started)
 		{
 			start();
 		}
 
-		//全てのコンポーネントを更新
+		//蜈ｨ縺ｦ縺ｮ繧ｳ繝ｳ繝昴・繝阪Φ繝医ｒ譖ｴ譁ｰ
 		for (auto& [type, component] : m_components)
 		{
 			if (component->isEnabled())
@@ -114,7 +114,7 @@ namespace Engine::Core
 			}
 		}
 
-		//子オブジェクトも更新
+		//蟄舌が繝悶ず繧ｧ繧ｯ繝医ｂ譖ｴ譁ｰ
 		for (auto& child : m_children)
 		{
 			if (child->isActive())
@@ -128,7 +128,7 @@ namespace Engine::Core
 	{
 		if (!m_active) return;
 
-		//全てのコンポーネントを後更新
+		//蜈ｨ縺ｦ縺ｮ繧ｳ繝ｳ繝昴・繝阪Φ繝医ｒ蠕梧峩譁ｰ
 		for (auto& [type, component] : m_components)
 		{
 			if (component->isEnabled())
@@ -137,7 +137,7 @@ namespace Engine::Core
 			}
 		}
 
-		//子オブジェクトも後更新
+		//蟄舌が繝悶ず繧ｧ繧ｯ繝医ｂ蠕梧峩譁ｰ
 		for (auto& child : m_children)
 		{
 			if (child->isActive())
@@ -149,13 +149,13 @@ namespace Engine::Core
 
 	void GameObject::destroy()
 	{
-		// アクティブフラグを先にfalseに
+		// 繧｢繧ｯ繝・ぅ繝悶ヵ繝ｩ繧ｰ繧貞・縺ｫfalse縺ｫ
 		m_active = false;
 
-		// 子オブジェクトを先に破棄
+		// 蟄舌が繝悶ず繧ｧ繧ｯ繝医ｒ蜈医↓遐ｴ譽・
 		m_children.clear();
 
-		// コンポーネントを破棄
+		// 繧ｳ繝ｳ繝昴・繝阪Φ繝医ｒ遐ｴ譽・
 		for (auto& [type, component] : m_components)
 		{
 			if (component)

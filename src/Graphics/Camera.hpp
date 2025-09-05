@@ -1,40 +1,40 @@
-// src/Graphics/Camera.hpp
+ï»¿// src/Graphics/Camera.hpp
 #pragma once
 
 #include "../Math/Math.hpp"
 
 namespace Engine::Graphics
 {
-    // ƒJƒƒ‰‚Ì“Š‰eƒ^ƒCƒv
+    // ã‚«ãƒ¡ãƒ©ã®æŠ•å½±ã‚¿ã‚¤ãƒ—
     enum class ProjectionType
     {
-        Perspective,    // “§‹“Š‰ei3DƒQ[ƒ€—pj
-        Orthographic   // •½s“Š‰ei2DƒQ[ƒ€‚â‹Zp}–Ê—pj
+        Perspective,    // é€è¦–æŠ•å½±ï¼ˆ3Dã‚²ãƒ¼ãƒ ç”¨ï¼‰
+        Orthographic   // å¹³è¡ŒæŠ•å½±ï¼ˆ2Dã‚²ãƒ¼ãƒ ã‚„æŠ€è¡“å›³é¢ç”¨ï¼‰
     };
 
-    // ƒJƒƒ‰ƒNƒ‰ƒX
+    // ã‚«ãƒ¡ãƒ©ã‚¯ãƒ©ã‚¹
     class Camera
     {
     public:
         Camera();
         ~Camera() = default;
 
-        // ƒRƒs[Eƒ€[ƒu‹–‰Â
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–è¨±å¯
         Camera(const Camera&) = default;
         Camera& operator=(const Camera&) = default;
         Camera(Camera&&) = default;
         Camera& operator=(Camera&&) = default;
 
-        // ˆÊ’uE‰ñ“]‚Ìİ’è
+        // ä½ç½®ãƒ»å›è»¢ã®è¨­å®š
         void setPosition(const Math::Vector3& position);
         void setRotation(const Math::Vector3& eulerAngles);
         void lookAt(const Math::Vector3& target, const Math::Vector3& up = Math::Vector3::up());
 
-        // “Š‰eİ’è
+        // æŠ•å½±è¨­å®š
         void setPerspective(float fov, float aspect, float nearPlane, float farPlane);
         void setOrthographic(float left, float right, float bottom, float top, float nearPlane, float farPlane);
 
-        // ƒQƒbƒ^[
+        // ã‚²ãƒƒã‚¿ãƒ¼
         const Math::Vector3& getPosition() const { return m_position; }
         const Math::Vector3& getRotation() const { return m_rotation; }
         Math::Vector3 getForward() const;
@@ -48,71 +48,71 @@ namespace Engine::Graphics
 
         ProjectionType getProjectionType() const { return m_projectionType; }
 
-        // s—ñ‚Ìæ“¾
+        // è¡Œåˆ—ã®å–å¾—
         Math::Matrix4 getViewMatrix() const;
         Math::Matrix4 getProjectionMatrix() const;
         Math::Matrix4 getViewProjectionMatrix() const;
 
-        // ƒJƒƒ‰ˆÚ“®iFPSƒXƒ^ƒCƒ‹j
+        // ã‚«ãƒ¡ãƒ©ç§»å‹•ï¼ˆFPSã‚¹ã‚¿ã‚¤ãƒ«ï¼‰
         void moveForward(float distance);
         void moveRight(float distance);
         void moveUp(float distance);
 
-        // ƒJƒƒ‰‰ñ“]
+        // ã‚«ãƒ¡ãƒ©å›è»¢
         void rotate(float pitch, float yaw, float roll = 0.0f);
         void rotatePitch(float pitch);
         void rotateYaw(float yaw);
 
-        // ƒAƒXƒyƒNƒg”ä‚ğXViƒEƒBƒ“ƒhƒEƒŠƒTƒCƒY‚Ég—pj
+        // ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã‚’æ›´æ–°ï¼ˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒªã‚µã‚¤ã‚ºæ™‚ã«ä½¿ç”¨ï¼‰
         void updateAspect(float newAspect);
 
-        // ƒ}ƒEƒX‘€ìiFPSƒJƒƒ‰j
+        // ãƒã‚¦ã‚¹æ“ä½œï¼ˆFPSã‚«ãƒ¡ãƒ©ï¼‰
         void processMouseMovement(float deltaX, float deltaY, float sensitivity = 0.1f);
 
-        // ƒrƒ…[ƒ|[ƒgÀ•W‚©‚ç3D‹óŠÔ‚Ö‚Ì•ÏŠ·
+        // ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆåº§æ¨™ã‹ã‚‰3Dç©ºé–“ã¸ã®å¤‰æ›
         Math::Vector3 screenToWorldPoint(const Math::Vector3& screenPoint, float viewportWidth, float viewportHeight) const;
 
     private:
-        // ƒJƒƒ‰‚ÌˆÊ’uE‰ñ“]
+        // ã‚«ãƒ¡ãƒ©ã®ä½ç½®ãƒ»å›è»¢
         Math::Vector3 m_position;
-        Math::Vector3 m_rotation;  // x=pitch, y=yaw, z=roll (“x)
+        Math::Vector3 m_rotation;  // x=pitch, y=yaw, z=roll (åº¦)
 
-        // “Š‰eİ’è
+        // æŠ•å½±è¨­å®š
         ProjectionType m_projectionType;
-        float m_fov;           // ‹–ìŠpi“xj
-        float m_aspect;        // ƒAƒXƒyƒNƒg”ä
-        float m_nearPlane;     // ‹ßƒNƒŠƒbƒv–Ê
-        float m_farPlane;      // ‰“ƒNƒŠƒbƒv–Ê
+        float m_fov;           // è¦–é‡è§’ï¼ˆåº¦ï¼‰
+        float m_aspect;        // ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”
+        float m_nearPlane;     // è¿‘ã‚¯ãƒªãƒƒãƒ—é¢
+        float m_farPlane;      // é ã‚¯ãƒªãƒƒãƒ—é¢
 
-        // •½s“Š‰e—p
+        // å¹³è¡ŒæŠ•å½±ç”¨
         float m_left, m_right, m_bottom, m_top;
 
-        // “à•”ŒvZ—p
+        // å†…éƒ¨è¨ˆç®—ç”¨
         mutable bool m_viewMatrixDirty;
         mutable bool m_projectionMatrixDirty;
         mutable Math::Matrix4 m_viewMatrix;
         mutable Math::Matrix4 m_projectionMatrix;
 
-        // s—ñ‚ÌXV
+        // è¡Œåˆ—ã®æ›´æ–°
         void updateViewMatrix() const;
         void updateProjectionMatrix() const;
 
-        // ‰ñ“]‚ğ³‹K‰»i-180~180“x‚Éû‚ß‚éj
+        // å›è»¢ã‚’æ­£è¦åŒ–ï¼ˆ-180~180åº¦ã«åã‚ã‚‹ï¼‰
         void normalizeRotation();
     };
 
-    // ƒJƒƒ‰ƒRƒ“ƒgƒ[ƒ‰[iŠÈ’P‚ÈFPSƒJƒƒ‰‘€ìj
+    // ã‚«ãƒ¡ãƒ©ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ï¼ˆç°¡å˜ãªFPSã‚«ãƒ¡ãƒ©æ“ä½œï¼‰
     class FPSCameraController
     {
     public:
         explicit FPSCameraController(Camera* camera);
 
-        // “ü—Íˆ—
+        // å…¥åŠ›å‡¦ç†
         void update(float deltaTime);
         void processKeyboard(bool forward, bool backward, bool left, bool right, bool up, bool down, float deltaTime);
         void processMouseMovement(float deltaX, float deltaY);
 
-        // İ’è
+        // è¨­å®š
         void setMovementSpeed(float speed) { m_movementSpeed = speed; }
         void setMouseSensitivity(float sensitivity) { m_mouseSensitivity = sensitivity; }
 
@@ -121,7 +121,7 @@ namespace Engine::Graphics
 
     private:
         Camera* m_camera;
-        float m_movementSpeed;      // ˆÚ“®‘¬“x
-        float m_mouseSensitivity;   // ƒ}ƒEƒXŠ´“x
+        float m_movementSpeed;      // ç§»å‹•é€Ÿåº¦
+        float m_mouseSensitivity;   // ãƒã‚¦ã‚¹æ„Ÿåº¦
     };
 }

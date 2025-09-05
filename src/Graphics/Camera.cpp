@@ -1,4 +1,4 @@
-// src/Graphics/Camera.cpp
+﻿// src/Graphics/Camera.cpp
 #include "Camera.hpp"
 #include <algorithm>
 
@@ -37,7 +37,7 @@ namespace Engine::Graphics
         Math::Vector3 right = Math::Vector3::cross(forward, up).normalized();
         Math::Vector3 newUp = Math::Vector3::cross(right, forward);
 
-        // 回転角度を計算
+        // 蝗櫁ｻ｢隗貞ｺｦ繧定ｨ育ｮ・
         m_rotation.y = Math::degrees(std::atan2(forward.x, forward.z));
         m_rotation.x = Math::degrees(std::asin(-forward.y));
         m_rotation.z = 0.0f;
@@ -146,7 +146,7 @@ namespace Engine::Graphics
     void Camera::rotatePitch(float pitch)
     {
         m_rotation.x += pitch;
-        m_rotation.x = std::clamp(m_rotation.x, -89.0f, 89.0f);  // 上下の回転を制限
+        m_rotation.x = std::clamp(m_rotation.x, -89.0f, 89.0f);  // 荳贋ｸ九・蝗櫁ｻ｢繧貞宛髯・
         m_viewMatrixDirty = true;
     }
 
@@ -171,17 +171,17 @@ namespace Engine::Graphics
 
     Math::Vector3 Camera::screenToWorldPoint(const Math::Vector3& screenPoint, float viewportWidth, float viewportHeight) const
     {
-        // NDC座標に変換
+        // NDC蠎ｧ讓吶↓螟画鋤
         float x = (2.0f * screenPoint.x) / viewportWidth - 1.0f;
         float y = 1.0f - (2.0f * screenPoint.y) / viewportHeight;
         float z = screenPoint.z;
 
-        // クリップ座標
+        // 繧ｯ繝ｪ繝・・蠎ｧ讓・
         Math::Vector3 clipCoords(x, y, z);
 
-        // ビュー・プロジェクション行列の逆行列を計算
-        // 本格的な実装では逆行列計算が必要
-        return clipCoords;  // TODO: 正確な逆変換を実装
+        // 繝薙Η繝ｼ繝ｻ繝励Ο繧ｸ繧ｧ繧ｯ繧ｷ繝ｧ繝ｳ陦悟・縺ｮ騾・｡悟・繧定ｨ育ｮ・
+        // 譛ｬ譬ｼ逧・↑螳溯｣・〒縺ｯ騾・｡悟・險育ｮ励′蠢・ｦ・
+        return clipCoords;  // TODO: 豁｣遒ｺ縺ｪ騾・､画鋤繧貞ｮ溯｣・
     }
 
     void Camera::updateViewMatrix() const
@@ -210,15 +210,15 @@ namespace Engine::Graphics
 
     void Camera::normalizeRotation()
     {
-        // Y軸回転を-180~180度に正規化
+        // Y霆ｸ蝗櫁ｻ｢繧・180~180蠎ｦ縺ｫ豁｣隕丞喧
         while (m_rotation.y > 180.0f) m_rotation.y -= 360.0f;
         while (m_rotation.y < -180.0f) m_rotation.y += 360.0f;
 
-        // ｘ軸回転を-89~89度に制限（真上・真下を向かないように）
+        // ・倩ｻｸ蝗櫁ｻ｢繧・89~89蠎ｦ縺ｫ蛻ｶ髯撰ｼ育悄荳翫・逵滉ｸ九ｒ蜷代°縺ｪ縺・ｈ縺・↓・・
         m_rotation.x = std::clamp(m_rotation.x, -89.0f, 89.0f);
     }
 
-    // FPSCameraController実装
+    // FPSCameraController螳溯｣・
     FPSCameraController::FPSCameraController(Camera* camera)
         : m_camera(camera)
         , m_movementSpeed(5.0f)
@@ -228,8 +228,8 @@ namespace Engine::Graphics
 
     void FPSCameraController::update(float deltaTime)
     {
-        // 現在は何もしない
-        // TODO: 将来的には慣性やスムージングを追加する予定
+        // 迴ｾ蝨ｨ縺ｯ菴輔ｂ縺励↑縺・
+        // TODO: 蟆・擂逧・↓縺ｯ諷｣諤ｧ繧・せ繝繝ｼ繧ｸ繝ｳ繧ｰ繧定ｿｽ蜉縺吶ｋ莠亥ｮ・
     }
 
     void FPSCameraController::processKeyboard(bool forward, bool backward, bool left, bool right, bool up, bool down, float deltaTime)
@@ -237,13 +237,13 @@ namespace Engine::Graphics
         float velocity = m_movementSpeed * deltaTime;
 
         if (forward)
-            m_camera->moveForward(velocity);    // 符号を修正
+            m_camera->moveForward(velocity);    // 隨ｦ蜿ｷ繧剃ｿｮ豁｣
         if (backward)
-            m_camera->moveForward(-velocity);   // 符号を修正
+            m_camera->moveForward(-velocity);   // 隨ｦ蜿ｷ繧剃ｿｮ豁｣
         if (right)
-            m_camera->moveRight(velocity);      // 符号を修正
+            m_camera->moveRight(velocity);      // 隨ｦ蜿ｷ繧剃ｿｮ豁｣
         if (left)
-            m_camera->moveRight(-velocity);     // 符号を修正
+            m_camera->moveRight(-velocity);     // 隨ｦ蜿ｷ繧剃ｿｮ豁｣
         if (up)
             m_camera->moveUp(velocity);
         if (down)

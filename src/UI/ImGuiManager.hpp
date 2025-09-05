@@ -1,4 +1,4 @@
-//src/UI/ImGuiManager.hpp
+ï»¿//src/UI/ImGuiManager.hpp
 #pragma once
 
 #include <Windows.h>
@@ -24,7 +24,7 @@ using Microsoft::WRL::ComPtr;
 namespace Engine::UI
 {
 	//======================================================================
-	//ImGuiƒNƒ‰ƒX
+	//ImGuiã‚¯ãƒ©ã‚¹
 	//======================================================================
 	class ImGuiManager
 	{
@@ -32,45 +32,45 @@ namespace Engine::UI
 		ImGuiManager() = default;
 		~ImGuiManager();
 
-		//ƒRƒs[Eƒ€[ƒu‹Ö~
+		//ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
 		ImGuiManager(const ImGuiManager&) = delete;
 		ImGuiManager& operator=(const ImGuiManager&) = delete;
 		ImGuiManager(ImGuiManager&&) = delete;
 		ImGuiManager& operator=(ImGuiManager&&) = delete;
 
-		//‰Šú‰»
+		//åˆæœŸåŒ–
 		[[nodiscard]] Utils::VoidResult initialize(
 			Graphics::Device* device,
 			HWND hwnd,
-			ID3D12CommandQueue* commandQueue,  // ƒRƒ}ƒ“ƒhƒLƒ…[‚ğ3”Ô–Ú‚ÉˆÚ“®
+			ID3D12CommandQueue* commandQueue,  // ã‚³ãƒãƒ³ãƒ‰ã‚­ãƒ¥ãƒ¼ã‚’3ç•ªç›®ã«ç§»å‹•
 			DXGI_FORMAT rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM,
 			UINT frameCount = 2
 		);
 
 		Utils::VoidResult createFontTextureManually();
 
-		//I—¹ˆ—
+		//çµ‚äº†å‡¦ç†
 		void shutdown();
 
-		//ƒtƒŒ[ƒ€ŠJn
+		//ãƒ•ãƒ¬ãƒ¼ãƒ é–‹å§‹
 		void newFrame();
 
-		//•`‰æ
+		//æç”»
 		void render(ID3D12GraphicsCommandList* commandList) const;
 
-		//Win32ƒƒbƒZ[ƒWˆ—
+		//Win32ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç†
 		void handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) const;
 
-		// ƒŠƒTƒCƒYˆ—i‰ü‘P”Åj
+		// ãƒªã‚µã‚¤ã‚ºå‡¦ç†ï¼ˆæ”¹å–„ç‰ˆï¼‰
 		void onWindowResize(int width, int height);
 
-		//—LŒø«‚Ìƒ`ƒFƒbƒN
+		//æœ‰åŠ¹æ€§ã®ãƒã‚§ãƒƒã‚¯
 		[[nodiscard]] bool isInitialized() const { return m_initialized; }
 
-		//ImGuiƒRƒ“ƒeƒLƒXƒgæ“¾
+		//ImGuiã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆå–å¾—
 		ImGuiContext* getContext() const { return m_context; }
 
-		// ƒŠƒTƒCƒYŠ®—¹’Ê’miV‚µ‚­’Ç‰Áj
+		// ãƒªã‚µã‚¤ã‚ºå®Œäº†é€šçŸ¥ï¼ˆæ–°ã—ãè¿½åŠ ï¼‰
 		void invalidateDeviceObjects();
 		void createDeviceObjects();
 
@@ -81,18 +81,18 @@ namespace Engine::UI
 		HWND m_hwnd = nullptr;
 		DXGI_FORMAT m_rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		//DX12—p‚ÌƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv
+		//DX12ç”¨ã®ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—
 		ComPtr<ID3D12DescriptorHeap> m_srvDescHeap;
-		ID3D12CommandQueue* m_commandQueue = nullptr;  // ƒRƒ}ƒ“ƒhƒLƒ…[‚Ö‚ÌQÆ
+		ID3D12CommandQueue* m_commandQueue = nullptr;  // ã‚³ãƒãƒ³ãƒ‰ã‚­ãƒ¥ãƒ¼ã¸ã®å‚ç…§
 		UINT m_frameCount = 2;
 
-		//‰Šú‰»ƒwƒ‹ƒp[
+		//åˆæœŸåŒ–ãƒ˜ãƒ«ãƒ‘ãƒ¼
 		[[nodiscard]] Utils::VoidResult createDescriptorHeap();
 		[[nodiscard]] Utils::VoidResult reinitializeForResize();
 	};
 
 	//======================================================================
-	//ImGuiƒEƒBƒ“ƒhƒE‚ÌŠî’êƒNƒ‰ƒX
+	//ImGuiã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åŸºåº•ã‚¯ãƒ©ã‚¹
 	//======================================================================
 	class ImGuiWindow
 	{
@@ -102,14 +102,14 @@ namespace Engine::UI
 		}
 		virtual ~ImGuiWindow() = default;
 
-		//•`‰æ
+		//æç”»
 		virtual void draw() = 0;
 
-		//•\¦/”ñ•\¦
+		//è¡¨ç¤º/éè¡¨ç¤º
 		void setVisible(bool visible) { m_visible = visible; }
 		bool isVisible() const { return m_visible; }
 
-		//ƒ^ƒCƒgƒ‹
+		//ã‚¿ã‚¤ãƒˆãƒ«
 		const std::string& getTitle() const { return m_title; }
 		void setTitle(const std::string& title) { m_title = title; }
 
@@ -119,7 +119,7 @@ namespace Engine::UI
 	};
 
 	//=======================================================================
-	//ƒfƒoƒbƒOî•ñƒEƒBƒ“ƒhƒE
+	//ãƒ‡ãƒãƒƒã‚°æƒ…å ±ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 	//=======================================================================
 	class DebugWindow : public ImGuiWindow
 	{
@@ -128,7 +128,7 @@ namespace Engine::UI
 
 		void draw() override;
 
-		//ƒfƒoƒbƒOî•ñ‚Ìİ’è
+		//ãƒ‡ãƒãƒƒã‚°æƒ…å ±ã®è¨­å®š
 		void setFPS(float fps) { m_fps = fps; }
 		void setFrameTime(float frameTime) { m_frameTime = frameTime; }
 		void setObjectCount(size_t count) { m_objectCount = count; }
@@ -140,7 +140,7 @@ namespace Engine::UI
 	};
 
 	//======================================================================
-	//ƒIƒuƒWƒFƒNƒgŠK‘wƒEƒBƒ“ƒhƒE
+	//ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆéšå±¤ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 	//======================================================================
 	class SceneHierarchyWindow : public ImGuiWindow
 	{
@@ -149,17 +149,17 @@ namespace Engine::UI
 
 		void draw() override;
 
-		// ƒV[ƒ“‚Ìİ’è
+		// ã‚·ãƒ¼ãƒ³ã®è¨­å®š
 		void setScene(Graphics::Scene* scene) { m_scene = scene; }
 
-		// ‘I‘ğ‹@”\
+		// é¸æŠæ©Ÿèƒ½
 		Core::GameObject* getSelectedObject() const { return m_selectedObject; }
 		void setSelectedObject(Core::GameObject* object) { m_selectedObject = object; }
 
-		// ‘I‘ğ•ÏXƒR[ƒ‹ƒoƒbƒN
+		// é¸æŠå¤‰æ›´ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
 		void setSelectionChangedCallback(std::function<void(Core::GameObject*)> callback);
 
-		// ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[ƒR[ƒ‹ƒoƒbƒN
+		// ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
 		void setCreateObjectCallback(std::function<Core::GameObject* (UI::PrimitiveType, const std::string&)> callback);
 		void setDeleteObjectCallback(std::function<void(Core::GameObject*)> callback);
 		void setDuplicateObjectCallback(std::function<Core::GameObject* (Core::GameObject*)> callback);
@@ -175,7 +175,7 @@ namespace Engine::UI
 	};
 
 	//=======================================================================
-	//ƒIƒuƒWƒFƒNƒgƒCƒ“ƒXƒyƒNƒ^[
+	//ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚¤ãƒ³ã‚¹ãƒšã‚¯ã‚¿ãƒ¼
 	//=======================================================================
 	class InspectorWindow : public ImGuiWindow
 	{
@@ -184,10 +184,10 @@ namespace Engine::UI
 
 		void draw() override;
 
-		//‘I‘ğƒIƒuƒWƒFƒNƒg‚Ìİ’è
+		//é¸æŠã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®è¨­å®š
 		void setSelectedObject(Core::GameObject* object) { m_selectedObject = object; }
 
-		// ƒ}ƒeƒŠƒAƒ‹EƒeƒNƒXƒ`ƒƒŠÇ—İ’è
+		// ãƒãƒ†ãƒªã‚¢ãƒ«ãƒ»ãƒ†ã‚¯ã‚¹ãƒãƒ£ç®¡ç†è¨­å®š
 		void setMaterialManager(Graphics::MaterialManager* manager) { m_materialManager = manager; }
 		void setTextureManager(Graphics::TextureManager* manager) { m_textureManager = manager; }
 		Core::GameObject* getSelectedObject() const { return m_selectedObject; }
@@ -200,7 +200,7 @@ namespace Engine::UI
 		void drawTransformComponent(Core::Transform* transform);
 		void drawRenderComponent(Graphics::RenderComponent* renderComponent);
 
-		// ƒ}ƒeƒŠƒAƒ‹•ÒW‹@”\
+		// ãƒãƒ†ãƒªã‚¢ãƒ«ç·¨é›†æ©Ÿèƒ½
 		void drawMaterialEditor(Graphics::RenderComponent* renderComponent);
 		void drawTextureSlot(const char* name, Graphics::TextureType textureType,
 			std::shared_ptr<Graphics::Material> material);

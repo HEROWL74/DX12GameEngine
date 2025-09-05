@@ -1,4 +1,4 @@
-/* stb_image_resize2 - v2.14 - public domain image resizing
+﻿/* stb_image_resize2 - v2.14 - public domain image resizing
 
    by Jeff Roberts (v2) and Jorge L Rodriguez
    http://github.com/nothings/stb
