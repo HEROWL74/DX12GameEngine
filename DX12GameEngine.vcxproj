@@ -140,7 +140,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\App.hpp" />
+    <ClInclude Include="src\Core\EditorState.hpp" />
     <ClInclude Include="src\Core\GameObject.hpp" />
+    <ClInclude Include="src\Core\PlayModeController.hpp" />
     <ClInclude Include="src\Core\Window.hpp" />
     <ClInclude Include="src\Graphics\Camera.hpp" />
     <ClInclude Include="src\Graphics\ConstantBuffer.hpp" />
@@ -181,6 +183,7 @@
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp" />
     <ClCompile Include="src\Core\GameObject.cpp" />
+    <ClCompile Include="src\Core\PlayModeController.cpp" />
     <ClCompile Include="src\Core\Window.cpp" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
     <ClCompile Include="src\Graphics\ConstantBuffer.cpp" />
