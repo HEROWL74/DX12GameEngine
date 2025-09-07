@@ -38,6 +38,9 @@
     <Filter Include="ソース ファイル\src\Scripting">
       <UniqueIdentifier>{d740b1c4-3bb4-41a0-9b74-9cab4d6f14da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\assets\scripts">
+      <UniqueIdentifier>{03e1ef04-b361-420e-a539-910994fa9c84}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Utils\Common.hpp">
@@ -139,6 +142,12 @@
     <ClInclude Include="src\Scripting\ScriptManager.hpp">
       <Filter>ソース ファイル\src\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="src\Scripting\LuaBindings.hpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scripting\ScriptComponent.hpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -219,6 +228,9 @@
     <ClCompile Include="src\Scripting\ScriptManager.cpp">
       <Filter>ソース ファイル\src\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scripting\ScriptComponent.cpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="assets\shaders\BasicPixel.hlsl">
@@ -241,5 +253,13 @@
     <None Include="assets\shaders\Lighting.hlsli">
       <Filter>ソース ファイル\assets\shaders</Filter>
     </None>
+    <None Include="assets\scripts\test.lua">
+      <Filter>ソース ファイル\assets\scripts</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="assets\scripts\move.lua">
+      <Filter>ソース ファイル\assets\scripts</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
