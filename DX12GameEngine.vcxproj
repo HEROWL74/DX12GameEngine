@@ -79,6 +79,7 @@
       <LanguageStandard>stdcpp23</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -96,6 +97,7 @@
       <LanguageStandard>stdcpp23</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -111,6 +113,7 @@
       <LanguageStandard>stdcpp23</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -128,6 +131,7 @@
       <LanguageStandard>stdcpp23</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -158,6 +162,8 @@
     <ClInclude Include="src\Input\KeyCode.hpp" />
     <ClInclude Include="src\Input\MouseState.hpp" />
     <ClInclude Include="src\Math\Math.hpp" />
+    <ClInclude Include="src\Scripting\LuaBindings.hpp" />
+    <ClInclude Include="src\Scripting\ScriptComponent.hpp" />
     <ClInclude Include="src\Scripting\ScriptManager.hpp" />
     <ClInclude Include="src\UI\backends\imgui_impl_dx12.h" />
     <ClInclude Include="src\UI\backends\imgui_impl_win32.h" />
@@ -188,6 +194,7 @@
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Scripting\ScriptComponent.cpp" />
     <ClCompile Include="src\Scripting\ScriptManager.cpp" />
     <ClCompile Include="src\UI\backends\imgui_impl_dx12.cpp" />
     <ClCompile Include="src\UI\backends\imgui_impl_win32.cpp" />
@@ -243,6 +250,18 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="assets\scripts\move.lua">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </CustomBuild>
+    <None Include="assets\scripts\test.lua" />
     <None Include="assets\shaders\Common.hlsli" />
     <None Include="assets\shaders\Lighting.hlsli" />
   </ItemGroup>
