@@ -1,15 +1,14 @@
 ﻿//src/UI/ImGuiManager.cpp
 #include "ImGuiManager.hpp"
-#include "ProjectWindow.hpp"  // AssetInfo菴ｿ逕ｨ縺ｮ縺溘ａ霑ｽ蜉
+#include "ProjectWindow.hpp"  // AssetInfoを使う
 #include <format>
 
-//螟夜Κ縺ｮWin32 繝｡繝・そ繝ｼ繧ｸ繝上Φ繝峨Λ繝ｼ
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace Engine::UI
 {
 	//================================================================
-	//ImGuiManager螳溯｣・
+	//ImGuiManager実装
 	//================================================================
 	ImGuiManager::~ImGuiManager()
 	{
@@ -508,6 +507,31 @@ namespace Engine::UI
 
 		if (ImGui::Begin(m_title.c_str(), &m_visible))
 		{
+			// ====== Play Controls ======
+			ImGui::Text("Play Controls");
+			ImGui::Separator();
+
+			if (ImGui::Button("▶ Play")) {
+				if (m_playModeController) {
+					m_playModeController->play();
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("⏸ Pause")) {
+				if (m_playModeController) {
+					m_playModeController->pause();
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("■ Stop")) {
+				if (m_playModeController) {
+					m_playModeController->stop();
+				}
+			}
+
+			ImGui::Spacing();
+
+			// ====== Performance ======
 			ImGui::Text("Performance");
 			ImGui::Separator();
 			ImGui::Text("FPS: %.1f", m_fps);
@@ -1009,10 +1033,10 @@ namespace Engine::UI
 		}
 		else
 		{
-			// 遨ｺ縺ｮ繧ｹ繝ｭ繝・ヨ
+			// ドラッグ場所表示
 			ImGui::Button("Drag texture here", ImVec2(150, 30));
 
-			// 繝峨Λ繝・げ&繝峨Ο繝・・蜿励￠蜈･繧・
+			//テクスチャ情報取得
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))

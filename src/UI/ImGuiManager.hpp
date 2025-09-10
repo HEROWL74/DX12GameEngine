@@ -13,6 +13,7 @@
 #include "../Graphics/Material.hpp"
 #include "../Graphics/Texture.hpp"
 #include "ContextMenu.hpp"
+#include "../Core/PlayModeController.hpp"
 
 //ImGui includes
 #include "imgui.h"
@@ -129,6 +130,7 @@ namespace Engine::UI
 		void draw() override;
 
 		//デバッグ情報の設定
+		void setPlayModeController(Core::PlayModeController* controller) { m_playModeController = controller; }
 		void setFPS(float fps) { m_fps = fps; }
 		void setFrameTime(float frameTime) { m_frameTime = frameTime; }
 		void setObjectCount(size_t count) { m_objectCount = count; }
@@ -137,6 +139,7 @@ namespace Engine::UI
 		float m_fps = 0.0f;
 		float m_frameTime = 0.0f;
 		size_t m_objectCount = 0;
+		Core::PlayModeController* m_playModeController = nullptr;
 	};
 
 	//======================================================================

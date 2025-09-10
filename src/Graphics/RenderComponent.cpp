@@ -317,4 +317,13 @@ namespace Engine::Graphics
 		}
 	}
 
+	Core::GameObject* Scene::findObjectByName(const std::string& name)
+	{
+		for (auto& obj : m_gameObjects)
+		{
+			if (obj && obj->getName() == name)
+				return obj.get();
+		}
+		return nullptr;
+	}
 }
