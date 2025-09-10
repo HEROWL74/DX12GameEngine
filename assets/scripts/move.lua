@@ -5,6 +5,6 @@ end
 function onUpdate(obj, dt)
     local t = obj:getTransform()
     local p = t:getPosition()
-    p.x = p.x + dt
+    p.z = p.z + dt
     t:setPosition(p)
 end
