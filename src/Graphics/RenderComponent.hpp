@@ -103,6 +103,7 @@ namespace Engine::Graphics
 
 		//ゲームオブジェクト一覧取得
 		const std::vector<std::unique_ptr<Core::GameObject>>& getGameObjects() const { return m_gameObjects; }
+		Core::GameObject* findObjectByName(const std::string& name);
 
 	private:
 		Device* m_device = nullptr;
