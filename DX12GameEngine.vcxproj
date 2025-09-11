@@ -165,6 +165,7 @@
     <ClInclude Include="src\Input\MouseState.hpp" />
     <ClInclude Include="src\Math\Math.hpp" />
     <ClInclude Include="src\Scripting\LuaBindings.hpp" />
+    <ClInclude Include="src\Scripting\LuaScriptUtility.hpp" />
     <ClInclude Include="src\Scripting\ScriptComponent.hpp" />
     <ClInclude Include="src\Scripting\ScriptManager.hpp" />
     <ClInclude Include="src\UI\backends\imgui_impl_dx12.h" />
@@ -197,6 +198,7 @@
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Scripting\LuaScriptUtility.cpp" />
     <ClCompile Include="src\Scripting\ScriptComponent.cpp" />
     <ClCompile Include="src\Scripting\ScriptManager.cpp" />
     <ClCompile Include="src\UI\backends\imgui_impl_dx12.cpp" />

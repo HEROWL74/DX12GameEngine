@@ -708,7 +708,7 @@ namespace Engine::UI
 		}
 	}
 	//=======================================================================
-	//InspectorWindow螳溯｣・
+	//InspectorWindow
 	//=======================================================================
 	void InspectorWindow::draw()
 	{
@@ -716,82 +716,83 @@ namespace Engine::UI
 
 		if (ImGui::Begin(m_title.c_str(), &m_visible))
 		{
-			// 驕ｸ謚槭＆繧後◆繧ｪ繝悶ず繧ｧ繧ｯ繝医′譛牙柑縺狗｢ｺ隱・
 			if (m_selectedObject)
 			{
-				// 繧ｪ繝悶ず繧ｧ繧ｯ繝医・蜷榊燕繧貞ｮ牙・縺ｫ蜿門ｾ・
-				std::string objectName;
-				bool isValid = true;
+				std::string objectName = m_selectedObject->getName();
+				ImGui::Text("Object: %s", objectName.c_str());
+				ImGui::Separator();
 
-				try {
-					objectName = m_selectedObject->getName();
-				}
-				catch (...) {
-					// 繧ｪ繝悶ず繧ｧ繧ｯ繝医′辟｡蜉ｹ縺ｪ蝣ｴ蜷・
-					isValid = false;
-					m_selectedObject = nullptr;
-				}
+				// Transform / Render はそのまま
+				if (auto* transform = m_selectedObject->getTransform())
+					drawTransformComponent(transform);
 
-				if (isValid && m_selectedObject)
+				ImGui::Spacing();
+
+				if (auto* renderComponent = m_selectedObject->getComponent<Graphics::RenderComponent>())
+					drawRenderComponent(renderComponent);
+
+				ImGui::Spacing();
+
+				// ==== Script ====
+				auto* scriptComponent = m_selectedObject->getComponent<Engine::Scripting::ScriptComponent>();
+				if (scriptComponent)
 				{
-					ImGui::Text("Object: %s", objectName.c_str());
-					ImGui::Separator();
-
-					// Transform繧ｳ繝ｳ繝昴・繝阪Φ繝・
-					auto* transform = m_selectedObject->getTransform();
-					if (transform)
-					{
-						drawTransformComponent(transform);
-					}
-
-					ImGui::Spacing();
-
-					// RenderComponent
-					auto* renderComponent = m_selectedObject->getComponent<Graphics::RenderComponent>();
-					if (renderComponent)
-					{
-						drawRenderComponent(renderComponent);
-					}
+					drawScriptComponent(scriptComponent);
 				}
 				else
 				{
-					// 繧ｪ繝悶ず繧ｧ繧ｯ繝医′辟｡蜉ｹ縺ｫ縺ｪ縺｣縺・
-					m_selectedObject = nullptr;
-					ImGui::Text("Selected object is no longer valid");
+					ImGui::Text("Script");
+					ImGui::Dummy(ImVec2(220, 40));
+					ImGui::SameLine();
+					ImGui::TextDisabled("<None>");
+					if (ImGui::BeginDragDropTarget())
+					{
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+						{
+							const AssetPayload* dropped = static_cast<const AssetPayload*>(payload->Data);
+							if (dropped->type == static_cast<int>(UI::AssetInfo::Type::Script))
+							{
+								m_selectedObject->addScriptComponent(dropped->path);
+								Utils::log_info(std::format("Lua script attached: {}", dropped->path));
+							}
+						}
+						ImGui::EndDragDropTarget();
+					}
+
 				}
 			}
 			else
 			{
 				ImGui::Text("No object selected");
-				ImGui::Text("Select an object in the Scene Hierarchy");
 			}
 		}
 		ImGui::End();
 	}
 
 
+
 	void InspectorWindow::drawTransformComponent(Core::Transform* transform)
 	{
 		if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			//菴咲ｽｮ
-			auto pos = transform->getPosition();
+			
+			auto& pos = transform->getPosition();
 			float position[3] = { pos.x, pos.y, pos.z };
 			if (ImGui::DragFloat3("Position", position, 0.1f))
 			{
 				transform->setPosition(Math::Vector3(position[0], position[1], position[2]));
 			}
 
-			//蝗櫁ｻ｢
-			auto rot = transform->getRotation();
+			
+			auto& rot = transform->getRotation();
 			float rotation[3] = { rot.x, rot.y, rot.z };
 			if (ImGui::DragFloat3("Rotation", rotation, 1.0f))
 			{
 				transform->setRotation(Math::Vector3(rotation[0], rotation[1], rotation[2]));
 			}
 
-			//繧ｹ繧ｱ繝ｼ繝ｫ
-			auto scale = transform->getScale();
+			
+			auto& scale = transform->getScale();
 			float scaleArray[3] = { scale.x, scale.y, scale.z };
 			if (ImGui::DragFloat3("Scale", scaleArray, 0.1f, 0.1f, 10.0f))
 			{
@@ -804,14 +805,14 @@ namespace Engine::UI
 	{
 		if (ImGui::CollapsingHeader("Render Component", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			// 陦ｨ遉ｺ/髱櫁｡ｨ遉ｺ
+	
 			bool visible = renderComponent->isVisible();
 			if (ImGui::Checkbox("Visible", &visible))
 			{
 				renderComponent->setVisible(visible);
 			}
 
-			// 繝ｬ繝ｳ繝繝ｩ繝悶Ν繧ｿ繧､繝・
+	
 			const char* types[] = { "Triangle", "Cube" };
 			int currentType = static_cast<int>(renderComponent->getRenderableType());
 			if (ImGui::Combo("Type", &currentType, types, IM_ARRAYSIZE(types)))
@@ -819,7 +820,7 @@ namespace Engine::UI
 				renderComponent->setRenderableType(static_cast<Graphics::RenderableType>(currentType));
 			}
 
-			// 濶ｲ・域立蠑・- 蠕後〒蜑企勁莠亥ｮ夲ｼ・
+		
 			auto& color = renderComponent->getColor();
 			float colorArray[3] = { color.x, color.y, color.z };
 			if (ImGui::ColorEdit3("Color", colorArray))
@@ -827,7 +828,6 @@ namespace Engine::UI
 				renderComponent->setColor(Math::Vector3(colorArray[0], colorArray[1], colorArray[2]));
 			}
 
-			// 繝槭ユ繝ｪ繧｢繝ｫ繧ｨ繝・ぅ繧ｿ
 			if (m_materialManager)
 			{
 				drawMaterialEditor(renderComponent);
@@ -978,6 +978,38 @@ namespace Engine::UI
 			}
 		}
 	}
+
+	void InspectorWindow::drawScriptComponent(Scripting::ScriptComponent* scriptComponent)
+	{
+		if (ImGui::CollapsingHeader("Script", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			std::string fileName = scriptComponent->getScriptFileName();
+
+			ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Attached Script:");
+			ImGui::SameLine();
+			ImGui::Text("%s", fileName.c_str());
+
+			// 再アタッチ用のドロップ領域
+			ImGui::Dummy(ImVec2(200, 30));
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+				{
+					const AssetPayload* dropped = static_cast<const AssetPayload*>(payload->Data);
+					if (dropped->type == static_cast<int>(UI::AssetInfo::Type::Script))
+					{
+						m_selectedObject->addScriptComponent(dropped->path);
+						Utils::log_info(std::format("Lua script re-attached: {}", dropped->path));
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+	}
+
+
+
+
 
 	void InspectorWindow::drawTextureSlot(const char* name, Graphics::TextureType textureType,
 		std::shared_ptr<Graphics::Material> material)
