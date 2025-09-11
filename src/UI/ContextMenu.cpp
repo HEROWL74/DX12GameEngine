@@ -159,16 +159,25 @@ namespace Engine::UI
         {
             draw3DObjectMenu();
 
-            // 蟆・擂逧・↓霑ｽ蜉莠亥ｮ・
+            if (ImGui::MenuItem("Lua Script"))
+            {
+                std::string newScriptPath = "assets/scripts/NewScript.lua";
+                if (Engine::Scripting::LuaScriptUtility::createNewScript(newScriptPath))
+                {
+                    Engine::Scripting::LuaScriptUtility::openInVSCode(newScriptPath);
+                    Utils::log_info(std::format("Created Lua script: {}", newScriptPath));
+                }
+            }
+
+            
             if (ImGui::BeginMenu("Light"))
             {
                 if (ImGui::MenuItem("Directional Light"))
                 {
-                    // TODO: 繝ｩ繧､繝井ｽ懈・
+                 
                 }
                 if (ImGui::MenuItem("Point Light"))
                 {
-                    // TODO: 繝昴う繝ｳ繝医Λ繧､繝井ｽ懈・
                 }
                 ImGui::EndMenu();
             }
@@ -177,7 +186,7 @@ namespace Engine::UI
             {
                 if (ImGui::MenuItem("Camera"))
                 {
-                    // TODO: 繧ｫ繝｡繝ｩ菴懈・
+ 
                 }
                 ImGui::EndMenu();
             }

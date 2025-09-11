@@ -9,6 +9,7 @@
 #include "ImGuiManager.hpp"
 #include "../Graphics/Texture.hpp"
 #include "../Graphics/Material.hpp"
+#include "../Scripting/LuaScriptUtility.hpp"
 
 namespace Engine::UI
 {
@@ -26,11 +27,22 @@ namespace Engine::UI
             Texture,
             Material,
             Shader,
+            Script,
             Unknown
         } type{};
 
+        //リネーム情報格納
+        bool renaming = false;
+        char renameBuffer[256]{};
+
         std::shared_ptr<Graphics::Texture> texture; // テクスチャプレビュー用
         std::shared_ptr<Graphics::Material> material; // マテリアル用
+    };
+
+    struct AssetPayload
+    {
+        char path[256];
+        int type;     // AssetInfo::Type を int にキャストして保存
     };
 
     //=========================================================================
@@ -51,6 +63,8 @@ namespace Engine::UI
         // プロジェクトパス設定
         void setProjectPath(const std::string& path);
         const std::string& getProjectPath() const { return m_projectPath; }
+
+        std::string generateUniqueScriptPath();
 
         // 選択されたアセット取得
         const AssetInfo* getSelectedAsset() const { return m_selectedAsset; }

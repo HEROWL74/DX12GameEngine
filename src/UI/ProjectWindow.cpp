@@ -20,7 +20,7 @@ namespace Engine::UI
             drawToolbar();
             ImGui::Separator();
 
-            // 繝｡繧､繝ｳ繧ｳ繝ｳ繝・Φ繝・お繝ｪ繧｢
+         
             if (ImGui::BeginChild("AssetArea", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())))
             {
                 if (m_showGrid)
@@ -31,10 +31,11 @@ namespace Engine::UI
                 {
                     drawAssetList();
                 }
+                drawContextMenu();
             }
             ImGui::EndChild();
 
-            // 繝励Ξ繝薙Η繝ｼ繧ｨ繝ｪ繧｢
+ 
             drawAssetPreview();
         }
         ImGui::End();
@@ -87,7 +88,7 @@ namespace Engine::UI
 
     void ProjectWindow::drawToolbar()
     {
-        // 讀懃ｴ｢繝輔ぅ繝ｫ繧ｿ繝ｼ
+
         char searchBuffer[256];
         strncpy_s(searchBuffer, m_searchFilter.c_str(), sizeof(searchBuffer) - 1);
         if (ImGui::InputText("Search", searchBuffer, sizeof(searchBuffer)))
@@ -97,7 +98,6 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-        // 陦ｨ遉ｺ蛻・ｊ譖ｿ縺・
         if (ImGui::Button(m_showGrid ? "List" : "Grid"))
         {
             m_showGrid = !m_showGrid;
@@ -105,7 +105,7 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-        // 繝ｪ繝輔Ξ繝・す繝･繝懊ち繝ｳ
+       
         if (ImGui::Button("Refresh"))
         {
             refreshAssets();
@@ -113,7 +113,7 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-        // 繧｢繧､繧ｳ繝ｳ繧ｵ繧､繧ｺ繧ｹ繝ｩ繧､繝繝ｼ・医げ繝ｪ繝・ラ陦ｨ遉ｺ譎ゅ・縺ｿ・・
+     
         if (m_showGrid)
         {
             ImGui::SetNextItemWidth(100);
@@ -134,23 +134,22 @@ namespace Engine::UI
 
             ImGui::PushID(index);
 
-            // 繧ｻ繝ｫ縺ｮ菴咲ｽｮ險育ｮ・
+         
             if (index > 0 && (index % columnCount) != 0)
             {
                 ImGui::SameLine();
             }
 
-            // 繧｢繧ｻ繝・ヨ繧｢繧､繧ｳ繝ｳ謠冗判
+          
             ImGui::BeginGroup();
 
-            // 驕ｸ謚樒憾諷九・閭梧勹
+      
             bool isSelected = (m_selectedAsset == &asset);
             if (isSelected)
             {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
             }
 
-            // 繧｢繧､繧ｳ繝ｳ繝懊ち繝ｳ
             if (ImGui::Button("##icon", ImVec2(m_iconSize, m_iconSize)))
             {
                 m_selectedAsset = &asset;
@@ -162,12 +161,15 @@ namespace Engine::UI
                 ImGui::PopStyleColor();
             }
 
-            // 繝繝悶Ν繧ｯ繝ｪ繝・け蜃ｦ逅・
             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
             {
                 if (asset.type == AssetInfo::Type::Folder)
                 {
                     setProjectPath(asset.path.string());
+                }
+                else if (asset.type == AssetInfo::Type::Script)
+                {
+                    Engine::Scripting::LuaScriptUtility::openInVSCode(asset.path.string());
                 }
                 else if (m_assetDropCallback)
                 {
@@ -175,13 +177,43 @@ namespace Engine::UI
                 }
             }
 
-            // 繝峨Λ繝・げ・・ラ繝ｭ繝・・
+        
             handleDragDrop(asset);
+            // 名前部分の描画
+            if (asset.renaming)
+            {
+                ImGui::SetNextItemWidth(m_iconSize + 20);
 
-            // 繧｢繧ｻ繝・ヨ蜷・
-            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + m_iconSize);
-            ImGui::TextWrapped("%s", asset.name.c_str());
-            ImGui::PopTextWrapPos();
+                if (ImGui::InputText("##rename", asset.renameBuffer, sizeof(asset.renameBuffer),
+                    ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+                {
+                    // Enterで確定 → ファイルリネーム
+                    std::filesystem::path newPath = asset.path.parent_path() / asset.renameBuffer;
+                    try {
+                        std::filesystem::rename(asset.path, newPath);
+                        asset.path = newPath;
+                        asset.name = newPath.filename().string();
+                        asset.renaming = false;
+                        refreshAssets();
+                    }
+                    catch (...) {
+                        Utils::log_warning("Rename failed");
+                    }
+                }
+
+                // Escでキャンセルできるようにする（任意）
+                if (ImGui::IsItemDeactivatedAfterEdit() && !ImGui::IsItemActive())
+                {
+                    asset.renaming = false;
+                }
+            }
+            else
+            {
+                ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + m_iconSize);
+                ImGui::TextWrapped("%s", asset.name.c_str());
+                ImGui::PopTextWrapPos();
+            }
+
 
             ImGui::EndGroup();
 
@@ -207,16 +239,44 @@ namespace Engine::UI
                 ImGui::PushID(index);
                 ImGui::TableNextRow();
 
-                // 蜷榊燕
                 ImGui::TableNextColumn();
                 bool isSelected = (m_selectedAsset == &asset);
-                if (ImGui::Selectable(asset.name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns))
+
+                if (asset.renaming)
                 {
-                    m_selectedAsset = &asset;
-                    loadAssetPreview(asset);
+                    ImGui::SetNextItemWidth(200);
+
+                    if (ImGui::InputText("##rename", asset.renameBuffer, sizeof(asset.renameBuffer),
+                        ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+                    {
+                        std::filesystem::path newPath = asset.path.parent_path() / asset.renameBuffer;
+                        try {
+                            std::filesystem::rename(asset.path, newPath);
+                            asset.path = newPath;
+                            asset.name = newPath.filename().string();
+                            asset.renaming = false;
+                            refreshAssets();
+                        }
+                        catch (...) {
+                            Utils::log_warning("Rename failed");
+                        }
+                    }
+
+                    if (ImGui::IsItemDeactivatedAfterEdit() && !ImGui::IsItemActive())
+                    {
+                        asset.renaming = false;
+                    }
+                }
+                else
+                {
+                    if (ImGui::Selectable(asset.name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns))
+                    {
+                        m_selectedAsset = &asset;
+                        loadAssetPreview(asset);
+                    }
                 }
 
-                // 繝繝悶Ν繧ｯ繝ｪ繝・け蜃ｦ逅・
+
 
 
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
@@ -225,16 +285,20 @@ namespace Engine::UI
                     {
                         setProjectPath(asset.path.string());
                     }
+                    else if (asset.type == AssetInfo::Type::Script)
+                    {
+                        Engine::Scripting::LuaScriptUtility::openInVSCode(asset.path.string());
+                    }
                     else if (m_assetDropCallback)
                     {
                         m_assetDropCallback(asset);
                     }
                 }
 
-                // 繝峨Λ繝・げ・・ラ繝ｭ繝・・
+             
                 handleDragDrop(asset);
 
-                // 繧ｿ繧､繝・
+      
                 ImGui::TableNextColumn();
                 const char* typeStr = "Unknown";
                 switch (asset.type)
@@ -246,7 +310,7 @@ namespace Engine::UI
                 }
                 ImGui::Text("%s", typeStr);
 
-                // 繧ｵ繧､繧ｺ
+          
                 ImGui::TableNextColumn();
                 if (asset.type != AssetInfo::Type::Folder)
                 {
@@ -283,7 +347,6 @@ namespace Engine::UI
             ImGui::Text("Selected: %s", m_selectedAsset->name.c_str());
             ImGui::Text("Path: %s", m_selectedAsset->path.string().c_str());
 
-            // 繧ｿ繧､繝怜挨縺ｮ繝励Ξ繝薙Η繝ｼ
             switch (m_selectedAsset->type)
             {
             case AssetInfo::Type::Texture:
@@ -310,8 +373,56 @@ namespace Engine::UI
 
     void ProjectWindow::drawContextMenu()
     {
-        // 蜿ｳ繧ｯ繝ｪ繝・け繝｡繝九Η繝ｼ縺ｮ螳溯｣・ｼ亥ｿ・ｦ√↓蠢懊§縺ｦ・・
+        if (ImGui::BeginPopupContextWindow("ProjectWindowContext", ImGuiPopupFlags_MouseButtonRight))
+        {
+            if (ImGui::BeginMenu("Create"))
+            {
+                if (ImGui::MenuItem("Lua Script"))
+                {
+                    std::string newScriptPath = generateUniqueScriptPath();
+
+                    if (Engine::Scripting::LuaScriptUtility::createNewScript(newScriptPath))
+                    {
+                        Utils::log_info(std::format("Lua script created: {}", newScriptPath));
+
+                        //リスト更新
+                        refreshAssets();
+
+                        //新しく作ったアセットを選択 & Renameモードにする
+                        for (auto& asset : m_assets)
+                        {
+                            if (asset.path == newScriptPath)
+                            {
+                                m_selectedAsset = &asset;
+                                asset.renaming = true;
+                                strncpy_s(asset.renameBuffer, asset.name.c_str(), sizeof(asset.renameBuffer));
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                ImGui::EndMenu();
+            }
+
+
+            if (m_selectedAsset && ImGui::MenuItem("Delete"))
+            {
+                try {
+                    std::filesystem::remove(m_selectedAsset->path);
+                    Utils::log_info(std::format("Deleted asset: {}", m_selectedAsset->path.string()));
+                    refreshAssets();
+                    m_selectedAsset = nullptr;
+                }
+                catch (...) {
+                    Utils::log_warning("Failed to delete asset");
+                }
+            }
+            ImGui::EndPopup();
+        }
+        
     }
+
 
     AssetInfo::Type ProjectWindow::getAssetType(const std::filesystem::path& path)
     {
@@ -335,6 +446,10 @@ namespace Engine::UI
         {
             return AssetInfo::Type::Shader;
         }
+        else if (ext == ".lua") 
+        {
+            return AssetInfo::Type::Script;
+        }
 
         return AssetInfo::Type::Unknown;
     }
@@ -353,8 +468,6 @@ namespace Engine::UI
         case AssetInfo::Type::Material:
             if (m_materialManager && !asset.material)
             {
-                // 繝槭ユ繝ｪ繧｢繝ｫ繝輔ぃ繧､繝ｫ縺ｮ隱ｭ縺ｿ霎ｼ縺ｿ・育ｰ｡譏灘ｮ溯｣・ｼ・
-                // 螳滄圀縺ｯMaterialSerializer繧剃ｽｿ逕ｨ
                 asset.material = m_materialManager->createMaterial(asset.name);
             }
             break;
@@ -378,9 +491,36 @@ namespace Engine::UI
     {
         if (ImGui::BeginDragDropSource())
         {
-            ImGui::SetDragDropPayload("ASSET", &asset, sizeof(AssetInfo));
+            AssetPayload payload{};
+            auto s = asset.path.string();
+            strncpy_s(payload.path, s.c_str(), sizeof(payload.path) - 1);
+            payload.type = static_cast<int>(asset.type);
+
+            //POD を渡す（ImGui 内部でコピーされるのでローカルでOK）
+            ImGui::SetDragDropPayload("ASSET", &payload, sizeof(payload));
+
             ImGui::Text("Dragging: %s", asset.name.c_str());
             ImGui::EndDragDropSource();
         }
+    }
+
+    std::string ProjectWindow::generateUniqueScriptPath()
+    {
+        int counter = 0;
+        std::string baseName = "NewLuaScript";
+        std::string fileName;
+        std::filesystem::path scriptPath;
+
+        do
+        {
+            fileName = (counter == 0)
+                ? baseName + ".lua"
+                : baseName + " " + std::to_string(counter) + ".lua";
+
+            scriptPath = std::filesystem::path(m_projectPath) / fileName;
+            counter++;
+        } while (std::filesystem::exists(scriptPath));
+
+        return scriptPath.string();
     }
 }

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include "../Core/GameObject.hpp"
 #include "../Graphics/RenderComponent.hpp"
+#include "../Scripting/LuaScriptUtility.hpp"
 
 namespace Engine::UI
 {
