@@ -9,6 +9,7 @@ namespace Engine::Graphics
     {
         float position[3];  // x, y, z
         float color[3];     // r, g, b
+        float uv[2];
     };
 
     // 将来的にはテクスチャ座標付きの頂点も追加予定

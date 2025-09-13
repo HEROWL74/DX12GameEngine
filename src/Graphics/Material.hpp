@@ -59,6 +59,9 @@ namespace Engine::Graphics
 		//テクスチャのタイリング
 		Math::Vector2 uvScale = Math::Vector2(1.0f, 1.0f);  //UVスケール
 		Math::Vector2 uvOffset = Math::Vector2(0.0f, 0.0f); //UVオフセット
+
+		int useAlbedoTex = 0;  //0=使わない, 1=使う
+		int pad[3]{};   //アラインメント用
 	};
 
 	//======================================================================
@@ -156,6 +159,8 @@ namespace Engine::Graphics
 			Math::Vector4 emissive;  //xyz: 発光 w: 法線強度
 			Math::Vector4 alphaParams;  // x：アルファ値（透明度) // y：アルファテストを使うかどうか（true / false）// z：アルファテストのしきい値（カットオフ値)// w：ハイトマップの高さスケール
 			Math::Vector4 uvTransform; //xy: UVスケール zw: UVオフセット
+			int hasAlbedoTexture;
+			int pad[3];
 		};
 	};
 

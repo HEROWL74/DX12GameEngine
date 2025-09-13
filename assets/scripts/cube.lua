@@ -1,8 +1,10 @@
--- assets\scripts\NewLuaScript.lua
 function onStart(obj)
-    print("Hello from assets\scripts\NewLuaScript.lua")
+    print("Start: " .. obj:getName())
 end
 
 function onUpdate(obj, dt)
-    -- update logic here
+    local t = obj:getTransform()
+    local p = t:getPosition()
+    p.z = p.z + dt
+    t:setPosition(p)
 end

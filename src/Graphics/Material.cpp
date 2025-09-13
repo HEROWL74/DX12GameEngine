@@ -1,6 +1,6 @@
 ﻿//src/Graphics/Material.cpp
 #include "Material.hpp"
-//#include "Texture.hpp" // 谺｡縺ｮ繧ｹ繝・ャ繝励〒菴懈・莠亥ｮ・
+//#include "Texture.hpp" 
 #include <format>
 
 namespace Engine::Graphics
@@ -11,9 +11,7 @@ namespace Engine::Graphics
 
     Material::Material(const std::string& name)
         : m_name(name)
-    {
-        // 繝・ヵ繧ｩ繝ｫ繝医・繝ｭ繝代ユ繧｣縺ｯ讒矩菴薙・蛻晄悄蛹悶〒險ｭ螳壽ｸ医∩
-    }
+    { }
 
     Utils::VoidResult Material::initialize(Device* device)
     {
@@ -91,7 +89,12 @@ namespace Engine::Graphics
         if (it != m_textures.end())
         {
             m_textures.erase(it);
+            if (type == TextureType::Albedo)
+            {
+                m_properties.useAlbedoTex = 0;
+            }
             m_isDirty = true;
+            updateConstantBuffer();
         }
     }
 
@@ -102,7 +105,7 @@ namespace Engine::Graphics
         Utils::log_info(std::format("m_device: {}", m_device ? "not null" : "null"));
         Utils::log_info(std::format("m_constantBufferData: {}", m_constantBufferData ? "not null" : "null"));
 
-        // 繧医ｊ隧ｳ邏ｰ縺ｪ蛻晄悄蛹悶メ繧ｧ繝・け
+   
         if (!m_initialized) {
             Utils::log_warning(std::format("Material '{}' not initialized (m_initialized = {})", m_name, m_initialized));
             return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
@@ -129,19 +132,30 @@ namespace Engine::Graphics
 
         Utils::log_info(std::format("All checks passed, updating constant buffer for '{}'", m_name));
 
-        // GPU逕ｨ縺ｮ螳壽焚繝舌ャ繝輔ぃ繝・・繧ｿ繧呈ｺ門ｙ
         MaterialConstantBuffer cbData{};
 
-        // albedo縺ｨmetallic
-        cbData.albedo = Math::Vector4(m_properties.albedo.x, m_properties.albedo.y, m_properties.albedo.z, m_properties.metallic);
+   
+        cbData.albedo = Math::Vector4(
+            m_properties.albedo.x,
+            m_properties.albedo.y,
+            m_properties.albedo.z,
+            m_properties.metallic
+        );
 
-        // roughness, ao, emissiveStrength
-        cbData.roughnessAoEmissiveStrength = Math::Vector4(m_properties.roughness, m_properties.ao, m_properties.emissiveStrength, 0.0f);
+        cbData.roughnessAoEmissiveStrength = Math::Vector4(
+            m_properties.roughness,
+            m_properties.ao,
+            m_properties.emissiveStrength,
+            0.0f
+        );
 
-        // emissive縺ｨnormalStrength
-        cbData.emissive = Math::Vector4(m_properties.emissive.x, m_properties.emissive.y, m_properties.emissive.z, m_properties.normalStrength);
+        cbData.emissive = Math::Vector4(
+            m_properties.emissive.x,
+            m_properties.emissive.y,
+            m_properties.emissive.z,
+            m_properties.normalStrength
+        );
 
-        // alpha繝代Λ繝｡繝ｼ繧ｿ
         cbData.alphaParams = Math::Vector4(
             m_properties.alpha,
             m_properties.useAlphaTest ? 1.0f : 0.0f,
@@ -149,10 +163,17 @@ namespace Engine::Graphics
             m_properties.heightScale
         );
 
-        // UV繝医Λ繝ｳ繧ｹ繝輔か繝ｼ繝
-        cbData.uvTransform = Math::Vector4(m_properties.uvScale.x, m_properties.uvScale.y, m_properties.uvOffset.x, m_properties.uvOffset.y);
+        cbData.uvTransform = Math::Vector4(
+            m_properties.uvScale.x,
+            m_properties.uvScale.y,
+            m_properties.uvOffset.x,
+            m_properties.uvOffset.y
+        );
 
-        // 螳壽焚繝舌ャ繝輔ぃ縺ｫ繝・・繧ｿ繧偵さ繝斐・
+        cbData.hasAlbedoTexture = (m_properties.useAlbedoTex != 0) ? 1 : 0;  // intで送る
+
+
+       
         memcpy(m_constantBufferData, &cbData, sizeof(MaterialConstantBuffer));
 
         m_isDirty = false;
@@ -174,13 +195,13 @@ namespace Engine::Graphics
             return;
         }
 
-        // 螳壽焚繝舌ャ繝輔ぃ繝薙Η繝ｼ繧堤峩謗･繝舌う繝ｳ繝会ｼ医す繝ｳ繝励Ν縺ｪ譁ｹ豕包ｼ・
+   
         commandList->SetGraphicsRootConstantBufferView(
             rootParameterIndex,
             m_constantBuffer->GetGPUVirtualAddress()
         );
 
-        // 繝・ぅ繧ｹ繧ｯ繝ｪ繝励ち繝偵・繝・
+     
         /*
         if (m_cbvDescriptorHeap)
         {
@@ -192,7 +213,6 @@ namespace Engine::Graphics
     }
     Utils::VoidResult Material::createConstantBuffer()
     {
-        // 繧医ｊ隧ｳ邏ｰ縺ｪ繝・ヰ繧､繧ｹ繝√ぉ繝・け
         if (!m_device) {
             return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
                 std::format("Device is null for material '{}'", m_name)));
@@ -213,7 +233,7 @@ namespace Engine::Graphics
         Utils::log_info(std::format("Creating constant buffer of size {} bytes for material '{}'",
             constantBufferSize, m_name));
 
-        // 繝偵・繝励・繝ｭ繝代ユ繧｣縺ｮ險ｭ螳・
+  
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -221,7 +241,7 @@ namespace Engine::Graphics
         heapProps.CreationNodeMask = 1;
         heapProps.VisibleNodeMask = 1;
 
-        // 繝ｪ繧ｽ繝ｼ繧ｹ險倩ｿｰ蟄・
+       
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         resourceDesc.Alignment = 0;
@@ -251,7 +271,6 @@ namespace Engine::Graphics
 
         Utils::log_info(std::format("D3D12 constant buffer resource created for material '{}'", m_name));
 
-        // 豌ｸ邯夂噪縺ｫ繝槭ャ繝・
         D3D12_RANGE readRange{ 0, 0 };
         hr = m_constantBuffer->Map(0, &readRange, &m_constantBufferData);
 

@@ -5,7 +5,7 @@
 namespace Engine::Graphics
 {
 	//==========================================================================================
-	//RenderComponent螳溯｣・
+	//RenderComponent
 	//==========================================================================================
 	RenderComponent::RenderComponent(RenderableType type)
 		:m_renderableType(type)

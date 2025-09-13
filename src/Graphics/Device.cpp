@@ -56,8 +56,13 @@ namespace Engine::Graphics
             return deviceResult;
         }
 
-        //繝・ぅ繧ｹ繧ｯ繝ｪ繝励ち繧ｵ繧､繧ｺ縺ｮ繧ｭ繝｣繝・す繝･
+      
         cacheDescriptorSizes();
+
+        auto queueResult = createGraphicsQueue();
+        if (!queueResult) { return queueResult; }
+        auto srvHeapResult = createSrvHeap(1024);
+        if (!srvHeapResult) { return srvHeapResult; }
 
         Utils::log_info(std::format("Graphics Device initialized successfully"));
         Utils::log_info(std::format("Selected Adapter: {}",
@@ -312,5 +317,50 @@ namespace Engine::Graphics
         HRESULT hr = D3D12CreateDevice(adapter, minFeatureLevel, IID_PPV_ARGS(&testDevice));
 
         return SUCCEEDED(hr);
+    }
+
+    Utils::VoidResult Device::createGraphicsQueue()
+    {
+        D3D12_COMMAND_QUEUE_DESC desc = {};
+        desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+
+        CHECK_HR(m_device->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_graphicsQueue)),
+            Utils::ErrorType::DeviceCreation, "Failed to create graphics command queue");
+
+        // フェンス & イベント
+        CHECK_HR(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)),
+            Utils::ErrorType::DeviceCreation, "Failed to create fence");
+        m_fenceValue = 1;
+        m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+
+        return {};
+    }
+
+    Utils::VoidResult Device::createSrvHeap(UINT numDescriptors)
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.NumDescriptors = numDescriptors;
+        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+        CHECK_HR(m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_srvHeap)),
+            Utils::ErrorType::ResourceCreation, "Failed to create SRV descriptor heap");
+
+        m_srvAllocated = 0;
+        return {};
+    }
+
+    void Device::waitForGpu()
+    {
+        if (!m_graphicsQueue || !m_fence) return;
+
+        const UINT64 fenceToWait = m_fenceValue++;
+        m_graphicsQueue->Signal(m_fence.Get(), fenceToWait);
+        if (m_fence->GetCompletedValue() < fenceToWait)
+        {
+            m_fence->SetEventOnCompletion(fenceToWait, m_fenceEvent);
+            WaitForSingleObject(m_fenceEvent, INFINITE);
+        }
     }
 }
