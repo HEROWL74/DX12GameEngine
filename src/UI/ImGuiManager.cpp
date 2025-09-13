@@ -881,7 +881,7 @@ namespace Engine::UI
 				}
 			}
 
-			// 繝槭ユ繝ｪ繧｢繝ｫ繝励Ο繝代ユ繧｣邱ｨ髮・
+			
 			if (currentMaterial)
 			{
 				ImGui::Separator();
@@ -889,43 +889,122 @@ namespace Engine::UI
 				auto properties = currentMaterial->getProperties();
 				bool changed = false;
 
-				// PBR繝励Ο繝代ユ繧｣
 				if (ImGui::CollapsingHeader("PBR Properties", ImGuiTreeNodeFlags_DefaultOpen))
 				{
-					// 繧｢繝ｫ繝吶ラ
-					float albedo[3] = { properties.albedo.x, properties.albedo.y, properties.albedo.z };
-					if (ImGui::ColorEdit3("Albedo", albedo))
+					// === Albedo ===
+					if (ImGui::CollapsingHeader("Albedo", ImGuiTreeNodeFlags_DefaultOpen))
 					{
-						properties.albedo = Math::Vector3(albedo[0], albedo[1], albedo[2]);
-						changed = true;
+						auto* renderMat = renderComponent ? renderComponent->getMaterial().get() : nullptr;
+						if (!renderMat) {
+							ImGui::TextDisabled("No Material on this object.");
+							return;
+						}
+
+						auto& props = renderMat->getProperties();
+						bool useTex = (props.useAlbedoTex != 0);
+
+						// テクスチャ使用フラグ
+						if (ImGui::Checkbox("Use Albedo Texture", &useTex)) {
+							props.useAlbedoTex = useTex ? 1 : 0;
+							if (!useTex) {
+								// テクスチャ不使用に切り替えたら外す（任意）
+								renderMat->removeTexture(Engine::Graphics::TextureType::Albedo);
+							}
+							renderMat->setDirty();
+							(void)renderMat->updateConstantBuffer(); // すぐ反映
+						}
+
+						// 左: ドロップゾーン / 右: カラー
+						ImGui::BeginGroup();
+						{
+							ImVec2 slotSize(72, 72);
+							ImGui::TextUnformatted("Albedo Map");
+							ImGui::BeginChild("##AlbedoDropZone", slotSize, true, ImGuiWindowFlags_NoScrollbar);
+
+							// プレビュー
+							if (renderMat->hasTexture(Engine::Graphics::TextureType::Albedo)) {
+								ImGui::TextWrapped("Assigned");
+							}
+							else {
+								ImGui::TextWrapped("Drop Texture Here");
+							}
+
+							//Drag&Drop 受け口
+							if (ImGui::BeginDragDropTarget()) {
+								if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
+									const AssetPayload* dropped = static_cast<const AssetPayload*>(payload->Data);
+									if (dropped && dropped->type == static_cast<int>(UI::AssetInfo::Type::Texture)) { // typeチェック
+										if (m_textureManager) {
+											auto tex = m_textureManager->loadTexture(dropped->path, /*mips*/true, /*sRGB*/true);
+											if (tex) {
+												renderMat->setTexture(Engine::Graphics::TextureType::Albedo, tex);
+												props.useAlbedoTex = 1;                   // フラグON
+												renderMat->setDirty();
+												renderMat->updateConstantBuffer();        // すぐ反映
+											}
+										}
+									}
+								}
+								ImGui::EndDragDropTarget();
+							}
+
+							ImGui::EndChild();
+
+							// クリアボタン
+							if (ImGui::SmallButton("Clear##Albedo")) {
+								renderMat->removeTexture(Engine::Graphics::TextureType::Albedo);
+								props.useAlbedoTex = 0;
+								renderMat->setDirty();
+								(void)renderMat->updateConstantBuffer();
+							}
+						}
+						ImGui::EndGroup();
+
+						ImGui::SameLine();
+
+						// カラー編集（テクスチャ使用時は無効化）
+						ImGui::BeginGroup();
+						{
+							ImGui::TextUnformatted("Base Color");
+							ImGui::BeginDisabled(useTex);
+							float col[3] = { props.albedo.x, props.albedo.y, props.albedo.z };
+							if (ImGui::ColorEdit3("##AlbedoColor", col, ImGuiColorEditFlags_DisplayRGB)) {
+								props.albedo = Math::Vector3(col[0], col[1], col[2]);
+								renderMat->setDirty();
+								(void)renderMat->updateConstantBuffer();
+							}
+							ImGui::EndDisabled();
+						}
+						ImGui::EndGroup();
 					}
 
-					// 繝｡繧ｿ繝ｪ繝・け
+
+					// ==== Metallic ====
 					if (ImGui::SliderFloat("Metallic", &properties.metallic, 0.0f, 1.0f))
 					{
 						changed = true;
 					}
 
-					// 繝ｩ繝輔ロ繧ｹ
+					// ==== Roughness ====
 					if (ImGui::SliderFloat("Roughness", &properties.roughness, 0.0f, 1.0f))
 					{
 						changed = true;
 					}
 
-					// AO
+					// ==== AO ====
 					if (ImGui::SliderFloat("AO", &properties.ao, 0.0f, 1.0f))
 					{
 						changed = true;
 					}
 
-					// 繧｢繝ｫ繝輔ぃ
+					// ==== Alpha ====
 					if (ImGui::SliderFloat("Alpha", &properties.alpha, 0.0f, 1.0f))
 					{
 						changed = true;
 					}
 				}
 
-				// 繧ｨ繝溘ャ繧ｷ繝ｧ繝ｳ
+				// エミッション
 				if (ImGui::CollapsingHeader("Emission"))
 				{
 					float emissive[3] = { properties.emissive.x, properties.emissive.y, properties.emissive.z };
@@ -1011,23 +1090,24 @@ namespace Engine::UI
 
 
 
-	void InspectorWindow::drawTextureSlot(const char* name, Graphics::TextureType textureType,
+	void InspectorWindow::drawTextureSlot(const char* name,
+		Graphics::TextureType textureType,
 		std::shared_ptr<Graphics::Material> material)
 	{
 		ImGui::PushID(static_cast<int>(textureType));
 
 		auto currentTexture = material->getTexture(textureType);
+		auto properties = material->getProperties(); // 色を編集するため取得
+		bool changed = false;
 
 		ImGui::Text("%s:", name);
 		ImGui::SameLine(100);
 
-		// 繝・け繧ｹ繝√Ε陦ｨ遉ｺ・医し繝繝阪う繝ｫ・・
 		if (currentTexture)
 		{
-			// 繝・け繧ｹ繝√Ε蜷阪ｒ陦ｨ遉ｺ
+			// --- 既存処理: テクスチャがある場合 ---
 			ImGui::Button(currentTexture->getDesc().debugName.c_str(), ImVec2(150, 30));
 
-			// 繝・・繝ｫ繝√ャ繝励〒繝代せ諠・ｱ繧定｡ｨ遉ｺ
 			if (ImGui::IsItemHovered())
 			{
 				ImGui::BeginTooltip();
@@ -1036,7 +1116,6 @@ namespace Engine::UI
 				ImGui::EndTooltip();
 			}
 
-			// 繝峨Λ繝・げ&繝峨Ο繝・・蜿励￠蜈･繧・
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
@@ -1048,8 +1127,7 @@ namespace Engine::UI
 						if (texture)
 						{
 							material->setTexture(textureType, texture);
-							Utils::log_info(std::format("Texture assigned: {} -> {}",
-								droppedAsset->name, name));
+							Utils::log_info(std::format("Texture assigned: {} -> {}", droppedAsset->name, name));
 						}
 					}
 				}
@@ -1065,10 +1143,23 @@ namespace Engine::UI
 		}
 		else
 		{
-			// ドラッグ場所表示
-			ImGui::Button("Drag texture here", ImVec2(150, 30));
+			// --- テクスチャが無い場合 ---
+			if (textureType == Graphics::TextureType::Albedo)
+			{
+				// Albedo用: カラーピッカーを表示
+				float albedo[3] = { properties.albedo.x, properties.albedo.y, properties.albedo.z };
+				if (ImGui::ColorEdit3("Albedo Color", albedo))
+				{
+					properties.albedo = Math::Vector3(albedo[0], albedo[1], albedo[2]);
+					changed = true;
+				}
+			}
+			else
+			{
+				// 他のスロットはプレースホルダー
+				ImGui::Button("Drag texture here", ImVec2(150, 30));
+			}
 
-			//テクスチャ情報取得
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
@@ -1080,8 +1171,7 @@ namespace Engine::UI
 						if (texture)
 						{
 							material->setTexture(textureType, texture);
-							Utils::log_info(std::format("Texture assigned: {} -> {}",
-								droppedAsset->name, name));
+							Utils::log_info(std::format("Texture assigned: {} -> {}", droppedAsset->name, name));
 						}
 					}
 				}
@@ -1089,6 +1179,12 @@ namespace Engine::UI
 			}
 		}
 
+		if (changed)
+		{
+			material->setProperties(properties);
+		}
+
 		ImGui::PopID();
 	}
+
 }

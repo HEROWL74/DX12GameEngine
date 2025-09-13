@@ -13,6 +13,7 @@
 #include "VertexTypes.hpp"
 #include "../Math/Math.hpp"
 #include "../Utils/Common.hpp"
+#include "Texture.hpp"
 
 using Microsoft::WRL::ComPtr;
 

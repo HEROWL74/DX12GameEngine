@@ -6,7 +6,7 @@ namespace Engine::Graphics
 {
     Utils::VoidResult CubeRenderer::initialize(Device* device, ShaderManager* shaderManager)
     {
-        // 繝・ヰ繝・げ逕ｨ: null繝√ぉ繝・け
+       
         CHECK_CONDITION(device != nullptr, Utils::ErrorType::Unknown, "Device is null");
         CHECK_CONDITION(device->isValid(), Utils::ErrorType::Unknown, "Device is not valid");
 
@@ -14,21 +14,20 @@ namespace Engine::Graphics
         m_shaderManager = shaderManager;
         Utils::log_info("Initializing Cube Renderer...");
 
-        // 螳壽焚繝舌ャ繝輔ぃ繝槭ロ繝ｼ繧ｸ繝｣繝ｼ繧貞・譛溷喧
         auto constantBufferResult = m_constantBufferManager.initialize(device);
         if (!constantBufferResult) {
             Utils::log_error(constantBufferResult.error());
             return constantBufferResult;
         }
 
-        // 遶区婿菴薙・鬆らせ繝・・繧ｿ繧定ｨｭ螳・
+    
         setupCubeVertices();
 
-        // 繝ｯ繝ｼ繝ｫ繝芽｡悟・繧貞・譛溷喧
+      
         updateWorldMatrix();
 
-        // 蜷・さ繝ｳ繝昴・繝阪Φ繝医ｒ鬆・ｬ｡蛻晄悄蛹・
-        auto rootSigResult = createRootSignature();
+    
+        auto rootSigResult = createPBRRootSignature();
         if (!rootSigResult) {
             Utils::log_error(rootSigResult.error());
             return rootSigResult;
@@ -64,13 +63,11 @@ namespace Engine::Graphics
 
     void CubeRenderer::render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex)
     {
-        // 繝・ヵ繧ｩ繝ｫ繝医・繝・Μ繧｢繝ｫ縺後↑縺・ｴ蜷医・險ｭ螳・
         if (!m_material && m_materialManager)
         {
             m_material = m_materialManager->getDefaultMaterial();
         }
 
-        // 螳壽焚繝舌ャ繝輔ぃ繧呈峩譁ｰ
         CameraConstants cameraConstants{};
         cameraConstants.viewMatrix = camera.getViewMatrix();
         cameraConstants.projectionMatrix = camera.getProjectionMatrix();
@@ -85,29 +82,35 @@ namespace Engine::Graphics
         m_constantBufferManager.updateCameraConstants(frameIndex, cameraConstants);
         m_constantBufferManager.updateObjectConstants(frameIndex, objectConstants);
 
-        // 繝ｫ繝ｼ繝医す繧ｰ繝阪メ繝｣縺ｨ繝代う繝励Λ繧､繝ｳ繧ｹ繝・・繝医ｒ險ｭ螳・
         commandList->SetGraphicsRootSignature(m_rootSignature.Get());
         commandList->SetPipelineState(m_pipelineState.Get());
 
-        // 螳壽焚繝舌ャ繝輔ぃ繧定ｨｭ螳・
         commandList->SetGraphicsRootConstantBufferView(0, m_constantBufferManager.getCameraConstantsGPUAddress(frameIndex));
         commandList->SetGraphicsRootConstantBufferView(1, m_constantBufferManager.getObjectConstantsGPUAddress(frameIndex));
 
-        // 繝槭ユ繝ｪ繧｢繝ｫ螳壽焚繝舌ャ繝輔ぃ繧偵ヰ繧､繝ｳ繝・
         if (m_material && m_material->getConstantBuffer())
         {
-            commandList->SetGraphicsRootConstantBufferView(2,
-                m_material->getConstantBuffer()->GetGPUVirtualAddress());
+            commandList->SetGraphicsRootConstantBufferView(2, m_material->getConstantBuffer()->GetGPUVirtualAddress());
         }
 
-        // 繝励Μ繝溘ユ繧｣繝悶ヨ繝昴Ο繧ｸ繧定ｨｭ螳夲ｼ井ｸ芽ｧ貞ｽ｢繝ｪ繧ｹ繝茨ｼ・
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        //SRVヒープをセット
+        ID3D12DescriptorHeap* heaps[] = { m_device->getSrvHeap() };
+        commandList->SetDescriptorHeaps(1, heaps);
 
-        // 鬆らせ繝舌ャ繝輔ぃ縺ｨ繧､繝ｳ繝・ャ繧ｯ繧ｹ繝舌ャ繝輔ぃ繧定ｨｭ螳・
+        //Albedoテクスチャをバインド (RootParam=3)
+        if (m_material)
+        {
+            auto tex = m_material->getTexture(TextureType::Albedo);
+            if (tex)
+            {
+                commandList->SetGraphicsRootDescriptorTable(3, tex->getSRVHandle());
+            }
+        }
+
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
         commandList->IASetIndexBuffer(&m_indexBufferView);
 
-        // 遶区婿菴薙ｒ謠冗判・・6繧､繝ｳ繝・ャ繧ｯ繧ｹ縲・繧､繝ｳ繧ｹ繧ｿ繝ｳ繧ｹ・・
         commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
     }
 
@@ -183,25 +186,25 @@ namespace Engine::Graphics
         // 4縺､縺ｮ繝ｫ繝ｼ繝医ヱ繝ｩ繝｡繝ｼ繧ｿ: Camera, Object, Material, Textures
         D3D12_ROOT_PARAMETER rootParameters[4];
 
-        // 繧ｫ繝｡繝ｩ螳壽焚繝舌ャ繝輔ぃ (b0)
+        // (b0)
         rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[0].Descriptor.ShaderRegister = 0;
         rootParameters[0].Descriptor.RegisterSpace = 0;
         rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // 繧ｪ繝悶ず繧ｧ繧ｯ繝亥ｮ壽焚繝舌ャ繝輔ぃ (b1)
+        // (b1)
         rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[1].Descriptor.ShaderRegister = 1;
         rootParameters[1].Descriptor.RegisterSpace = 0;
         rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // 繝槭ユ繝ｪ繧｢繝ｫ螳壽焚繝舌ャ繝輔ぃ (b2)
+        // (b2)
         rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[2].Descriptor.ShaderRegister = 2;
         rootParameters[2].Descriptor.RegisterSpace = 0;
         rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // 繝・け繧ｹ繝√Ε繝・せ繧ｯ繝ｪ繝励ち繝・・繝悶Ν (t0-t5)
+        // テクスチャをセット(t0-t5)
         static D3D12_DESCRIPTOR_RANGE textureRange{};
         textureRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
         textureRange.NumDescriptors = 6;
@@ -214,7 +217,7 @@ namespace Engine::Graphics
         rootParameters[3].DescriptorTable.pDescriptorRanges = &textureRange;
         rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // 繧ｹ繧ｿ繝・ぅ繝・け繧ｵ繝ｳ繝励Λ繝ｼ
+
         D3D12_STATIC_SAMPLER_DESC samplerDesc{};
         samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
         samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -260,7 +263,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult CubeRenderer::createShaders()
     {
-        // ShaderCompileDesc 繧剃ｽｿ逕ｨ縺励※繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵Ο繝ｼ繝・
+        // ShaderCompileDesc
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
@@ -290,7 +293,6 @@ namespace Engine::Graphics
 
     Utils::VoidResult CubeRenderer::createPipelineState()
     {
-        // 縺ｾ縺壹す繧ｧ繝ｼ繝繝ｼ繧偵Ο繝ｼ繝会ｼ医く繝｣繝・す繝･縺ｫ蟄伜惠縺励↑縺・ｴ蜷医・縺溘ａ・・
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
@@ -317,29 +319,28 @@ namespace Engine::Graphics
             return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load pixel shader"));
         }
 
-        // 繝ｭ繝ｼ繝峨＆繧後◆繧ｷ繧ｧ繝ｼ繝繝ｼ繧剃ｽｿ逕ｨ・・oadShader縺ｮ謌ｻ繧雁､繧堤峩謗･菴ｿ逕ｨ・・
-        auto vertexShader = vertexShaderResult;
-        auto pixelShader = pixelShaderResult;
+        auto& vertexShader = vertexShaderResult;
+        auto& pixelShader = pixelShaderResult;
 
         CHECK_CONDITION(vertexShader != nullptr, Utils::ErrorType::ShaderCompilation,
             "Vertex shader is null");
         CHECK_CONDITION(pixelShader != nullptr, Utils::ErrorType::ShaderCompilation,
             "Pixel shader is null");
 
-        // 蜈･蜉帙Ξ繧､繧｢繧ｦ繝医ｒ螳夂ｾｩ
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
         };
 
-        // 繝代う繝励Λ繧､繝ｳ繧ｹ繝・・繝医・險ｭ螳・
+        // パイプラインステートオブジェクト設定
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
         psoDesc.pRootSignature = m_rootSignature.Get();
         psoDesc.VS = { vertexShader->getBytecode(), vertexShader->getBytecodeSize() };
         psoDesc.PS = { pixelShader->getBytecode(), pixelShader->getBytecodeSize() };
 
-        // 霆ｽ繧翫・險ｭ螳壹・蜷後§...
+  
         psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
         psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
@@ -352,7 +353,7 @@ namespace Engine::Graphics
         psoDesc.RasterizerState.ForcedSampleCount = 0;
         psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-        // 繝悶Ξ繝ｳ繝峨せ繝・・繝・
+  
         psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
         psoDesc.BlendState.IndependentBlendEnable = FALSE;
         const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc = {
@@ -367,7 +368,7 @@ namespace Engine::Graphics
             psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
         }
 
-        // 豺ｱ蠎ｦ繧ｹ繝・Φ繧ｷ繝ｫ繧ｹ繝・・繝・
+
         psoDesc.DepthStencilState.DepthEnable = TRUE;
         psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
         psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
@@ -381,7 +382,7 @@ namespace Engine::Graphics
         psoDesc.DepthStencilState.FrontFace = defaultStencilOp;
         psoDesc.DepthStencilState.BackFace = defaultStencilOp;
 
-        // 縺昴・莉悶・險ｭ螳・
+
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.NumRenderTargets = 1;
@@ -399,7 +400,7 @@ namespace Engine::Graphics
     {
         const UINT vertexBufferSize = sizeof(m_cubeVertices);
 
-        // 鬆らせ繝舌ャ繝輔ぃ逕ｨ縺ｮ繝偵・繝励・繝ｭ繝代ユ繧｣・医い繝・・繝ｭ繝ｼ繝峨ヲ繝ｼ繝暦ｼ・
+    
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -407,7 +408,6 @@ namespace Engine::Graphics
         heapProps.CreationNodeMask = 1;
         heapProps.VisibleNodeMask = 1;
 
-        // 繝ｪ繧ｽ繝ｼ繧ｹ險倩ｿｰ蟄・
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         resourceDesc.Alignment = 0;
@@ -430,7 +430,7 @@ namespace Engine::Graphics
             IID_PPV_ARGS(&m_vertexBuffer)),
             Utils::ErrorType::ResourceCreation, "Failed to create vertex buffer");
 
-        // 鬆らせ繝・・繧ｿ繧偵ヰ繝・ヵ繧｡縺ｫ繧ｳ繝斐・
+        
         UINT8* pVertexDataBegin;
         D3D12_RANGE readRange{ 0, 0 };
 
@@ -440,7 +440,7 @@ namespace Engine::Graphics
         memcpy(pVertexDataBegin, m_cubeVertices.data(), sizeof(m_cubeVertices));
         m_vertexBuffer->Unmap(0, nullptr);
 
-        // 鬆らせ繝舌ャ繝輔ぃ繝薙Η繝ｼ繧定ｨｭ螳・
+ 
         m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
         m_vertexBufferView.StrideInBytes = sizeof(Vertex);
         m_vertexBufferView.SizeInBytes = vertexBufferSize;
@@ -452,7 +452,7 @@ namespace Engine::Graphics
     {
         const UINT indexBufferSize = sizeof(m_cubeIndices);
 
-        // 繧､繝ｳ繝・ャ繧ｯ繧ｹ繝舌ャ繝輔ぃ逕ｨ縺ｮ繝偵・繝励・繝ｭ繝代ユ繧｣
+        
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -460,7 +460,7 @@ namespace Engine::Graphics
         heapProps.CreationNodeMask = 1;
         heapProps.VisibleNodeMask = 1;
 
-        // 繝ｪ繧ｽ繝ｼ繧ｹ險倩ｿｰ蟄・
+
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         resourceDesc.Alignment = 0;
@@ -483,7 +483,6 @@ namespace Engine::Graphics
             IID_PPV_ARGS(&m_indexBuffer)),
             Utils::ErrorType::ResourceCreation, "Failed to create index buffer");
 
-        // 繧､繝ｳ繝・ャ繧ｯ繧ｹ繝・・繧ｿ繧偵ヰ繝・ヵ繧｡縺ｫ繧ｳ繝斐・
         UINT8* pIndexDataBegin;
         D3D12_RANGE readRange{ 0, 0 };
 
@@ -493,7 +492,7 @@ namespace Engine::Graphics
         memcpy(pIndexDataBegin, m_cubeIndices.data(), sizeof(m_cubeIndices));
         m_indexBuffer->Unmap(0, nullptr);
 
-        // 繧､繝ｳ繝・ャ繧ｯ繧ｹ繝舌ャ繝輔ぃ繝薙Η繝ｼ繧定ｨｭ螳・
+       
         m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
         m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
         m_indexBufferView.SizeInBytes = indexBufferSize;
@@ -503,65 +502,64 @@ namespace Engine::Graphics
 
     void CubeRenderer::setupCubeVertices()
     {
-        // 遶区婿菴薙・24鬆らせ・亥推髱｢縺ｫ4鬆らせ縲∫焚縺ｪ繧玖牡繧定ｨｭ螳夲ｼ・
         m_cubeVertices = { {
-                // 蜑埼擇・・+・・ 襍､
-                {{ -0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // 蟾ｦ荳・
-                {{  0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // 蜿ｳ荳・
-                {{  0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // 蜿ｳ荳・
-                {{ -0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // 蟾ｦ荳・
+                // Front (+Z)
+                { {-0.5f, -0.5f,  0.5f}, {1,0,0}, {0,0} }, // 左下
+                { { 0.5f, -0.5f,  0.5f}, {1,0,0}, {1,0} }, // 右下
+                { { 0.5f,  0.5f,  0.5f}, {1,0,0}, {1,1} }, // 右上
+                { {-0.5f,  0.5f,  0.5f}, {1,0,0}, {0,1} }, // 左上
 
-                // 閭碁擇・・-・・ 邱・
-                {{  0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // 蟾ｦ荳・
-                {{ -0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // 蜿ｳ荳・
-                {{ -0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // 蜿ｳ荳・
-                {{  0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // 蟾ｦ荳・
+                // Back (-Z)
+                { {-0.5f, -0.5f, -0.5f}, {0,1,0}, {0,0} }, // 左下
+                { { 0.5f, -0.5f, -0.5f}, {0,1,0}, {1,0} }, // 右下
+                { { 0.5f,  0.5f, -0.5f}, {0,1,0}, {1,1} }, // 右上
+                { {-0.5f,  0.5f, -0.5f}, {0,1,0}, {0,1} }, // 左上
 
-                // 蟾ｦ髱｢・・-・・ 髱・
-                {{ -0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}, // 蟾ｦ荳・
-                {{ -0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}}, // 蜿ｳ荳・
-                {{ -0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}}, // 蜿ｳ荳・
-                {{ -0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}, // 蟾ｦ荳・
+                // Left (-X)
+                { {-0.5f, -0.5f, -0.5f}, {0,0,1}, {0,0} },
+                { {-0.5f, -0.5f,  0.5f}, {0,0,1}, {1,0} },
+                { {-0.5f,  0.5f,  0.5f}, {0,0,1}, {1,1} },
+                { {-0.5f,  0.5f, -0.5f}, {0,0,1}, {0,1} },
 
-                // 蜿ｳ髱｢・・+・・ 鮟・
-                {{  0.5f, -0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}}, // 蟾ｦ荳・
-                {{  0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}}, // 蜿ｳ荳・
-                {{  0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}}, // 蜿ｳ荳・
-                {{  0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}}, // 蟾ｦ荳・
+                // Right (+X)
+                { { 0.5f, -0.5f,  0.5f}, {1,1,0}, {0,0} },
+                { { 0.5f, -0.5f, -0.5f}, {1,1,0}, {1,0} },
+                { { 0.5f,  0.5f, -0.5f}, {1,1,0}, {1,1} },
+                { { 0.5f,  0.5f,  0.5f}, {1,1,0}, {0,1} },
 
-                // 荳企擇・・+・・ 繝槭ぞ繝ｳ繧ｿ
-                {{ -0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}}, // 蟾ｦ荳・
-                {{  0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}}, // 蜿ｳ荳・
-                {{  0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}}, // 蜿ｳ荳・
-                {{ -0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}}, // 蟾ｦ荳・
+                // Top (+Y)
+                { {-0.5f,  0.5f,  0.5f}, {1,0,1}, {0,0} },
+                { { 0.5f,  0.5f,  0.5f}, {1,0,1}, {1,0} },
+                { { 0.5f,  0.5f, -0.5f}, {1,0,1}, {1,1} },
+                { {-0.5f,  0.5f, -0.5f}, {1,0,1}, {0,1} },
 
-                // 荳矩擇・・-・・ 繧ｷ繧｢繝ｳ
-                {{ -0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}}, // 蟾ｦ荳・
-                {{  0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}}, // 蜿ｳ荳・
-                {{  0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}}, // 蜿ｳ荳・
-                {{ -0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}}  // 蟾ｦ荳・
+                // Bottom (-Y)
+                { {-0.5f, -0.5f, -0.5f}, {0,1,1}, {0,0} },
+                { { 0.5f, -0.5f, -0.5f}, {0,1,1}, {1,0} },
+                { { 0.5f, -0.5f,  0.5f}, {0,1,1}, {1,1} },
+                { {-0.5f, -0.5f,  0.5f}, {0,1,1}, {0,1} }
             } };
 
-        // 遶区婿菴薙・繧､繝ｳ繝・ャ繧ｯ繧ｹ・・6繧､繝ｳ繝・ャ繧ｯ繧ｹ・・
         m_cubeIndices = { {
-                // 蜑埼擇
-                0, 1, 2,  2, 3, 0,
-                // 閭碁擇
-                4, 5, 6,  6, 7, 4,
-                // 蟾ｦ髱｢
-                8, 9, 10,  10, 11, 8,
-                // 蜿ｳ髱｢
-                12, 13, 14,  14, 15, 12,
-                // 荳企擇
-                16, 17, 18,  18, 19, 16,
-                // 荳矩擇
-                20, 21, 22,  22, 23, 20
+                // Front (CCW: 左下, 右上, 右下) 
+                0, 2, 1,  0, 3, 2,
+                // Back
+                4, 6, 5,  4, 7, 6,
+                // Left
+                8, 10, 9,  8, 11, 10,
+                // Right
+                12, 14, 13,  12, 15, 14,
+                // Top
+                16, 18, 17,  16, 19, 18,
+                // Bottom
+                20, 22, 21,  20, 23, 22
             } };
     }
 
+
+
     void CubeRenderer::updateWorldMatrix()
     {
-        // 繧ｹ繧ｱ繝ｼ繝ｫ -> 蝗櫁ｻ｢ -> 遘ｻ蜍輔・鬆・〒陦悟・繧貞粋謌・
         Math::Matrix4 scaleMatrix = Math::Matrix4::scaling(m_scale);
         Math::Matrix4 rotationMatrix = Math::Matrix4::rotationX(Math::radians(m_rotation.x)) *
             Math::Matrix4::rotationY(Math::radians(m_rotation.y)) *

@@ -97,6 +97,22 @@ namespace Engine::Graphics
         //機能サポートチェック
         [[nodiscard]] bool checkFeatureSupport(D3D12_FEATURE feature, void* pFeatureSupportData, UINT featureSupportDataSize) const noexcept;
 
+        // SRVヒープのハンドル取得
+        ID3D12DescriptorHeap* getSrvHeap() const noexcept { return m_srvHeap.Get(); }
+        D3D12_CPU_DESCRIPTOR_HANDLE getSrvCpuStart() const noexcept {
+            return m_srvHeap ? m_srvHeap->GetCPUDescriptorHandleForHeapStart() : D3D12_CPU_DESCRIPTOR_HANDLE{};
+        }
+        D3D12_GPU_DESCRIPTOR_HANDLE getSrvGpuStart() const noexcept {
+            return m_srvHeap ? m_srvHeap->GetGPUDescriptorHandleForHeapStart() : D3D12_GPU_DESCRIPTOR_HANDLE{};
+        }
+        // 1つSRVを確保して、そのインデックスを返す（超簡易アロケータ）
+        UINT allocateSrvIndex() noexcept { return m_srvAllocated++; }
+
+        // グラフィックスキュー
+        ID3D12CommandQueue* getGraphicsQueue() const noexcept { return m_graphicsQueue.Get(); }
+
+        void waitForGpu(); // 簡易同期
+
     private:
         // =============================================================================
         // メンバ変数
@@ -105,6 +121,7 @@ namespace Engine::Graphics
         ComPtr<ID3D12Device> m_device;              // D3D12デバイス
         ComPtr<IDXGIFactory4> m_dxgiFactory;        // DXGIファクトリ
         ComPtr<IDXGIAdapter1> m_adapter;            // 選択されたアダプター
+        ComPtr<ID3D12DescriptorHeap> m_srvHeap;
 
         AdapterInfo m_currentAdapterInfo{};         // 現在のアダプター情報
         D3D_FEATURE_LEVEL m_featureLevel = D3D_FEATURE_LEVEL_11_0;  // サポート機能レベル
@@ -115,6 +132,13 @@ namespace Engine::Graphics
         UINT m_dsvDescriptorSize = 0;
         UINT m_cbvSrvUavDescriptorSize = 0;
         UINT m_samplerDescriptorSize = 0;
+
+        UINT m_srvAllocated = 0; // SRVを何個割り当てたかの簡易カウンタ
+
+        ComPtr<ID3D12CommandQueue> m_graphicsQueue;
+        ComPtr<ID3D12Fence>        m_fence;
+        UINT64 m_fenceValue = 0;
+        HANDLE m_fenceEvent = nullptr;
 
         // =============================================================================
         // プライベートメソッド
@@ -140,5 +164,11 @@ namespace Engine::Graphics
 
         //アダプターがD3D12対応かチェック
         [[nodiscard]] bool isAdapterCompatible(IDXGIAdapter1* adapter, D3D_FEATURE_LEVEL minFeatureLevel) const;
+
+        [[nodiscard]] Utils::VoidResult createSrvHeap(UINT numDescriptors = 1024);
+
+        [[nodiscard]] Utils::VoidResult createGraphicsQueue();
+
+        
     };
 }

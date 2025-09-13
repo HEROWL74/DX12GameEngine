@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <algorithm>
 
-// STB逕ｻ蜒上Λ繧､繝悶Λ繝ｪ・医・繝・ム繝ｼ繧ｪ繝ｳ繝ｪ繝ｼ繝ｩ繧､繝悶Λ繝ｪ・・
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image.h"
@@ -35,8 +34,8 @@ namespace Engine::Graphics
         desc.width = imageResult->width;
         desc.height = imageResult->height;
         desc.format = sRGB ? TextureFormat::R8G8B8A8_SRGB : imageResult->format;
-        desc.generateMips = generateMips;
-        desc.mipLevels = generateMips ? 0 : 1; // 0 = 閾ｪ蜍戊ｨ育ｮ・
+        desc.generateMips = false;
+        desc.mipLevels = 1; 
         desc.usage = TextureUsage::ShaderResource;
         desc.debugName = std::filesystem::path(filePath).filename().string();
 
@@ -181,7 +180,7 @@ namespace Engine::Graphics
             &heapProps,
             D3D12_HEAP_FLAG_NONE,
             &resourceDesc,
-            textureUsageToD3D12State(m_desc.usage),
+            D3D12_RESOURCE_STATE_COPY_DEST,
             clearValue,
             IID_PPV_ARGS(&m_resource)),
             Utils::ErrorType::ResourceCreation,
@@ -192,17 +191,130 @@ namespace Engine::Graphics
 
     Utils::VoidResult Texture::createViews()
     {
-        // 迴ｾ蝨ｨ縺ｯ蝓ｺ譛ｬ逧・↑螳溯｣・・縺ｿ
-        // 螳悟・縺ｪ繝・せ繧ｯ繝ｪ繝励ち邂｡逅・・蠕後〒螳溯｣・
+        // SRVディスクリプタ記述
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.MipLevels = m_desc.mipLevels;
+
+        // SRVヒープから1枠確保
+        const UINT index = m_device->allocateSrvIndex();
+        const UINT inc = m_device->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuStart = m_device->getSrvCpuStart();
+        D3D12_GPU_DESCRIPTOR_HANDLE gpuStart = m_device->getSrvGpuStart();
+
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = cpuStart;
+        cpuHandle.ptr += static_cast<SIZE_T>(index) * inc;
+
+        D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = gpuStart;
+        gpuHandle.ptr += static_cast<UINT64>(index) * inc;
+
+        // SRV作成
+        m_device->getDevice()->CreateShaderResourceView(m_resource.Get(), &srvDesc, cpuHandle);
+
+        // 自分のGPUハンドルを保持（シェーダへ渡す用）
+        m_srvHandle = gpuHandle;
+
         return {};
     }
 
-    Utils::VoidResult Texture::uploadData(const ImageData& imageData)
+
+    Utils::VoidResult Texture::uploadData(const ImageData& img)
     {
-        // 迴ｾ蝨ｨ縺ｯ邁｡譏灘ｮ溯｣・
-        // 螳悟・縺ｪ繧｢繝・・繝ｭ繝ｼ繝画ｩ溯・縺ｯ蠕後〒螳溯｣・
+        // 1) テクスチャ本体(m_resource)は DEFAULTヒープ・初期状態 COPY_DEST・Format=DXGI_FORMAT_R8G8B8A8_UNORM で作られている
+        // 2) フットプリント取得（RowPitch と総サイズをデバイスに計算させる）
+        D3D12_RESOURCE_DESC texDesc = m_resource->GetDesc();
+
+        UINT64 totalBytes = 0;
+        D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
+        UINT numRows = 0;
+        UINT64 rowSizeInBytes = 0;
+
+        m_device->getDevice()->GetCopyableFootprints(&texDesc, 0, 1, 0, &footprint, &numRows, &rowSizeInBytes, &totalBytes);
+
+        // 3) Uploadバッファ作成（GENERIC_READ）
+        Microsoft::WRL::ComPtr<ID3D12Resource> upload;
+        {
+            D3D12_HEAP_PROPERTIES heap = {};
+            heap.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+            D3D12_RESOURCE_DESC buf = {};
+            buf.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+            buf.Width = totalBytes;
+            buf.Height = 1;
+            buf.DepthOrArraySize = 1;
+            buf.MipLevels = 1;
+            buf.SampleDesc.Count = 1;
+            buf.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+            CHECK_HR(m_device->getDevice()->CreateCommittedResource(
+                &heap, D3D12_HEAP_FLAG_NONE, &buf,
+                D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                IID_PPV_ARGS(&upload)),
+                Utils::ErrorType::ResourceCreation, "Failed to create upload buffer");
+        }
+
+        // 4) 行ごとにパディング考慮してコピー
+        {
+            uint8_t* dst = nullptr;
+            D3D12_RANGE readRange{ 0,0 };
+            CHECK_HR(upload->Map(0, &readRange, reinterpret_cast<void**>(&dst)),
+                Utils::ErrorType::ResourceCreation, "Failed to map upload buffer");
+
+            const uint8_t* src = img.pixels.data();
+            const UINT srcRowPitch = (UINT)(img.rowPitch);           // 例: width * 4
+            const UINT dstRowPitch = footprint.Footprint.RowPitch;   // デバイスが要求する256アライン
+
+            for (UINT y = 0; y < numRows; ++y) {
+                std::memcpy(dst + footprint.Offset + y * dstRowPitch,
+                    src + y * srcRowPitch,
+                    srcRowPitch); // パディング分は書かなくてOK（残りは未使用）
+            }
+
+            D3D12_RANGE written{ 0, (SIZE_T)totalBytes };
+            upload->Unmap(0, &written);
+        }
+
+        // 5) コマンドで Copy → 遷移
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;
+        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> cmd;
+        CHECK_HR(m_device->getDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&allocator)),
+            Utils::ErrorType::ResourceCreation, "Failed to create command allocator");
+        CHECK_HR(m_device->getDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator.Get(), nullptr, IID_PPV_ARGS(&cmd)),
+            Utils::ErrorType::ResourceCreation, "Failed to create command list");
+
+        D3D12_TEXTURE_COPY_LOCATION dstLoc = {};
+        dstLoc.pResource = m_resource.Get();
+        dstLoc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+        dstLoc.SubresourceIndex = 0;
+
+        D3D12_TEXTURE_COPY_LOCATION srcLoc = {};
+        srcLoc.pResource = upload.Get();
+        srcLoc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+        srcLoc.PlacedFootprint = footprint;
+
+        cmd->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);
+
+        // COPY_DEST → PIXEL_SHADER_RESOURCE
+        D3D12_RESOURCE_BARRIER barrier = {};
+        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Transition.pResource = m_resource.Get();
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        cmd->ResourceBarrier(1, &barrier);
+
+        CHECK_HR(cmd->Close(), Utils::ErrorType::Unknown, "Failed to close copy cmd list");
+        ID3D12CommandList* lists[] = { cmd.Get() };
+        m_device->getGraphicsQueue()->ExecuteCommandLists(1, lists);
+        m_device->waitForGpu();
+
         return {};
     }
+
 
     //=========================================================================
     // TextureLoader螳溯｣・
