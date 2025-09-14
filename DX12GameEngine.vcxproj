@@ -71,6 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+
   <VcpkgUseStatic>true</VcpkgUseStatic>
   <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
