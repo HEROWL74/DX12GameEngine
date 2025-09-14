@@ -27,17 +27,17 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
 
-      # 依存ライブラリをインストール (manifest モード対応)
+      # 依存ライブラリをインストール (manifest モード対応, 静的リンク)
       - name: Install dependencies
-        run: .\vcpkg\vcpkg.exe install --triplet x64-windows
+        run: .\vcpkg\vcpkg.exe install --triplet x64-windows-static
 
-      # Release ビルド (manifest 有効化 + vcpkg ルート明示)
+      # Release ビルド (manifest 有効化 + 静的リンク)
       - name: Build with MSBuild
         run: msbuild DX12GameEngine.sln `
               /p:Configuration=Release `
               /p:Platform=x64 `
               /p:VcpkgEnableManifest=true `
-              /p:VcpkgTriplet=x64-windows `
+              /p:VcpkgTriplet=x64-windows-static `
               /p:VcpkgRoot=${{ github.workspace }}\vcpkg
 
       # exe + assets パッケージ
