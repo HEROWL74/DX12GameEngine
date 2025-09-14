@@ -1,6 +1,7 @@
 ﻿//src/UI/ImGuiManager.hpp
 #pragma once
 
+#include "imgui.h"
 #include <Windows.h>
 #include <wrl.h>
 #include <d3d12.h>
@@ -18,7 +19,6 @@
 #include "../Scripting/LuaScriptUtility.hpp"
 
 //ImGui includes
-#include "imgui.h"
 #include "../UI/backends/imgui_impl_dx12.h"
 #include "../UI/backends/imgui_impl_win32.h"
 
@@ -77,6 +77,9 @@ namespace Engine::UI
 		void invalidateDeviceObjects();
 		void createDeviceObjects();
 
+
+		ImTextureID registerTexture(Graphics::Texture* tex);
+
 	private:
 		bool m_initialized = false;
 		ImGuiContext* m_context = nullptr;
@@ -88,6 +91,12 @@ namespace Engine::UI
 		ComPtr<ID3D12DescriptorHeap> m_srvDescHeap;
 		ID3D12CommandQueue* m_commandQueue = nullptr;  // コマンドキューへの参照
 		UINT m_frameCount = 2;
+
+		UINT m_srvIncSize = 0;
+		D3D12_CPU_DESCRIPTOR_HANDLE m_srvCpuStart{};
+		D3D12_GPU_DESCRIPTOR_HANDLE m_srvGpuStart{};
+		UINT m_nextSrvIndex = 1;   
+		UINT m_maxSrv = 0;
 
 		//初期化ヘルパー
 		[[nodiscard]] Utils::VoidResult createDescriptorHeap();

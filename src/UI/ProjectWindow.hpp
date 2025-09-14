@@ -57,7 +57,7 @@ namespace Engine::UI
         void draw() override;
 
         // 依存関係設定
-        void setTextureManager(Graphics::TextureManager* textureManager) { m_textureManager = textureManager; }
+        void setTextureManager(Graphics::TextureManager* textureManager);
         void setMaterialManager(Graphics::MaterialManager* materialManager) { m_materialManager = materialManager; }
 
         // プロジェクトパス設定
@@ -72,13 +72,19 @@ namespace Engine::UI
         // アセット操作コールバック
         void setAssetDropCallback(std::function<void(const AssetInfo&)> callback) { m_assetDropCallback = callback; }
 
+        void setImGuiManager(ImGuiManager* manager) { m_imguiManager = manager; }
+
+
     private:
         Graphics::TextureManager* m_textureManager = nullptr;
         Graphics::MaterialManager* m_materialManager = nullptr;
 
+        ImGuiManager* m_imguiManager = nullptr;
+
         std::string m_projectPath = "assets";
         std::vector<AssetInfo> m_assets;
         AssetInfo* m_selectedAsset = nullptr;
+        std::shared_ptr<Graphics::Texture> m_folderIcon;
 
         // UI状態
         float m_iconSize = 64.0f;
