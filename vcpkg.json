@@ -1,0 +1,8 @@
+{
+  "name": "dx12gameengine",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "sol2",
+    "nlohmann-json"
+  ]
+}
