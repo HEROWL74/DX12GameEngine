@@ -394,11 +394,16 @@ namespace Engine::UI
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC desc{};
 		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		desc.NumDescriptors = 1;//ImGui逕ｨ縺ｫ荳縺､
+		desc.NumDescriptors = 128;//ImGui
 		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
 		CHECK_HR(m_device->getDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_srvDescHeap)),
 			Utils::ErrorType::ResourceCreation, "Failed to create ImGui descriptor heap");
+
+		m_srvIncSize = m_device->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		m_srvCpuStart = m_srvDescHeap->GetCPUDescriptorHandleForHeapStart();
+		m_srvGpuStart = m_srvDescHeap->GetGPUDescriptorHandleForHeapStart();
+		m_maxSrv = desc.NumDescriptors;
 
 		return {};
 	}
@@ -498,8 +503,51 @@ namespace Engine::UI
 		Utils::log_info("ImGui reininitialized successfully for resize");
 		return {};
 	}
+
+	ImTextureID ImGuiManager::registerTexture(Graphics::Texture* tex)
+	{
+		if (!tex || !m_device || !m_srvDescHeap || !m_initialized)
+		{
+			Utils::log_warning("Cannot register texture - ImGuiManager not properly initialized or texture is null");
+			return 0;
+		}
+
+		// 空きスロット確保
+		if (m_nextSrvIndex >= m_maxSrv)
+		{
+			Utils::log_warning("ImGui descriptor heap is full, cannot register more textures");
+			return 0;
+		}
+
+		const UINT idx = m_nextSrvIndex++;
+
+		// この"ImGui用ヒープ"の CPU/GPU ハンドルを計算
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu = m_srvCpuStart;
+		cpu.ptr += static_cast<SIZE_T>(idx) * m_srvIncSize;
+		D3D12_GPU_DESCRIPTOR_HANDLE gpu = m_srvGpuStart;
+		gpu.ptr += static_cast<UINT64>(idx) * m_srvIncSize;
+
+		// SRV を"ImGui用ヒープ"に作る
+		D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
+		auto resDesc = tex->getResource()->GetDesc();
+		srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srv.Format = resDesc.Format;
+		srv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srv.Texture2D.MipLevels = tex->getMipLevels();
+
+		m_device->getDevice()->CreateShaderResourceView(tex->getResource(), &srv, cpu);
+
+		// GPUハンドル値をImTextureIDとして返す
+		ImTextureID result = static_cast<ImTextureID>(gpu.ptr);
+
+		Utils::log_info(std::format("Registered texture '{}' to ImGui with ID: {}",
+			tex->getDesc().debugName, static_cast<uint64_t>(gpu.ptr)));
+
+		return result;
+	}
+
 	//=====================================================================
-	//DebugWindow螳溯｣・
+	//DebugWindow
 	//=====================================================================
 	void DebugWindow::draw()
 	{

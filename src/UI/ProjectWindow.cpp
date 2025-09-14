@@ -105,7 +105,18 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-       
+
+        if (ImGui::Button("Up"))
+        {
+            std::filesystem::path parent = std::filesystem::path(m_projectPath).parent_path();
+            if (!parent.empty() && std::filesystem::exists(parent))
+            {
+                setProjectPath(parent.string());
+            }
+        }
+        ImGui::SameLine();
+
+
         if (ImGui::Button("Refresh"))
         {
             refreshAssets();
@@ -113,7 +124,7 @@ namespace Engine::UI
 
         ImGui::SameLine();
 
-     
+
         if (m_showGrid)
         {
             ImGui::SetNextItemWidth(100);
@@ -150,11 +161,33 @@ namespace Engine::UI
                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
             }
 
-            if (ImGui::Button("##icon", ImVec2(m_iconSize, m_iconSize)))
+            if (asset.type == AssetInfo::Type::Folder && m_folderIcon && m_imguiManager)
             {
-                m_selectedAsset = &asset;
-                loadAssetPreview(asset);
+                static ImTextureID folderIconID = 0;
+                if (!folderIconID)
+                    folderIconID = m_imguiManager->registerTexture(m_folderIcon.get());
+
+                ImGui::Image(folderIconID, ImVec2(m_iconSize, m_iconSize));
+
+                if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))
+                {
+                    m_selectedAsset = &asset;
+                    loadAssetPreview(asset);
+                }
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+                {
+                    setProjectPath(asset.path.string());
+                }
             }
+            else
+            {
+                if (ImGui::Button("##icon", ImVec2(m_iconSize, m_iconSize)))
+                {
+                    m_selectedAsset = &asset;
+                    loadAssetPreview(asset);
+                }
+            }
+
 
             if (isSelected)
             {
@@ -522,5 +555,15 @@ namespace Engine::UI
         } while (std::filesystem::exists(scriptPath));
 
         return scriptPath.string();
+    }
+
+    void ProjectWindow::setTextureManager(Graphics::TextureManager* textureManager) 
+    {
+        m_textureManager = textureManager; 
+
+        if (m_textureManager)
+        {
+            m_folderIcon = m_textureManager->loadTexture("assets/images/ProjectWindowFolder.png");
+        }
     }
 }
