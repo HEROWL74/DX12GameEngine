@@ -283,4 +283,5 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+    <Import Project="$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.targets" Condition="exists('$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.targets')" />
 </Project>
