@@ -64,5 +64,8 @@ jobs:
           files: |
             DX12GameEngine.zip
             DX12GameEngine-with-src.zip
+          draft: false
+          prerelease: false
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
