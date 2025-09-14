@@ -1,0 +1,50 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      # ソース取得
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # MSBuild セットアップ
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      # Release ビルド
+      - name: Build with MSBuild
+        run: msbuild DX12GameEngine.sln /p:Configuration=Release
+
+      # exe + assets パッケージ
+          - name: Create package (runtime only)
+        run: |
+          mkdir package_runtime
+          copy DX12GameEngine.exe package_runtime\
+          xcopy assets package_runtime\assets /E /I /Y
+          powershell Compress-Archive -Path package_runtime\* -DestinationPath DX12GameEngine.zip
+
+      - name: Create package (with source)
+        run: |
+          mkdir package_src
+          copy DX12GameEngine.exe package_src\
+          xcopy assets package_src\assets /E /I /Y
+          xcopy src package_src\src /E /I /Y
+          powershell Compress-Archive -Path package_src\* -DestinationPath DX12GameEngine-with-src.zip
+
+
+      # GitHub Release にアップロード
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            DX12GameEngine.zip
+            DX12GameEngine-with-src.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
