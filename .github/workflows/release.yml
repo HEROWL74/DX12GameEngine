@@ -26,11 +26,16 @@ jobs:
 
       # 依存ライブラリをインストール (manifest モード対応)
       - name: Install dependencies
-        run: .\vcpkg\vcpkg.exe install
+        run: .\vcpkg\vcpkg.exe install --triplet x64-windows
 
-      # Release ビルド (x64, manifest 有効)
+      # Release ビルド (manifest 有効化 + vcpkg ルート明示)
       - name: Build with MSBuild
-        run: msbuild DX12GameEngine.sln /p:Configuration=Release /p:Platform=x64 /p:VcpkgEnableManifest=true /p:VcpkgTriplet=x64-windows
+        run: msbuild DX12GameEngine.sln `
+              /p:Configuration=Release `
+              /p:Platform=x64 `
+              /p:VcpkgEnableManifest=true `
+              /p:VcpkgTriplet=x64-windows `
+              /p:VcpkgRoot=${{ github.workspace }}\vcpkg
 
       # exe + assets パッケージ
       - name: Create package (runtime only)
