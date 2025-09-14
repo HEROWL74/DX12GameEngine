@@ -46,6 +46,7 @@ jobs:
           mkdir package_runtime
           copy x64\Release\DX12GameEngine.exe package_runtime\
           xcopy assets package_runtime\assets /E /I /Y
+          copy imgui.ini package_runtime\
           powershell Compress-Archive -Path package_runtime\* -DestinationPath DX12GameEngine.zip
 
       # exe + assets + src パッケージ
@@ -55,6 +56,7 @@ jobs:
           copy x64\Release\DX12GameEngine.exe package_src\
           xcopy assets package_src\assets /E /I /Y
           xcopy src package_src\src /E /I /Y
+          copy imgui.ini package_arc\
           powershell Compress-Archive -Path package_src\* -DestinationPath DX12GameEngine-with-src.zip
 
       # GitHub Release にアップロード
