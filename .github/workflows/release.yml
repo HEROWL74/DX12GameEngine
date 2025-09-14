@@ -23,13 +23,14 @@ jobs:
         run: msbuild DX12GameEngine.sln /p:Configuration=Release
 
       # exe + assets パッケージ
-          - name: Create package (runtime only)
+      - name: Create package (runtime only)
         run: |
           mkdir package_runtime
           copy DX12GameEngine.exe package_runtime\
           xcopy assets package_runtime\assets /E /I /Y
           powershell Compress-Archive -Path package_runtime\* -DestinationPath DX12GameEngine.zip
 
+      # exe + assets + src パッケージ
       - name: Create package (with source)
         run: |
           mkdir package_src
@@ -37,7 +38,6 @@ jobs:
           xcopy assets package_src\assets /E /I /Y
           xcopy src package_src\src /E /I /Y
           powershell Compress-Archive -Path package_src\* -DestinationPath DX12GameEngine-with-src.zip
-
 
       # GitHub Release にアップロード
       - name: Upload to Release
