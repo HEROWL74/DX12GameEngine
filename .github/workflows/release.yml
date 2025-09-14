@@ -24,14 +24,13 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
 
-      # 必要ライブラリをインストール
+      # 依存ライブラリをインストール (manifest モード対応)
       - name: Install dependencies
-        run: |
-          .\vcpkg\vcpkg.exe install sol2 nlohmann-json
+        run: .\vcpkg\vcpkg.exe install
 
-      # Release ビルド (vcpkg を統合)
+      # Release ビルド (manifest 有効)
       - name: Build with MSBuild
-        run: msbuild DX12GameEngine.sln /p:Configuration=Release /p:VcpkgEnableManifest=true
+        run: msbuild DX12GameEngine.sln /p:Configuration=Release /p:VcpkgEnableManifest=true /p:VcpkgRoot=${{ github.workspace }}\vcpkg
 
       # exe + assets パッケージ
       - name: Create package (runtime only)
