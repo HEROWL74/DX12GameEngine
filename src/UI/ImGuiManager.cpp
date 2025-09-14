@@ -1,15 +1,14 @@
-//src/UI/ImGuiManager.cpp
+ï»¿//src/UI/ImGuiManager.cpp
 #include "ImGuiManager.hpp"
-#include "ProjectWindow.hpp"  // AssetInfog—p‚Ì‚½‚ß’Ç‰Á
+#include "ProjectWindow.hpp"  // AssetInfoã‚’ä½¿ã†
 #include <format>
 
-//ŠO•”‚ÌWin32 ƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰[
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace Engine::UI
 {
 	//================================================================
-	//ImGuiManagerÀ‘•
+	//ImGuiManagerå®Ÿè£…
 	//================================================================
 	ImGuiManager::~ImGuiManager()
 	{
@@ -20,239 +19,242 @@ namespace Engine::UI
 	{
 		if (m_initialized)
 		{
+			Utils::log_warning("ImGuiManager already initialized");
 			return {};
 		}
 
+		// èœˆï½¥èœ‰å¸™ãƒ±ç¹ï½©ç¹ï½¡ç¹ï½¼ç¹§ï½¿ç¸ºï½®èœ´ï½³èŸ‡ãƒ»â†‘ç¹âˆšã‰ç¹ãƒ»ã‘
 		CHECK_CONDITION(device != nullptr, Utils::ErrorType::Unknown, "Device is null");
 		CHECK_CONDITION(device->isValid(), Utils::ErrorType::Unknown, "Device is not valid");
 		CHECK_CONDITION(commandQueue != nullptr, Utils::ErrorType::Unknown, "CommandQueue is null");
+		CHECK_CONDITION(hwnd != nullptr, Utils::ErrorType::Unknown, "HWND is null");
 
+		// ç¹ï½¡ç¹ï½³ç¹èˆŒãƒ»èŸç”»ç„šç¹§è²ãƒ»ç¸ºï½«éšªï½­è³ãƒ»
 		m_device = device;
 		m_hwnd = hwnd;
 		m_rtvFormat = rtvFormat;
 		m_frameCount = frameCount;
-		m_commandQueue = commandQueue;
+		m_commandQueue = commandQueue;  // ç«Šãƒ»é©¥å´ï½¦ãƒ»ï½¼å£¼ï½¿ãƒ»â˜…nullptrç¹âˆšã‰ç¹ãƒ»ã‘è •å¾Œâ†“éšªï½­è³ãƒ»
 
 		Utils::log_info("Initializing ImGui...");
 
-		// ImGuiƒRƒ“ƒeƒLƒXƒgì¬
-		IMGUI_CHECKVERSION();
-		m_context = ImGui::CreateContext();
-		ImGui::SetCurrentContext(m_context);
-
-		// İ’è
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-		// ƒfƒtƒHƒ‹ƒgƒtƒHƒ“ƒg‚ğ’Ç‰Á
-		io.Fonts->AddFontDefault();
-
-		// ƒXƒ^ƒCƒ‹İ’è
-		ImGui::StyleColorsDark();
-
-		// ƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒvì¬
-		auto heapResult = createDescriptorHeap();
-		if (!heapResult)
+		try
 		{
-			return heapResult;
-		}
-
-		// Win32‰Šú‰»
-		if (!ImGui_ImplWin32_Init(hwnd))
-		{
-			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui Win32"));
-		}
-
-		// DX12‰Šú‰»i]—ˆ‚Ì•û–@j
-		if (!ImGui_ImplDX12_Init(
-			m_device->getDevice(),
-			static_cast<int>(frameCount),
-			rtvFormat,
-			m_srvDescHeap.Get(),
-			m_srvDescHeap->GetCPUDescriptorHandleForHeapStart(),
-			m_srvDescHeap->GetGPUDescriptorHandleForHeapStart()))
-		{
-			ImGui_ImplWin32_Shutdown();
-			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui DX12"));
-		}
-
-		// è“®‚ÅƒtƒHƒ“ƒgƒeƒNƒXƒ`ƒƒ‚ğƒAƒbƒvƒ[ƒh
-		auto fontResult = createFontTextureManually();
-		if (!fontResult)
-		{
-			ImGui_ImplDX12_Shutdown();
-			ImGui_ImplWin32_Shutdown();
-			return fontResult;
-		}
-
-		// ‰ŠúƒEƒBƒ“ƒhƒEƒTƒCƒY‚ğİ’è
-		RECT rect;
-		if (GetClientRect(hwnd, &rect))
-		{
-			io.DisplaySize = ImVec2(static_cast<float>(rect.right - rect.left),
-				static_cast<float>(rect.bottom - rect.top));
-		}
-
-		m_initialized = true;
-		Utils::log_info("ImGui initialized successfully!");
-		return {};
-	}
-
-	Utils::VoidResult ImGuiManager::createFontTextureManually()
-	{
-		// ƒtƒHƒ“ƒgƒeƒNƒXƒ`ƒƒ‚ğè“®‚Åì¬EƒAƒbƒvƒ[ƒh
-		ImGuiIO& io = ImGui::GetIO();
-
-		// ƒtƒHƒ“ƒgƒAƒgƒ‰ƒX‚ğ\’z
-		unsigned char* pixels;
-		int width, height;
-		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-		// ƒRƒ}ƒ“ƒhƒAƒƒP[ƒ^‚ÆƒRƒ}ƒ“ƒhƒŠƒXƒg‚ğì¬
-		ComPtr<ID3D12CommandAllocator> commandAllocator;
-		ComPtr<ID3D12GraphicsCommandList> commandList;
-
-		CHECK_HR(m_device->getDevice()->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator)),
-			Utils::ErrorType::ResourceCreation, "Failed to create font command allocator");
-
-		CHECK_HR(m_device->getDevice()->CreateCommandList(
-			0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr,
-			IID_PPV_ARGS(&commandList)),
-			Utils::ErrorType::ResourceCreation, "Failed to create font command list");
-
-		// ImGui_ImplDX12_CreateDeviceObjects‚ğŒÄ‚ñ‚Å“à•”‚ÅƒtƒHƒ“ƒgƒeƒNƒXƒ`ƒƒ‚ğì¬‚³‚¹‚é
-		// ‚½‚¾‚µA‚±‚ê‚ª¸”s‚·‚é‰Â”\«‚ª‚ ‚é‚Ì‚ÅAtry-catch‚ÅˆÍ‚Ş
-		try {
-			if (!ImGui_ImplDX12_CreateDeviceObjects())
+			// ImGuiç¹§ï½³ç¹ï½³ç¹ãƒ»ãç¹§ï½¹ç¹äº•ï½½æ‡ˆãƒ»
+			IMGUI_CHECKVERSION();
+			m_context = ImGui::CreateContext();
+			if (!m_context)
 			{
-				Utils::log_warning("ImGui_ImplDX12_CreateDeviceObjects failed, trying alternative approach");
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to create ImGui context"));
 			}
+
+			ImGui::SetCurrentContext(m_context);
+
+			// éšªï½­è³ãƒ»
+			ImGuiIO& io = ImGui::GetIO();
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+			// ç¹ãƒ»ãƒµç¹§ï½©ç¹ï½«ç¹åŒ»ãƒµç¹§ï½©ç¹ï½³ç¹åŒ»ï½’éœ‘ï½½èœ‰ï£°
+			io.Fonts->AddFontDefault();
+
+			// ç¹§ï½¹ç¹§ï½¿ç¹§ï½¤ç¹ï½«éšªï½­è³ãƒ»
+			ImGui::StyleColorsDark();
+
+			// ç¹ãƒ»ã…ç¹§ï½¹ç¹§ï½¯ç¹ï½ªç¹åŠ±ã¡ç¹åµãƒ»ç¹å¶ºï½½æ‡ˆãƒ»
+			auto heapResult = createDescriptorHeap();
+			if (!heapResult)
+			{
+				ImGui::DestroyContext(m_context);
+				m_context = nullptr;
+				return heapResult;
+			}
+
+			// Win32è›»æ™„æ‚„è›¹ãƒ»
+			if (!ImGui_ImplWin32_Init(hwnd))
+			{
+				ImGui::DestroyContext(m_context);
+				m_context = nullptr;
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui Win32"));
+			}
+
+			// DX12è›»æ™„æ‚„è›¹ãƒ»- commandQueueç¸ºæ¢§æ€èœ‰ï½¹ç¸ºï½§ç¸ºã‚…ï½‹ç¸ºè–™â†’ç¹§è²ãƒ»é’ï½ºéš±ãƒ»
+			if (!m_commandQueue)
+			{
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext(m_context);
+				m_context = nullptr;
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "CommandQueue became null before DX12 init"));
+			}
+
+			if (!ImGui_ImplDX12_Init(
+				m_device->getDevice(),
+				static_cast<int>(frameCount),
+				rtvFormat,
+				m_srvDescHeap.Get(),
+				m_srvDescHeap->GetCPUDescriptorHandleForHeapStart(),
+				m_srvDescHeap->GetGPUDescriptorHandleForHeapStart()))
+			{
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext(m_context);
+				m_context = nullptr;
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Failed to initialize ImGui DX12"));
+			}
+
+			// ç¹è¼”ã‹ç¹ï½³ç¹åŒ»ãƒ¦ç¹§ï½¯ç¹§ï½¹ç¹âˆšÎ•ç¹§å‘ˆç„”èœç©‚ï½½æ‡ˆãƒ»
+			auto fontResult = createFontTextureManually();
+			if (!fontResult)
+			{
+				ImGui_ImplDX12_Shutdown();
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext(m_context);
+				m_context = nullptr;
+				return fontResult;
+			}
+
+			// è›»æ™„æ‚„ç¹§ï½¦ç¹§ï½£ç¹ï½³ç¹å³¨ãˆç¹§ï½µç¹§ï½¤ç¹§ï½ºç¹§å®šï½¨ï½­è³ãƒ»
+			RECT rect;
+			if (GetClientRect(hwnd, &rect))
+			{
+				io.DisplaySize = ImVec2(static_cast<float>(rect.right - rect.left),
+					static_cast<float>(rect.bottom - rect.top));
+			}
+
+			m_initialized = true;
+			Utils::log_info("ImGui initialized successfully!");
+			return {};
+		}
+		catch (const std::exception& e)
+		{
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+				std::format("Exception during ImGui initialization: {}", e.what())));
+			shutdown(); // é©›ï½¨è›»ãƒ»å™ªç¸ºï½«è›»æ™„æ‚„è›¹æ‚¶ï¼†ç¹§å¾Œâ—†ç¹ï½ªç¹§ï½½ç¹ï½¼ç¹§ï½¹ç¹§åµã‘ç¹ï½ªç¹ï½¼ç¹ï½³ç¹§ï½¢ç¹ãƒ»ãƒ»
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ImGui initialization failed"));
 		}
 		catch (...)
 		{
-			Utils::log_warning("Exception in ImGui_ImplDX12_CreateDeviceObjects, continuing with alternative");
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Unknown exception during ImGui initialization"));
+			shutdown();
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ImGui initialization failed"));
 		}
-
-		// ƒRƒ}ƒ“ƒhƒŠƒXƒg‚ğƒNƒ[ƒY
-		commandList->Close();
-
-		// ƒRƒ}ƒ“ƒhƒLƒ…[‚ÅÀs
-		ID3D12CommandList* cmdLists[] = { commandList.Get() };
-		m_commandQueue->ExecuteCommandLists(1, cmdLists);
-
-		// GPUŠ®—¹‚ğ‘Ò‹@
-		ComPtr<ID3D12Fence> fence;
-		CHECK_HR(m_device->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)),
-			Utils::ErrorType::ResourceCreation, "Failed to create font fence");
-
-		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		CHECK_CONDITION(fenceEvent != nullptr, Utils::ErrorType::ResourceCreation, "Failed to create fence event");
-
-		const UINT64 fenceValue = 1;
-		m_commandQueue->Signal(fence.Get(), fenceValue);
-		fence->SetEventOnCompletion(fenceValue, fenceEvent);
-		WaitForSingleObject(fenceEvent, INFINITE);
-		CloseHandle(fenceEvent);
-
-		Utils::log_info("Font texture created manually");
-		return {};
 	}
 
-	// ƒtƒHƒ“ƒgƒeƒNƒXƒ`ƒƒì¬‚Ìê—pƒƒ\ƒbƒh
-	Utils::VoidResult ImGuiManager::createFontTexture()
+	// ç¹è¼”ã‹ç¹ï½³ç¹åŒ»ãƒ¦ç¹§ï½¯ç¹§ï½¹ç¹âˆšÎ•è´æ‡ˆãƒ»ç¸ºï½®èŸ†ã‚‰ç•‘ç¹ï½¡ç¹§ï½½ç¹ãƒ»ãƒ©
+	Utils::VoidResult ImGuiManager::createFontTextureManually()
 	{
-		if (!m_device || !m_commandQueue)
+		// commandQueueç¸ºï½®è­›ç‰™æŸ‘è«¤ï½§ç¹§è²ãƒ»é’ï½ºéš±ãƒ»
+		if (!m_commandQueue)
 		{
-			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Device or CommandQueue is null"));
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "CommandQueue is null in createFontTextureManually"));
 		}
 
-		// ê—p‚ÌƒRƒ}ƒ“ƒhƒAƒƒP[ƒ^‚ÆƒRƒ}ƒ“ƒhƒŠƒXƒg‚ğì¬
-		ComPtr<ID3D12CommandAllocator> fontCommandAllocator;
-		ComPtr<ID3D12GraphicsCommandList> fontCommandList;
-
-		CHECK_HR(m_device->getDevice()->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(&fontCommandAllocator)),
-			Utils::ErrorType::ResourceCreation, "Failed to create font command allocator");
-
-		CHECK_HR(m_device->getDevice()->CreateCommandList(
-			0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-			fontCommandAllocator.Get(), nullptr,
-			IID_PPV_ARGS(&fontCommandList)),
-			Utils::ErrorType::ResourceCreation, "Failed to create font command list");
-
-		// ƒtƒHƒ“ƒgƒAƒgƒ‰ƒX‚ğ‹­§‚Å\’z
-		ImGuiIO& io = ImGui::GetIO();
-		unsigned char* pixels;
-		int width, height;
-		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-		// ImGui‚ÌƒfƒoƒCƒXƒIƒuƒWƒFƒNƒg‚ğì¬iƒtƒHƒ“ƒgƒeƒNƒXƒ`ƒƒ‚ğŠÜ‚Şj
-		ImGui_ImplDX12_CreateDeviceObjects();
-
-		// ƒRƒ}ƒ“ƒhƒŠƒXƒg‚ğ•Â‚¶‚é
-		fontCommandList->Close();
-
-		// ƒRƒ}ƒ“ƒhƒLƒ…[‚ÅÀs
-		ID3D12CommandList* cmdLists[] = { fontCommandList.Get() };
-		m_commandQueue->ExecuteCommandLists(1, cmdLists);
-
-		// Š®—¹‚ğ‘Ò‹@
-		ComPtr<ID3D12Fence> tempFence;
-		CHECK_HR(m_device->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tempFence)),
-			Utils::ErrorType::ResourceCreation, "Failed to create temp fence");
-
-		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		CHECK_CONDITION(fenceEvent != nullptr, Utils::ErrorType::ResourceCreation, "Failed to create fence event");
-
-		m_commandQueue->Signal(tempFence.Get(), 1);
-		tempFence->SetEventOnCompletion(1, fenceEvent);
-		WaitForSingleObject(fenceEvent, INFINITE);
-		CloseHandle(fenceEvent);
-
-		Utils::log_info("Font texture created successfully");
-		return {};
-	}
-
-	void ImGuiManager::shutdown()
-	{
-		if (!m_initialized)
+		if (!m_device || !m_device->getDevice())
 		{
-			return;
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Device is null in createFontTextureManually"));
 		}
 
-		// GPUì‹Æ‚ÌŠ®—¹‚ğ‘Ò‚Â
-		if (m_device && m_device->isValid())
+		Utils::log_info("Creating font texture manually...");
+
+		try
 		{
-			// •K—v‚É‰‚¶‚ÄGPU‚ÌŠ®—¹‚ğ‘Ò‹@
+			// ç¹è¼”ã‹ç¹ï½³ç¹åŒ»ã„ç¹åŒ»Î›ç¹§ï½¹ç¹§å‘ˆï½§ç‹—ï½¯ãƒ»
+			ImGuiIO& io = ImGui::GetIO();
+			unsigned char* pixels;
+			int width, height;
+			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+			// ç¹§ï½³ç¹æ§­Î¦ç¹å³¨ã„ç¹ï½­ç¹§ï½±ç¹ï½¼ç¹§ï½¿ç¸ºï½¨ç¹§ï½³ç¹æ§­Î¦ç¹å³¨Îœç¹§ï½¹ç¹åŒ»ï½’è´æ‡ˆãƒ»
+			ComPtr<ID3D12CommandAllocator> commandAllocator;
+			ComPtr<ID3D12GraphicsCommandList> commandList;
+
+			CHECK_HR(m_device->getDevice()->CreateCommandAllocator(
+				D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator)),
+				Utils::ErrorType::ResourceCreation, "Failed to create font command allocator");
+
+			CHECK_HR(m_device->getDevice()->CreateCommandList(
+				0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr,
+				IID_PPV_ARGS(&commandList)),
+				Utils::ErrorType::ResourceCreation, "Failed to create font command list");
+
+			// ImGuiç¸ºï½®ç¹ãƒ»ãƒ°ç¹§ï½¤ç¹§ï½¹ç¹§ï½ªç¹æ‚¶ãšç¹§ï½§ç¹§ï½¯ç¹åŒ»ï½’è´æ‡ˆãƒ»
+			// ç¸ºè–™ï¼…ç¸ºï½§commandQueueç¸ºå¾¡ï½½ï½¿é€•ï½¨ç¸ºè¼”ï½Œç¹§å¥åº„é–­ï½½è«¤ï½§ç¸ºå¾Œâ‰ ç¹§ä¹ãƒ»ç¸ºï½§ç¸²âˆ½ï½ºå¥ç‡•ç¸ºï½«ç¹âˆšã‰ç¹ãƒ»ã‘
+			if (!m_commandQueue)
+			{
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "CommandQueue became null before CreateDeviceObjects"));
+			}
+
+			if (!ImGui_ImplDX12_CreateDeviceObjects())
+			{
+				Utils::log_warning("ImGui_ImplDX12_CreateDeviceObjects failed, but continuing");
+			}
+
+			// ç¹§ï½³ç¹æ§­Î¦ç¹å³¨Îœç¹§ï½¹ç¹åŒ»ï½’ç¹§ï½¯ç¹ï½­ç¹ï½¼ç¹§ï½º
+			commandList->Close();
+
+			// commandQueueç¸ºå¾¡ï½¾æ™‰â”¯ç¸ºï½¨ç¸ºåŠ±â€»è­›ç‰™æŸ‘ç¸ºï½§ç¸ºã‚…ï½‹ç¸ºè–™â†’ç¹§å ¤ï½¢ï½ºéš±ãƒ»
+			if (!m_commandQueue)
+			{
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "CommandQueue became null before execution"));
+			}
+
+			// ç¹§ï½³ç¹æ§­Î¦ç¹å³¨ãç¹ï½¥ç¹ï½¼ç¸ºï½§è³æº¯ï½¡ãƒ»
+			ID3D12CommandList* cmdLists[] = { commandList.Get() };
+			m_commandQueue->ExecuteCommandLists(1, cmdLists);
+
+			// GPUè³å¾¡ï½ºãƒ»ï½’è •ãƒ»ï½©ãƒ»
+			ComPtr<ID3D12Fence> fence;
+			CHECK_HR(m_device->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)),
+				Utils::ErrorType::ResourceCreation, "Failed to create font fence");
+
+			HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+			CHECK_CONDITION(fenceEvent != nullptr, Utils::ErrorType::ResourceCreation, "Failed to create fence event");
+
+			const UINT64 fenceValue = 1;
+
+			// è­›Â€é‚¨ã‚…ãƒ¡ç¹§ï½§ç¹ãƒ»ã‘
+			if (!m_commandQueue)
+			{
+				CloseHandle(fenceEvent);
+				return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "CommandQueue became null before signal"));
+			}
+
+			m_commandQueue->Signal(fence.Get(), fenceValue);
+			fence->SetEventOnCompletion(fenceValue, fenceEvent);
+			WaitForSingleObject(fenceEvent, INFINITE);
+			CloseHandle(fenceEvent);
+
+			Utils::log_info("Font texture created manually successfully");
+			return {};
 		}
-
-		ImGui_ImplDX12_Shutdown();
-		ImGui_ImplWin32_Shutdown();
-
-		if (m_context)
+		catch (const std::exception& e)
 		{
-			ImGui::DestroyContext(m_context);
-			m_context = nullptr;
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+				std::format("Exception in createFontTextureManually: {}", e.what())));
 		}
-
-		m_srvDescHeap.Reset();
-		m_initialized = false;
-
-		Utils::log_info("ImGui shutdown complete");
+		catch (...)
+		{
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "Unknown exception in createFontTextureManually"));
+		}
 	}
 
 	void ImGuiManager::newFrame()
 	{
-		if (!m_initialized)
+		if (!m_initialized || !m_context)
 		{
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "ImGuiManager not initialized in newFrame"));
 			return;
 		}
 
-		
+		// è±ˆå¼±ãƒµç¹ï½¬ç¹ï½¼ç¹ï£°ç¸²âˆ«ï½¢ï½ºè³æº˜â†“ç¹§ï½³ç¹ï½³ç¹ãƒ»ãç¹§ï½¹ç¹åŒ»ï½’éšªï½­è³ãƒ»
+		ImGuiContext* currentContext = ImGui::GetCurrentContext();
+		if (currentContext != m_context)
+		{
+			Utils::log_info("Setting ImGui context in newFrame");
+			ImGui::SetCurrentContext(m_context);
+		}
+
+		// ç¹§ï½¦ç¹§ï½£ç¹ï½³ç¹å³¨ãˆç¹§ï½µç¹§ï½¤ç¹§ï½ºç¹§å‘ˆï½¯å¼±ãƒµç¹ï½¬ç¹ï½¼ç¹ï£°è­–ï½´è­ï½°
 		if (m_hwnd)
 		{
 			RECT rect;
@@ -262,28 +264,107 @@ namespace Engine::UI
 				float width = static_cast<float>(rect.right - rect.left);
 				float height = static_cast<float>(rect.bottom - rect.top);
 
-				// ƒTƒCƒY‚ª•Ï‚í‚Á‚Ä‚¢‚éê‡‚ÍXV
-				if (io.DisplaySize.x != width || io.DisplaySize.y != height)
+				if (width > 0 && height > 0)
 				{
 					io.DisplaySize = ImVec2(width, height);
+					io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 				}
 			}
 		}
 
-		ImGui_ImplDX12_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
+		try
+		{
+			ImGui_ImplDX12_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+		}
+		catch (const std::exception& e)
+		{
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+				std::format("Exception in ImGui newFrame: {}", e.what())));
+			throw; // èœ€è‚´å…œç¸ºåµï¼ ç¸ºï½¦è³è´‹ï½½é˜ªã€’èœƒï½¦é€…ãƒ»
+		}
+		catch (...)
+		{
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown,
+				"Unknown exception in ImGui newFrame"));
+			throw; // èœ€è‚´å…œç¸ºåµï¼ ç¸ºï½¦è³è´‹ï½½é˜ªã€’èœƒï½¦é€…ãƒ»
+		}
 	}
-	void ImGuiManager::render(ID3D12GraphicsCommandList* commandList) const
+
+
+	void ImGuiManager::shutdown()
 	{
 		if (!m_initialized)
 		{
 			return;
 		}
 
+		Utils::log_info("Shutting down ImGui...");
+
+		// ç¹§ï½³ç¹ï½³ç¹ãƒ»ãç¹§ï½¹ç¹åŒ»ï½’éšªï½­è³å£¹ï¼ ç¸ºï½¦ç¸ºä¹ï½‰ç¹§ï½·ç¹ï½£ç¹ãƒ»ãƒ¨ç¹Â€ç¹§ï½¦ç¹ï½³
+		if (m_context)
+		{
+			ImGui::SetCurrentContext(m_context);
+		}
+
+		// DX12ç¹èˆŒãƒ£ç¹§ï½¯ç¹§ï½¨ç¹ï½³ç¹å³¨ï½’ç¹§ï½·ç¹ï½£ç¹ãƒ»ãƒ¨ç¹Â€ç¹§ï½¦ç¹ï½³
+		try
+		{
+			ImGui_ImplDX12_Shutdown();
+		}
+		catch (...)
+		{
+			Utils::log_warning("Exception during ImGui_ImplDX12_Shutdown");
+		}
+
+		// Win32ç¹èˆŒãƒ£ç¹§ï½¯ç¹§ï½¨ç¹ï½³ç¹å³¨ï½’ç¹§ï½·ç¹ï½£ç¹ãƒ»ãƒ¨ç¹Â€ç¹§ï½¦ç¹ï½³
+		try
+		{
+			ImGui_ImplWin32_Shutdown();
+		}
+		catch (...)
+		{
+			Utils::log_warning("Exception during ImGui_ImplWin32_Shutdown");
+		}
+
+		// ç¹§ï½³ç¹ï½³ç¹ãƒ»ãç¹§ï½¹ç¹åŒ»ï½’éï½´è­½ãƒ»
+		if (m_context)
+		{
+			ImGui::DestroyContext(m_context);
+			m_context = nullptr;
+		}
+
+		// ç¹ï½ªç¹§ï½½ç¹ï½¼ç¹§ï½¹ç¹§åµã‘ç¹ï½ªç¹§ï½¢
+		m_srvDescHeap.Reset();
+		m_commandQueue = nullptr;  // èœ¿ã‚‰ãƒ»ç¹§åµã‘ç¹ï½ªç¹§ï½¢
+		m_device = nullptr;
+		m_hwnd = nullptr;
+		m_initialized = false;
+
+		Utils::log_info("ImGui shutdown completed");
+	}
+
+
+
+	void ImGuiManager::render(ID3D12GraphicsCommandList* commandList) const
+	{
+		if (!m_initialized || !m_context)
+		{
+			Utils::log_warning("ImGuiManager not initialized, skipping render");
+			return;
+		}
+
+		// ç¹ï½¬ç¹ï½³ç¹Â€ç¹ï½ªç¹ï½³ç¹§ï½°èœ‘é˜ªâ†“ç¹§ï½³ç¹ï½³ç¹ãƒ»ãç¹§ï½¹ç¹åŒ»ï½’é’ï½ºéš±ãƒ»
+		ImGuiContext* currentContext = ImGui::GetCurrentContext();
+		if (currentContext != m_context)
+		{
+			ImGui::SetCurrentContext(m_context);
+		}
+
 		ImGui::Render();
 
-		//ƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv‚ğİ’è
+		// ç¹ãƒ»ã›ç¹§ï½¯ç¹ï½ªç¹åŠ±ã¡ç¹åµãƒ»ç¹åŠ±ï½’éšªï½­è³ãƒ»
 		ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvDescHeap.Get() };
 		commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
@@ -292,55 +373,181 @@ namespace Engine::UI
 
 	void ImGuiManager::handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) const
 	{
-		if (m_initialized)
+		if (!m_initialized || !m_context)
 		{
-			ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
+			// ImGuiç¸ºæ‚Ÿãƒ»è­›æº·å–§ç¸ºè¼”ï½Œç¸ºï½¦ç¸ºãƒ»â†‘ç¸ºãƒ»ï£°ï½´èœ·åŒ»ãƒ»è´è¼”ï½‚ç¸ºåŠ±â†‘ç¸ºãƒ»
+			return;
 		}
+
+		// é©¥å´ï½¦ãƒ» ç¹ï½¡ç¹ãƒ»ãç¹ï½¼ç¹§ï½¸ç¹ä¸ŠÎ¦ç¹å³¨Î›ç¹ï½¼ç¹§è²ä»–ç¸ºï½¶èœ‘é˜ªâ†“è ¢ãƒ»â˜…ç¹§ï½³ç¹ï½³ç¹ãƒ»ãç¹§ï½¹ç¹åŒ»ï½’éšªï½­è³ãƒ»
+		ImGuiContext* currentContext = ImGui::GetCurrentContext();
+		if (currentContext != m_context)
+		{
+			ImGui::SetCurrentContext(m_context);
+		}
+
+		// ç¹ï½¡ç¹ãƒ»ãç¹ï½¼ç¹§ï½¸ç¹§æ£šmGuiç¸ºï½«éœ†ï½¢é¨¾ãƒ»
+		ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
 	}
 
 	Utils::VoidResult ImGuiManager::createDescriptorHeap()
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC desc{};
 		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		desc.NumDescriptors = 1;//ImGui—p‚Éˆê‚Â
+		desc.NumDescriptors = 128;//ImGui
 		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
 		CHECK_HR(m_device->getDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_srvDescHeap)),
 			Utils::ErrorType::ResourceCreation, "Failed to create ImGui descriptor heap");
 
+		m_srvIncSize = m_device->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		m_srvCpuStart = m_srvDescHeap->GetCPUDescriptorHandleForHeapStart();
+		m_srvGpuStart = m_srvDescHeap->GetGPUDescriptorHandleForHeapStart();
+		m_maxSrv = desc.NumDescriptors;
+
 		return {};
 	}
-
 	void ImGuiManager::onWindowResize(int width, int height)
 	{
-		if (!m_initialized) return;
+		Utils::log_info(std::format("ImGuiManager::onWindowResize: {}x{}", width, height));
 
-		Utils::log_info(std::format("ImGui handling resize: {}x{}", width, height));
+		if (!m_initialized || !m_context)
+		{
+			Utils::log_warning("ImGuiManager not properly initialized");
+			return;
+		}
 
-		// ImGui‚ÌƒfƒBƒXƒvƒŒƒCƒTƒCƒY‚ğXV
-		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+		if (width <= 0 || height <= 0)
+		{
+			Utils::log_warning(std::format("Invalid ImGui resize dimensions: {}x{}", width, height));
+			return;
+		}
 
-		Utils::log_info(std::format("ImGui resize completed: {}x{}", width, height));
+		// è³ç‰™ãƒ»ç¸ºï½ªç¹§ï½³ç¹ï½³ç¹ãƒ»ãç¹§ï½¹ç¹è‚²ï½®ï½¡é€…ãƒ»
+		ImGuiContext* savedContext = ImGui::GetCurrentContext();
+		ImGui::SetCurrentContext(m_context);
+
+		try
+		{
+			ImGuiIO& io = ImGui::GetIO();
+
+			// ç¹§ï½µç¹§ï½¤ç¹§ï½ºç¸ºæ‚Ÿï½®æ»„åœ€ç¸ºï½«èŸå³¨ï½ç¸ºï½£ç¸ºæº·ï£°ï½´èœ·åŒ»ãƒ»ç¸ºï½¿è­–ï½´è­ï½°
+			if (std::abs(io.DisplaySize.x - width) > 1.0f || std::abs(io.DisplaySize.y - height) > 1.0f)
+			{
+				io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+				io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+
+				Utils::log_info(std::format("ImGui display size updated to: {}x{}", width, height));
+			}
+		}
+		catch (...)
+		{
+			Utils::log_error(Utils::make_error(Utils::ErrorType::Unknown, "Exception in ImGui resize"));
+		}
+
+		// ç¹§ï½³ç¹ï½³ç¹ãƒ»ãç¹§ï½¹ç¹åŒ»ï½’è •ï½©èœˆãƒ»
+		if (savedContext)
+		{
+			ImGui::SetCurrentContext(savedContext);
+		}
 	}
+
 
 	void ImGuiManager::invalidateDeviceObjects()
 	{
-		if (!m_initialized) return;
-
-		// ‰½‚à‚µ‚È‚¢
-		Utils::log_info("ImGui device objects invalidation skipped");
+		// è´è¼”ï½‚ç¸ºåŠ±â†‘ç¸ºãƒ»- reinitializeForResize()ç¹§å‰ƒï½½ï½¿é€•ï½¨ç¸ºå¶ï½‹
+		Utils::log_info("invalidateDeviceObjects called - use reinitializeForResize instead");
 	}
 
 	void ImGuiManager::createDeviceObjects()
 	{
-		if (!m_initialized) return;
-
-		// ‰½‚à‚µ‚È‚¢
-		Utils::log_info("ImGui device objects creation skipped");
+		// è´è¼”ï½‚ç¸ºåŠ±â†‘ç¸ºãƒ»- reinitializeForResize()ç¹§å‰ƒï½½ï½¿é€•ï½¨ç¸ºå¶ï½‹
+		Utils::log_info("createDeviceObjects called - use reinitializeForResize instead");
 	}
+	Utils::VoidResult ImGuiManager::reinitializeForResize()
+	{
+		if (!m_initialized || !m_device || !m_commandQueue)
+		{
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+				"ImGuiManager not properly initialized for reinitialize"));
+		}
+
+		Utils::log_info("Reinitializing ImGui for resize...");
+
+		// è¿´ï½¾è¨ï½¨ç¸ºï½®ç¹§ï½³ç¹ï½³ç¹ãƒ»ãç¹§ï½¹ç¹åŒ»ï½’è«æ™„æˆŸ
+		ImGui::SetCurrentContext(m_context);
+
+		// DX12ç¹èˆŒãƒ£ç¹§ï½¯ç¹§ï½¨ç¹ï½³ç¹å³¨ï½’è³æ‚Ÿãƒ»ç¸ºï½«ç¹§ï½·ç¹ï½£ç¹ãƒ»ãƒ¨ç¹Â€ç¹§ï½¦ç¹ï½³
+		ImGui_ImplDX12_Shutdown();
+
+		// DX12ç¹èˆŒãƒ£ç¹§ï½¯ç¹§ï½¨ç¹ï½³ç¹å³¨ï½’èœ€æ¦Šãƒ»è­›æº·å–§
+		if (!ImGui_ImplDX12_Init(
+			m_device->getDevice(),
+			static_cast<int>(m_frameCount),
+			m_rtvFormat,
+			m_srvDescHeap.Get(),
+			m_srvDescHeap->GetCPUDescriptorHandleForHeapStart(),
+			m_srvDescHeap->GetGPUDescriptorHandleForHeapStart()))
+		{
+			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown,
+				"Failed to reinitialize ImGui DX12"));
+		}
+
+		// ç¹è¼”ã‹ç¹ï½³ç¹åŒ»ãƒ¦ç¹§ï½¯ç¹§ï½¹ç¹âˆšÎ•ç¹§è²ãƒ»è´æ‡ˆãƒ»
+		auto fontResult = createFontTextureManually();
+		if (!fontResult)
+		{
+			return fontResult;
+		}
+
+		Utils::log_info("ImGui reininitialized successfully for resize");
+		return {};
+	}
+
+	ImTextureID ImGuiManager::registerTexture(Graphics::Texture* tex)
+	{
+		if (!tex || !m_device || !m_srvDescHeap || !m_initialized)
+		{
+			Utils::log_warning("Cannot register texture - ImGuiManager not properly initialized or texture is null");
+			return 0;
+		}
+
+		// ç©ºãã‚¹ãƒ­ãƒƒãƒˆç¢ºä¿
+		if (m_nextSrvIndex >= m_maxSrv)
+		{
+			Utils::log_warning("ImGui descriptor heap is full, cannot register more textures");
+			return 0;
+		}
+
+		const UINT idx = m_nextSrvIndex++;
+
+		// ã“ã®"ImGuiç”¨ãƒ’ãƒ¼ãƒ—"ã® CPU/GPU ãƒãƒ³ãƒ‰ãƒ«ã‚’è¨ˆç®—
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu = m_srvCpuStart;
+		cpu.ptr += static_cast<SIZE_T>(idx) * m_srvIncSize;
+		D3D12_GPU_DESCRIPTOR_HANDLE gpu = m_srvGpuStart;
+		gpu.ptr += static_cast<UINT64>(idx) * m_srvIncSize;
+
+		// SRV ã‚’"ImGuiç”¨ãƒ’ãƒ¼ãƒ—"ã«ä½œã‚‹
+		D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
+		auto resDesc = tex->getResource()->GetDesc();
+		srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srv.Format = resDesc.Format;
+		srv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srv.Texture2D.MipLevels = tex->getMipLevels();
+
+		m_device->getDevice()->CreateShaderResourceView(tex->getResource(), &srv, cpu);
+
+		// GPUãƒãƒ³ãƒ‰ãƒ«å€¤ã‚’ImTextureIDã¨ã—ã¦è¿”ã™
+		ImTextureID result = static_cast<ImTextureID>(gpu.ptr);
+
+		Utils::log_info(std::format("Registered texture '{}' to ImGui with ID: {}",
+			tex->getDesc().debugName, static_cast<uint64_t>(gpu.ptr)));
+
+		return result;
+	}
+
 	//=====================================================================
-	//DebugWindowÀ‘•
+	//DebugWindow
 	//=====================================================================
 	void DebugWindow::draw()
 	{
@@ -348,6 +555,31 @@ namespace Engine::UI
 
 		if (ImGui::Begin(m_title.c_str(), &m_visible))
 		{
+			// ====== Play Controls ======
+			ImGui::Text("Play Controls");
+			ImGui::Separator();
+
+			if (ImGui::Button("â–¶ Play")) {
+				if (m_playModeController) {
+					m_playModeController->play();
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("â¸ Pause")) {
+				if (m_playModeController) {
+					m_playModeController->pause();
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("â–  Stop")) {
+				if (m_playModeController) {
+					m_playModeController->stop();
+				}
+			}
+
+			ImGui::Spacing();
+
+			// ====== Performance ======
 			ImGui::Text("Performance");
 			ImGui::Separator();
 			ImGui::Text("FPS: %.1f", m_fps);
@@ -370,7 +602,7 @@ namespace Engine::UI
 	}
 
 	//======================================================================
-	//Scene HierarchyWindowÀ‘•
+	//Scene HierarchyWindowè³æº¯ï½£ãƒ»
 	//======================================================================
 	SceneHierarchyWindow::SceneHierarchyWindow() : ImGuiWindow("Scene Hierarchy") 
 	{
@@ -383,7 +615,7 @@ namespace Engine::UI
 
 		if (ImGui::Begin(m_title.c_str(), &m_visible))
 		{
-			// ƒIƒuƒWƒFƒNƒg‚Ì—LŒø«ƒ`ƒFƒbƒN
+			// ç¹§ï½ªç¹æ‚¶ãšç¹§ï½§ç¹§ï½¯ç¹åŒ»ãƒ»è­›ç‰™æŸ‘è«¤ï½§ç¹âˆšã‰ç¹ãƒ»ã‘
 			if (m_selectedObject)
 			{
 				bool stillExists = false;
@@ -407,7 +639,7 @@ namespace Engine::UI
 				}
 			}
 
-			// GameObject‚ğ•`‰æ
+			// GameObjectç¹§å‘ˆç·’é€•ï½»
 			const auto& gameObjects = m_scene->getGameObjects();
 			for (const auto& gameObject : gameObjects)
 			{
@@ -417,13 +649,13 @@ namespace Engine::UI
 				}
 			}
 
-			// ‰EƒNƒŠƒbƒNƒƒjƒ…[i‹ó”’•”•ªj
+			// èœ¿ï½³ç¹§ï½¯ç¹ï½ªç¹ãƒ»ã‘ç¹ï½¡ç¹ä¹Î—ç¹ï½¼ãƒ»è‚²ï½©ï½ºé€‹ï½½é©›ï½¨è›»ãƒ»ï½¼ãƒ»
 			if (m_contextMenu)
 			{
 				m_contextMenu->drawHierarchyContextMenu();
 			}
 
-			// ƒ‚[ƒ_ƒ‹ƒ_ƒCƒAƒƒO‚ğ•`‰æid—vFBegin‚Ì’†‚ÅŒÄ‚Ôj
+			// ç¹ï½¢ç¹ï½¼ç¹Â€ç¹ï½«ç¹Â€ç¹§ï½¤ç¹§ï½¢ç¹ï½­ç¹§ï½°ç¹§å‘ˆç·’é€•ï½»ãƒ»ç£¯ã¾éš•ãƒ»ï½¼å’¤eginç¸ºï½®è³ï½­ç¸ºï½§èœ»ï½¼ç¸ºï½¶ãƒ»ãƒ»
 			if (m_contextMenu)
 			{
 				m_contextMenu->drawModals();
@@ -436,7 +668,7 @@ namespace Engine::UI
 	{
 		if (!gameObject) return;
 
-		// ƒcƒŠ[ƒm[ƒhƒtƒ‰ƒOİ’è
+		// ç¹ãƒ»Îœç¹ï½¼ç¹å¼±ãƒ»ç¹å³¨ãƒµç¹ï½©ç¹§ï½°éšªï½­è³ãƒ»
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 
 		if (m_selectedObject == gameObject)
@@ -451,11 +683,11 @@ namespace Engine::UI
 
 		std::string nodeName = gameObject->getName();
 
-		// ƒ†ƒj[ƒN‚ÈID‚ğ¶¬
+		// ç¹ï½¦ç¹ä¹ãƒ»ç¹§ï½¯ç¸ºï½ªIDç¹§å ¤å‡½è¬Œãƒ»
 		ImGui::PushID(gameObject);
 		bool nodeOpen = ImGui::TreeNodeEx(nodeName.c_str(), flags);
 
-		// ƒNƒŠƒbƒNˆ—
+		// ç¹§ï½¯ç¹ï½ªç¹ãƒ»ã‘èœƒï½¦é€…ãƒ»
 		if (ImGui::IsItemClicked())
 		{
 			m_selectedObject = gameObject;
@@ -465,13 +697,13 @@ namespace Engine::UI
 			}
 		}
 
-		// ‰EƒNƒŠƒbƒNƒƒjƒ…[
+		// èœ¿ï½³ç¹§ï½¯ç¹ï½ªç¹ãƒ»ã‘ç¹ï½¡ç¹ä¹Î—ç¹ï½¼
 		if (m_contextMenu)
 		{
 			m_contextMenu->drawGameObjectContextMenu(gameObject);
 		}
 
-		// qƒIƒuƒWƒFƒNƒg‚ğ•`‰æ
+		// èŸ„èˆŒãŒç¹æ‚¶ãšç¹§ï½§ç¹§ï½¯ç¹åŒ»ï½’è¬ å†—åˆ¤
 		if (nodeOpen)
 		{
 			for (const auto& child : gameObject->getChildren())
@@ -524,7 +756,7 @@ namespace Engine::UI
 		}
 	}
 	//=======================================================================
-	//InspectorWindowÀ‘•
+	//InspectorWindow
 	//=======================================================================
 	void InspectorWindow::draw()
 	{
@@ -532,82 +764,83 @@ namespace Engine::UI
 
 		if (ImGui::Begin(m_title.c_str(), &m_visible))
 		{
-			// ‘I‘ğ‚³‚ê‚½ƒIƒuƒWƒFƒNƒg‚ª—LŒø‚©Šm”F
 			if (m_selectedObject)
 			{
-				// ƒIƒuƒWƒFƒNƒg‚Ì–¼‘O‚ğˆÀ‘S‚Éæ“¾
-				std::string objectName;
-				bool isValid = true;
+				std::string objectName = m_selectedObject->getName();
+				ImGui::Text("Object: %s", objectName.c_str());
+				ImGui::Separator();
 
-				try {
-					objectName = m_selectedObject->getName();
-				}
-				catch (...) {
-					// ƒIƒuƒWƒFƒNƒg‚ª–³Œø‚Èê‡
-					isValid = false;
-					m_selectedObject = nullptr;
-				}
+				// Transform / Render ã¯ãã®ã¾ã¾
+				if (auto* transform = m_selectedObject->getTransform())
+					drawTransformComponent(transform);
 
-				if (isValid && m_selectedObject)
+				ImGui::Spacing();
+
+				if (auto* renderComponent = m_selectedObject->getComponent<Graphics::RenderComponent>())
+					drawRenderComponent(renderComponent);
+
+				ImGui::Spacing();
+
+				// ==== Script ====
+				auto* scriptComponent = m_selectedObject->getComponent<Engine::Scripting::ScriptComponent>();
+				if (scriptComponent)
 				{
-					ImGui::Text("Object: %s", objectName.c_str());
-					ImGui::Separator();
-
-					// TransformƒRƒ“ƒ|[ƒlƒ“ƒg
-					auto* transform = m_selectedObject->getTransform();
-					if (transform)
-					{
-						drawTransformComponent(transform);
-					}
-
-					ImGui::Spacing();
-
-					// RenderComponent
-					auto* renderComponent = m_selectedObject->getComponent<Graphics::RenderComponent>();
-					if (renderComponent)
-					{
-						drawRenderComponent(renderComponent);
-					}
+					drawScriptComponent(scriptComponent);
 				}
 				else
 				{
-					// ƒIƒuƒWƒFƒNƒg‚ª–³Œø‚É‚È‚Á‚½
-					m_selectedObject = nullptr;
-					ImGui::Text("Selected object is no longer valid");
+					ImGui::Text("Script");
+					ImGui::Dummy(ImVec2(220, 40));
+					ImGui::SameLine();
+					ImGui::TextDisabled("<None>");
+					if (ImGui::BeginDragDropTarget())
+					{
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+						{
+							const AssetPayload* dropped = static_cast<const AssetPayload*>(payload->Data);
+							if (dropped->type == static_cast<int>(UI::AssetInfo::Type::Script))
+							{
+								m_selectedObject->addScriptComponent(dropped->path);
+								Utils::log_info(std::format("Lua script attached: {}", dropped->path));
+							}
+						}
+						ImGui::EndDragDropTarget();
+					}
+
 				}
 			}
 			else
 			{
 				ImGui::Text("No object selected");
-				ImGui::Text("Select an object in the Scene Hierarchy");
 			}
 		}
 		ImGui::End();
 	}
 
 
+
 	void InspectorWindow::drawTransformComponent(Core::Transform* transform)
 	{
 		if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			//ˆÊ’u
-			auto pos = transform->getPosition();
+			
+			auto& pos = transform->getPosition();
 			float position[3] = { pos.x, pos.y, pos.z };
 			if (ImGui::DragFloat3("Position", position, 0.1f))
 			{
 				transform->setPosition(Math::Vector3(position[0], position[1], position[2]));
 			}
 
-			//‰ñ“]
-			auto rot = transform->getRotation();
+			
+			auto& rot = transform->getRotation();
 			float rotation[3] = { rot.x, rot.y, rot.z };
 			if (ImGui::DragFloat3("Rotation", rotation, 1.0f))
 			{
 				transform->setRotation(Math::Vector3(rotation[0], rotation[1], rotation[2]));
 			}
 
-			//ƒXƒP[ƒ‹
-			auto scale = transform->getScale();
+			
+			auto& scale = transform->getScale();
 			float scaleArray[3] = { scale.x, scale.y, scale.z };
 			if (ImGui::DragFloat3("Scale", scaleArray, 0.1f, 0.1f, 10.0f))
 			{
@@ -620,14 +853,14 @@ namespace Engine::UI
 	{
 		if (ImGui::CollapsingHeader("Render Component", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			// •\¦/”ñ•\¦
+	
 			bool visible = renderComponent->isVisible();
 			if (ImGui::Checkbox("Visible", &visible))
 			{
 				renderComponent->setVisible(visible);
 			}
 
-			// ƒŒƒ“ƒ_ƒ‰ƒuƒ‹ƒ^ƒCƒv
+	
 			const char* types[] = { "Triangle", "Cube" };
 			int currentType = static_cast<int>(renderComponent->getRenderableType());
 			if (ImGui::Combo("Type", &currentType, types, IM_ARRAYSIZE(types)))
@@ -635,15 +868,14 @@ namespace Engine::UI
 				renderComponent->setRenderableType(static_cast<Graphics::RenderableType>(currentType));
 			}
 
-			// Fi‹Œ® - Œã‚Åíœ—\’èj
-			auto color = renderComponent->getColor();
+		
+			auto& color = renderComponent->getColor();
 			float colorArray[3] = { color.x, color.y, color.z };
 			if (ImGui::ColorEdit3("Color", colorArray))
 			{
 				renderComponent->setColor(Math::Vector3(colorArray[0], colorArray[1], colorArray[2]));
 			}
 
-			// ƒ}ƒeƒŠƒAƒ‹ƒGƒfƒBƒ^
 			if (m_materialManager)
 			{
 				drawMaterialEditor(renderComponent);
@@ -657,7 +889,7 @@ namespace Engine::UI
 		{
 			auto currentMaterial = renderComponent->getMaterial();
 
-			// ƒ}ƒeƒŠƒAƒ‹‘I‘ğ
+			// ç¹æ§­ãƒ¦ç¹ï½ªç¹§ï½¢ç¹ï½«é©•ï½¸è¬šãƒ»
 			static char materialNameBuffer[256] = "";
 			if (currentMaterial)
 			{
@@ -666,7 +898,7 @@ namespace Engine::UI
 
 			if (ImGui::InputText("Material Name", materialNameBuffer, sizeof(materialNameBuffer)))
 			{
-				// ƒ}ƒeƒŠƒAƒ‹–¼•ÏX‚Ìˆ—
+				// ç¹æ§­ãƒ¦ç¹ï½ªç¹§ï½¢ç¹ï½«èœ·æ¦Šï½¤ç”»å³©è­ã‚…ãƒ»èœƒï½¦é€…ãƒ»
 			}
 
 			ImGui::SameLine();
@@ -697,7 +929,7 @@ namespace Engine::UI
 				}
 			}
 
-			// ƒ}ƒeƒŠƒAƒ‹ƒvƒƒpƒeƒB•ÒW
+			
 			if (currentMaterial)
 			{
 				ImGui::Separator();
@@ -705,43 +937,122 @@ namespace Engine::UI
 				auto properties = currentMaterial->getProperties();
 				bool changed = false;
 
-				// PBRƒvƒƒpƒeƒB
 				if (ImGui::CollapsingHeader("PBR Properties", ImGuiTreeNodeFlags_DefaultOpen))
 				{
-					// ƒAƒ‹ƒxƒh
-					float albedo[3] = { properties.albedo.x, properties.albedo.y, properties.albedo.z };
-					if (ImGui::ColorEdit3("Albedo", albedo))
+					// === Albedo ===
+					if (ImGui::CollapsingHeader("Albedo", ImGuiTreeNodeFlags_DefaultOpen))
 					{
-						properties.albedo = Math::Vector3(albedo[0], albedo[1], albedo[2]);
-						changed = true;
+						auto* renderMat = renderComponent ? renderComponent->getMaterial().get() : nullptr;
+						if (!renderMat) {
+							ImGui::TextDisabled("No Material on this object.");
+							return;
+						}
+
+						auto& props = renderMat->getProperties();
+						bool useTex = (props.useAlbedoTex != 0);
+
+						// ãƒ†ã‚¯ã‚¹ãƒãƒ£ä½¿ç”¨ãƒ•ãƒ©ã‚°
+						if (ImGui::Checkbox("Use Albedo Texture", &useTex)) {
+							props.useAlbedoTex = useTex ? 1 : 0;
+							if (!useTex) {
+								// ãƒ†ã‚¯ã‚¹ãƒãƒ£ä¸ä½¿ç”¨ã«åˆ‡ã‚Šæ›¿ãˆãŸã‚‰å¤–ã™ï¼ˆä»»æ„ï¼‰
+								renderMat->removeTexture(Engine::Graphics::TextureType::Albedo);
+							}
+							renderMat->setDirty();
+							(void)renderMat->updateConstantBuffer(); // ã™ãåæ˜ 
+						}
+
+						// å·¦: ãƒ‰ãƒ­ãƒƒãƒ—ã‚¾ãƒ¼ãƒ³ / å³: ã‚«ãƒ©ãƒ¼
+						ImGui::BeginGroup();
+						{
+							ImVec2 slotSize(72, 72);
+							ImGui::TextUnformatted("Albedo Map");
+							ImGui::BeginChild("##AlbedoDropZone", slotSize, true, ImGuiWindowFlags_NoScrollbar);
+
+							// ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+							if (renderMat->hasTexture(Engine::Graphics::TextureType::Albedo)) {
+								ImGui::TextWrapped("Assigned");
+							}
+							else {
+								ImGui::TextWrapped("Drop Texture Here");
+							}
+
+							//Drag&Drop å—ã‘å£
+							if (ImGui::BeginDragDropTarget()) {
+								if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
+									const AssetPayload* dropped = static_cast<const AssetPayload*>(payload->Data);
+									if (dropped && dropped->type == static_cast<int>(UI::AssetInfo::Type::Texture)) { // typeãƒã‚§ãƒƒã‚¯
+										if (m_textureManager) {
+											auto tex = m_textureManager->loadTexture(dropped->path, /*mips*/true, /*sRGB*/true);
+											if (tex) {
+												renderMat->setTexture(Engine::Graphics::TextureType::Albedo, tex);
+												props.useAlbedoTex = 1;                   // ãƒ•ãƒ©ã‚°ON
+												renderMat->setDirty();
+												renderMat->updateConstantBuffer();        // ã™ãåæ˜ 
+											}
+										}
+									}
+								}
+								ImGui::EndDragDropTarget();
+							}
+
+							ImGui::EndChild();
+
+							// ã‚¯ãƒªã‚¢ãƒœã‚¿ãƒ³
+							if (ImGui::SmallButton("Clear##Albedo")) {
+								renderMat->removeTexture(Engine::Graphics::TextureType::Albedo);
+								props.useAlbedoTex = 0;
+								renderMat->setDirty();
+								(void)renderMat->updateConstantBuffer();
+							}
+						}
+						ImGui::EndGroup();
+
+						ImGui::SameLine();
+
+						// ã‚«ãƒ©ãƒ¼ç·¨é›†ï¼ˆãƒ†ã‚¯ã‚¹ãƒãƒ£ä½¿ç”¨æ™‚ã¯ç„¡åŠ¹åŒ–ï¼‰
+						ImGui::BeginGroup();
+						{
+							ImGui::TextUnformatted("Base Color");
+							ImGui::BeginDisabled(useTex);
+							float col[3] = { props.albedo.x, props.albedo.y, props.albedo.z };
+							if (ImGui::ColorEdit3("##AlbedoColor", col, ImGuiColorEditFlags_DisplayRGB)) {
+								props.albedo = Math::Vector3(col[0], col[1], col[2]);
+								renderMat->setDirty();
+								(void)renderMat->updateConstantBuffer();
+							}
+							ImGui::EndDisabled();
+						}
+						ImGui::EndGroup();
 					}
 
-					// ƒƒ^ƒŠƒbƒN
+
+					// ==== Metallic ====
 					if (ImGui::SliderFloat("Metallic", &properties.metallic, 0.0f, 1.0f))
 					{
 						changed = true;
 					}
 
-					// ƒ‰ƒtƒlƒX
+					// ==== Roughness ====
 					if (ImGui::SliderFloat("Roughness", &properties.roughness, 0.0f, 1.0f))
 					{
 						changed = true;
 					}
 
-					// AO
+					// ==== AO ====
 					if (ImGui::SliderFloat("AO", &properties.ao, 0.0f, 1.0f))
 					{
 						changed = true;
 					}
 
-					// ƒAƒ‹ƒtƒ@
+					// ==== Alpha ====
 					if (ImGui::SliderFloat("Alpha", &properties.alpha, 0.0f, 1.0f))
 					{
 						changed = true;
 					}
 				}
 
-				// ƒGƒ~ƒbƒVƒ‡ƒ“
+				// ã‚¨ãƒŸãƒƒã‚·ãƒ§ãƒ³
 				if (ImGui::CollapsingHeader("Emission"))
 				{
 					float emissive[3] = { properties.emissive.x, properties.emissive.y, properties.emissive.z };
@@ -757,7 +1068,7 @@ namespace Engine::UI
 					}
 				}
 
-				// ƒeƒNƒXƒ`ƒƒƒXƒƒbƒg
+				// ç¹ãƒ»ã‘ç¹§ï½¹ç¹âˆšÎ•ç¹§ï½¹ç¹ï½­ç¹ãƒ»ãƒ¨
 				if (ImGui::CollapsingHeader("Textures"))
 				{
 					drawTextureSlot("Albedo", Graphics::TextureType::Albedo, currentMaterial);
@@ -769,7 +1080,7 @@ namespace Engine::UI
 					drawTextureSlot("Height", Graphics::TextureType::Height, currentMaterial);
 				}
 
-				// UVİ’è
+				// UVéšªï½­è³ãƒ»
 				if (ImGui::CollapsingHeader("UV Settings"))
 				{
 					float uvScale[2] = { properties.uvScale.x, properties.uvScale.y };
@@ -795,23 +1106,56 @@ namespace Engine::UI
 		}
 	}
 
-	void InspectorWindow::drawTextureSlot(const char* name, Graphics::TextureType textureType,
+	void InspectorWindow::drawScriptComponent(Scripting::ScriptComponent* scriptComponent)
+	{
+		if (ImGui::CollapsingHeader("Script", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			std::string fileName = scriptComponent->getScriptFileName();
+
+			ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Attached Script:");
+			ImGui::SameLine();
+			ImGui::Text("%s", fileName.c_str());
+
+			// å†ã‚¢ã‚¿ãƒƒãƒç”¨ã®ãƒ‰ãƒ­ãƒƒãƒ—é ˜åŸŸ
+			ImGui::Dummy(ImVec2(200, 30));
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+				{
+					const AssetPayload* dropped = static_cast<const AssetPayload*>(payload->Data);
+					if (dropped->type == static_cast<int>(UI::AssetInfo::Type::Script))
+					{
+						m_selectedObject->addScriptComponent(dropped->path);
+						Utils::log_info(std::format("Lua script re-attached: {}", dropped->path));
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+	}
+
+
+
+
+
+	void InspectorWindow::drawTextureSlot(const char* name,
+		Graphics::TextureType textureType,
 		std::shared_ptr<Graphics::Material> material)
 	{
 		ImGui::PushID(static_cast<int>(textureType));
 
 		auto currentTexture = material->getTexture(textureType);
+		auto properties = material->getProperties(); // è‰²ã‚’ç·¨é›†ã™ã‚‹ãŸã‚å–å¾—
+		bool changed = false;
 
 		ImGui::Text("%s:", name);
 		ImGui::SameLine(100);
 
-		// ƒeƒNƒXƒ`ƒƒ•\¦iƒTƒ€ƒlƒCƒ‹j
 		if (currentTexture)
 		{
-			// ƒeƒNƒXƒ`ƒƒ–¼‚ğ•\¦
+			// --- æ—¢å­˜å‡¦ç†: ãƒ†ã‚¯ã‚¹ãƒãƒ£ãŒã‚ã‚‹å ´åˆ ---
 			ImGui::Button(currentTexture->getDesc().debugName.c_str(), ImVec2(150, 30));
 
-			// ƒc[ƒ‹ƒ`ƒbƒv‚ÅƒpƒXî•ñ‚ğ•\¦
 			if (ImGui::IsItemHovered())
 			{
 				ImGui::BeginTooltip();
@@ -820,7 +1164,6 @@ namespace Engine::UI
 				ImGui::EndTooltip();
 			}
 
-			// ƒhƒ‰ƒbƒO&ƒhƒƒbƒvó‚¯“ü‚ê
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
@@ -832,8 +1175,7 @@ namespace Engine::UI
 						if (texture)
 						{
 							material->setTexture(textureType, texture);
-							Utils::log_info(std::format("Texture assigned: {} -> {}",
-								droppedAsset->name, name));
+							Utils::log_info(std::format("Texture assigned: {} -> {}", droppedAsset->name, name));
 						}
 					}
 				}
@@ -849,10 +1191,23 @@ namespace Engine::UI
 		}
 		else
 		{
-			// ‹ó‚ÌƒXƒƒbƒg
-			ImGui::Button("Drag texture here", ImVec2(150, 30));
+			// --- ãƒ†ã‚¯ã‚¹ãƒãƒ£ãŒç„¡ã„å ´åˆ ---
+			if (textureType == Graphics::TextureType::Albedo)
+			{
+				// Albedoç”¨: ã‚«ãƒ©ãƒ¼ãƒ”ãƒƒã‚«ãƒ¼ã‚’è¡¨ç¤º
+				float albedo[3] = { properties.albedo.x, properties.albedo.y, properties.albedo.z };
+				if (ImGui::ColorEdit3("Albedo Color", albedo))
+				{
+					properties.albedo = Math::Vector3(albedo[0], albedo[1], albedo[2]);
+					changed = true;
+				}
+			}
+			else
+			{
+				// ä»–ã®ã‚¹ãƒ­ãƒƒãƒˆã¯ãƒ—ãƒ¬ãƒ¼ã‚¹ãƒ›ãƒ«ãƒ€ãƒ¼
+				ImGui::Button("Drag texture here", ImVec2(150, 30));
+			}
 
-			// ƒhƒ‰ƒbƒO&ƒhƒƒbƒvó‚¯“ü‚ê
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
@@ -864,8 +1219,7 @@ namespace Engine::UI
 						if (texture)
 						{
 							material->setTexture(textureType, texture);
-							Utils::log_info(std::format("Texture assigned: {} -> {}",
-								droppedAsset->name, name));
+							Utils::log_info(std::format("Texture assigned: {} -> {}", droppedAsset->name, name));
 						}
 					}
 				}
@@ -873,6 +1227,12 @@ namespace Engine::UI
 			}
 		}
 
+		if (changed)
+		{
+			material->setProperties(properties);
+		}
+
 		ImGui::PopID();
 	}
+
 }

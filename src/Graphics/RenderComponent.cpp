@@ -1,11 +1,11 @@
-// src/Graphics/RenderComponent.cpp
+ï»¿// src/Graphics/RenderComponent.cpp
 #include "RenderComponent.hpp"
 #include <algorithm>
 
 namespace Engine::Graphics
 {
 	//==========================================================================================
-	//RenderComponentŽÀ‘•
+	//RenderComponent
 	//==========================================================================================
 	RenderComponent::RenderComponent(RenderableType type)
 		:m_renderableType(type)
@@ -29,7 +29,7 @@ namespace Engine::Graphics
 
 		Utils::log_info("RenderComponent::initialize - Device and ShaderManager assigned successfully");
 
-		// ShaderManager‚Ì—LŒø«‚ðÄŠm”F
+		// ShaderManagerç¸ºï½®è­›ç‰™æŸ‘è«¤ï½§ç¹§è²žãƒ»é’ï½ºéš±ãƒ»
 		if (!m_shaderManager) {
 			Utils::log_warning("ShaderManager became null after assignment");
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null after assignment"));
@@ -54,29 +54,29 @@ namespace Engine::Graphics
 			return;
 		}
 
-		// Transform‚©‚çˆÊ’uE‰ñ“]EƒXƒP[ƒ‹‚ðŽæ“¾
+		// Transformç¸ºä¹ï½‰è´å’²ï½½ï½®ç¹ï½»è—æ«ï½»ï½¢ç¹ï½»ç¹§ï½¹ç¹§ï½±ç¹ï½¼ç¹ï½«ç¹§è²žå™è •ãƒ»
 		auto* transform = getGameObject()->getTransform();
 		if (!transform)
 		{
 			return;
 		}
 
-		// ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹‚ª‚È‚¢ê‡‚ÍÝ’è
+		// ç¹ãƒ»ãƒµç¹§ï½©ç¹ï½«ç¹åŒ»ãƒ»ç¹ãƒ»Îœç¹§ï½¢ç¹ï½«ç¸ºå¾Œâ†‘ç¸ºãƒ»ï£°ï½´èœ·åŒ»ãƒ»éšªï½­èž³ãƒ»
 		if (!m_material && m_materialManager)
 		{
 			m_material = m_materialManager->getDefaultMaterial();
 		}
 		/*
-		// ƒ}ƒeƒŠƒAƒ‹‚ÌF‚ðRenderComponent‚ÌF‚Æ‘g‚Ý‡‚í‚¹‚é
+		// ç¹æ§­ãƒ¦ç¹ï½ªç¹§ï½¢ç¹ï½«ç¸ºï½®æ¿¶ï½²ç¹§å¦enderComponentç¸ºï½®æ¿¶ï½²ç¸ºï½¨é‚¨ãƒ»âˆ©èœ·åŒ»ï½ç¸ºå¸™ï½‹
 		if (m_material)
 		{
 			auto props = m_material->getProperties();
 
-			// RenderComponent‚Ìm_color‚ðƒ}ƒeƒŠƒAƒ‹‚Ìalbedo‚É”½‰f
+			// RenderComponentç¸ºï½®m_colorç¹§åµãƒ»ç¹ãƒ»Îœç¹§ï½¢ç¹ï½«ç¸ºï½®albedoç¸ºï½«èœ¿è‚´ä¸
 			props.albedo = m_color;
 			m_material->setProperties(props);
 
-			// ƒ}ƒeƒŠƒAƒ‹‚Ì’è”ƒoƒbƒtƒ@‚ðXV
+			// ç¹æ§­ãƒ¦ç¹ï½ªç¹§ï½¢ç¹ï½«ç¸ºï½®èž³å£½ç„šç¹èˆŒãƒ£ç¹è¼”ãƒç¹§å‘ˆå³©è­ï½°
 			auto updateResult = m_material->updateConstantBuffer();
 			if (!updateResult)
 			{
@@ -86,7 +86,7 @@ namespace Engine::Graphics
 		}
 		*/
 
-		// ƒŒƒ“ƒ_ƒ‰[‚ÌTransform‚ðXV
+		// ç¹ï½¬ç¹ï½³ç¹Â€ç¹ï½©ç¹ï½¼ç¸ºï½®Transformç¹§å‘ˆå³©è­ï½°
 		switch (m_renderableType)
 		{
 		case RenderableType::Triangle:
@@ -145,17 +145,17 @@ namespace Engine::Graphics
 
 	Utils::VoidResult RenderComponent::initializeRenderer()
 	{
-		// Šù‘¶‚ÌƒŒƒ“ƒ_ƒ‰[‚ðƒNƒŠƒA
+		// è­Œï½¢èŸ„å€¥ãƒ»ç¹ï½¬ç¹ï½³ç¹Â€ç¹ï½©ç¹ï½¼ç¹§åµã‘ç¹ï½ªç¹§ï½¢
 		m_triangleRenderer.reset();
 		m_cubeRenderer.reset();
 
-		// ShaderManager‚Ì—LŒø«‚ðŠm”F
+		// ShaderManagerç¸ºï½®è­›ç‰™æŸ‘è«¤ï½§ç¹§å ¤ï½¢ï½ºéš±ãƒ»
 		if (!m_shaderManager) {
 			Utils::log_warning("ShaderManager is null in RenderComponent::initializeRenderer");
 			return std::unexpected(Utils::make_error(Utils::ErrorType::Unknown, "ShaderManager is null in RenderComponent"));
 		}
 
-		// ƒŒƒ“ƒ_ƒ‰[ƒ^ƒCƒv‚É‰ž‚¶‚Äì¬
+		// ç¹ï½¬ç¹ï½³ç¹Â€ç¹ï½©ç¹ï½¼ç¹§ï½¿ç¹§ï½¤ç¹åŠ±â†“è ¢æ‡ŠÂ§ç¸ºï½¦è´æ‡ˆãƒ»
 		switch (m_renderableType)
 		{
 		case RenderableType::Triangle:
@@ -194,7 +194,7 @@ namespace Engine::Graphics
 	}
 
 	//==========================================================================================
-	//SceneŽÀ‘•
+	//Sceneèž³æº¯ï½£ãƒ»
 	//==========================================================================================
 	Utils::VoidResult Scene::initialize(Device* device)
 	{
@@ -222,22 +222,22 @@ namespace Engine::Graphics
 			return;
 		}
 
-		// ƒIƒuƒWƒFƒNƒg–¼‚ð•Û‘¶
+		// ç¹§ï½ªç¹æ‚¶ãšç¹§ï½§ç¹§ï½¯ç¹äº¥éŒç¹§å‰ƒï½¿æ™ï½­ãƒ»
 		std::string objectName = gameObject->getName();
 
-		// ƒCƒeƒŒ[ƒ^‚ÅŒŸõ
+		// ç¹§ï½¤ç¹ãƒ»Îžç¹ï½¼ç¹§ï½¿ç¸ºï½§è®€æ‡ƒï½´ï½¢
 		auto it = m_gameObjects.begin();
 		while (it != m_gameObjects.end())
 		{
 			if (it->get() == gameObject)
 			{
-				// ƒIƒuƒWƒFƒNƒg‚ð”ñƒAƒNƒeƒBƒu‰»
+				// ç¹§ï½ªç¹æ‚¶ãšç¹§ï½§ç¹§ï½¯ç¹åŒ»ï½’é«±æ§­ã„ç¹§ï½¯ç¹ãƒ»ã…ç¹é–€å–§
 				(*it)->setActive(false);
 
-				// ”jŠüˆ—‚ðŽÀs
+				// éï½´è­½ãƒ»ãƒ»é€…ãƒ»ï½’èž³æº¯ï½¡ãƒ»
 				(*it)->destroy();
 
-				// vector‚©‚çíœ
+				// vectorç¸ºä¹ï½‰èœ‘ä¼å‹
 				it = m_gameObjects.erase(it);
 
 				Utils::log_info(std::format("GameObject '{}' destroyed successfully", objectName));
@@ -317,4 +317,13 @@ namespace Engine::Graphics
 		}
 	}
 
+	Core::GameObject* Scene::findObjectByName(const std::string& name)
+	{
+		for (auto& obj : m_gameObjects)
+		{
+			if (obj && obj->getName() == name)
+				return obj.get();
+		}
+		return nullptr;
+	}
 }

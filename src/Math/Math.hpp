@@ -1,4 +1,4 @@
-// src/Math/Math.hpp
+ï»¿// src/Math/Math.hpp
 #pragma once
 
 #include <cmath>
@@ -7,14 +7,14 @@
 
 namespace Engine::Math
 {
-    // ’è”
+    // å®šæ•°
     constexpr float PI = 3.14159265359f;
     constexpr float PI2 = PI * 2.0f;
     constexpr float PI_HALF = PI * 0.5f;
     constexpr float DEG_TO_RAD = PI / 180.0f;
     constexpr float RAD_TO_DEG = 180.0f / PI;
 
-    // ƒ†[ƒeƒBƒŠƒeƒBŠÖ”
+    // ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£é–¢æ•°
     template<typename T>
     constexpr T clamp(T value, T min, T max)
     {
@@ -36,18 +36,18 @@ namespace Engine::Math
         return degrees * DEG_TO_RAD;
     }
     
-    //2ŸŒ³ƒxƒNƒgƒ‹ƒNƒ‰ƒX
+    //2æ¬¡å…ƒãƒ™ã‚¯ãƒˆãƒ«ã‚¯ãƒ©ã‚¹
     class Vector2
     {
     public:
         float x, y;
 
-        // ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+        // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
         constexpr Vector2() : x(0.0f), y(0.0f) {}
         constexpr Vector2(float x_, float y_) : x(x_), y(y_) {}
         constexpr Vector2(float value) : x(value), y(value) {}
 
-        // Ã“I’è”
+        // é™çš„å®šæ•°
         static constexpr Vector2 zero() { return Vector2(0.0f, 0.0f); }
         static constexpr Vector2 one() { return Vector2(1.0f, 1.0f); }
         static constexpr Vector2 up() { return Vector2(0.0f, 1.0f); }
@@ -55,7 +55,7 @@ namespace Engine::Math
         static constexpr Vector2 left() { return Vector2(-1.0f, 0.0f); }
         static constexpr Vector2 right() { return Vector2(1.0f, 0.0f); }
 
-        // ‰‰ZqƒI[ƒo[ƒ[ƒh
+        // æ¼”ç®—å­ã‚ªãƒ¼ãƒãƒ¼ãƒ­ãƒ¼ãƒ‰
         constexpr Vector2 operator+(const Vector2& other) const
         {
             return Vector2(x + other.x, y + other.y);
@@ -104,7 +104,7 @@ namespace Engine::Math
             return Vector2(-x, -y);
         }
 
-        // ƒxƒNƒgƒ‹‘€ì
+        // ãƒ™ã‚¯ãƒˆãƒ«æ“ä½œ
         float length() const
         {
             return std::sqrt(x * x + y * y);
@@ -128,7 +128,7 @@ namespace Engine::Math
             *this = normalized();
         }
 
-        //Ã“IŠÖ”
+        //é™çš„é–¢æ•°
         static float dot(const Vector2& a, const Vector2& b)
         {
             return a.x * b.x + a.y * b.y;
@@ -144,31 +144,31 @@ namespace Engine::Math
             return (b - a).length();
         }
 
-        //2D‚ÌŠOÏiƒXƒJƒ‰[’lj
+        //2Dã®å¤–ç©ï¼ˆã‚¹ã‚«ãƒ©ãƒ¼å€¤ï¼‰
         static float cross(const Vector2& a, const Vector2& b)
         {
             return a.x * b.y - a.y * b.x;
         }
     }; 
 
-    //ƒXƒJƒ‰[~Vector2‚Ì‰‰Zq
+    //ã‚¹ã‚«ãƒ©ãƒ¼Ã—Vector2ã®æ¼”ç®—å­
     constexpr Vector2 operator*(float scalar, const Vector2& vector)
     {
         return vector * scalar;
     }
    
-    // 3ŸŒ³ƒxƒNƒgƒ‹ƒNƒ‰ƒX
+    // 3æ¬¡å…ƒãƒ™ã‚¯ãƒˆãƒ«ã‚¯ãƒ©ã‚¹
     class Vector3
     {
     public:
         float x, y, z;
 
-        // ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+        // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
         constexpr Vector3() : x(0.0f), y(0.0f), z(0.0f) {}
         constexpr Vector3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
         constexpr Vector3(float value) : x(value), y(value), z(value) {}
 
-        // Ã“I’è”
+        // é™çš„å®šæ•°
         static constexpr Vector3 zero() { return Vector3(0.0f, 0.0f, 0.0f); }
         static constexpr Vector3 one() { return Vector3(1.0f, 1.0f, 1.0f); }
         static constexpr Vector3 up() { return Vector3(0.0f, 1.0f, 0.0f); }
@@ -178,7 +178,7 @@ namespace Engine::Math
         static constexpr Vector3 forward() { return Vector3(0.0f, 0.0f, 1.0f); }
         static constexpr Vector3 back() { return Vector3(0.0f, 0.0f, -1.0f); }
 
-        // ‰‰ZqƒI[ƒo[ƒ[ƒh
+        // æ¼”ç®—å­ã‚ªãƒ¼ãƒãƒ¼ãƒ­ãƒ¼ãƒ‰
         constexpr Vector3 operator+(const Vector3& other) const
         {                                                                                                                               
             return Vector3(x + other.x, y + other.y, z + other.z);
@@ -227,7 +227,7 @@ namespace Engine::Math
             return Vector3(-x, -y, -z);
         }
 
-        // ƒxƒNƒgƒ‹‘€ì
+        // ãƒ™ã‚¯ãƒˆãƒ«æ“ä½œ
         float length() const
         {
             return std::sqrt(x * x + y * y + z * z);
@@ -251,7 +251,7 @@ namespace Engine::Math
             *this = normalized();
         }
 
-        // Ã“IŠÖ”
+        // é™çš„é–¢æ•°
         static float dot(const Vector3& a, const Vector3& b)
         {
             return a.x * b.x + a.y * b.y + a.z * b.z;
@@ -277,40 +277,40 @@ namespace Engine::Math
         }
     };
 
-    // ƒXƒJƒ‰[ * Vector3‚Ì‰‰Zq
+    // ã‚¹ã‚«ãƒ©ãƒ¼ * Vector3ã®æ¼”ç®—å­
     constexpr Vector3 operator*(float scalar, const Vector3& vector)
     {
         return vector * scalar;
     }
 
-    //4ŸŒ³ƒxƒNƒgƒ‹ƒNƒ‰ƒXiƒ}ƒeƒŠƒAƒ‹’è”‚Ìƒoƒbƒtƒ@—pj
+    //4æ¬¡å…ƒãƒ™ã‚¯ãƒˆãƒ«ã‚¯ãƒ©ã‚¹ï¼ˆãƒãƒ†ãƒªã‚¢ãƒ«å®šæ•°ã®ãƒãƒƒãƒ•ã‚¡ç”¨ï¼‰
     class Vector4
     {
     public:
         float x, y, z, w;
 
-        //ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+        //ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
         constexpr Vector4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
         constexpr Vector4(float x_, float y_, float z_, float w_): x(x_), y(y_), z(z_), w(w_) {}
         constexpr Vector4(const Vector3& xyz, float w_) : x(xyz.x), y(xyz.y), z(xyz.z), w(w_) {}
         constexpr Vector4(float value) : x(value), y(value), z(value), w(value) {}
 
-        //Ã“IŠÖ”
+        //é™çš„é–¢æ•°
         static constexpr Vector4 zero() { return Vector4(0.0f, 0.0f, 0.0f, 0.0f); }
         static constexpr Vector4 one() { return Vector4( 1.0f, 1.0f, 1.0f, 1.0f); }
 
-        //Vector3‚Ö‚Ì•ÏŠ·
+        //Vector3ã¸ã®å¤‰æ›
         Vector3 xyz() const { return Vector3(x, y, z); }
     };
 
-    // 4x4s—ñƒNƒ‰ƒX
+    // 4x4è¡Œåˆ—ã‚¯ãƒ©ã‚¹
     class Matrix4
     {
     public:
-        // s—ñƒf[ƒ^is—Dæj
+        // è¡Œåˆ—ãƒ‡ãƒ¼ã‚¿ï¼ˆè¡Œå„ªå…ˆï¼‰
         std::array<std::array<float, 4>, 4> m;
 
-        // ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+        // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
         Matrix4()
         {
             identity();
@@ -334,11 +334,11 @@ namespace Engine::Math
             }
         }
 
-        // —v‘fƒAƒNƒZƒX
+        // è¦ç´ ã‚¢ã‚¯ã‚»ã‚¹
         float& operator()(int row, int col) { return m[row][col]; }
         const float& operator()(int row, int col) const { return m[row][col]; }
 
-        // ’PˆÊs—ñ‚Éİ’è
+        // å˜ä½è¡Œåˆ—ã«è¨­å®š
         void identity()
         {
             for (int i = 0; i < 4; ++i)
@@ -350,7 +350,7 @@ namespace Engine::Math
             }
         }
 
-        // s—ñ‰‰Z
+        // è¡Œåˆ—æ¼”ç®—
         Matrix4 operator*(const Matrix4& other) const
         {
             Matrix4 result;
@@ -391,7 +391,7 @@ namespace Engine::Math
             );
         }
 
-        // •ÏŠ·s—ñ‚Ìì¬
+        // å¤‰æ›è¡Œåˆ—ã®ä½œæˆ
         static Matrix4 translation(const Vector3& position)
         {
             Matrix4 result;
@@ -446,7 +446,7 @@ namespace Engine::Math
             return result;
         }
         
-        // ƒrƒ…[s—ñ
+        // ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—
         static Matrix4 lookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
         {
             Vector3 forward = (target - eye).normalized();
@@ -477,7 +477,7 @@ namespace Engine::Math
             return result;
         }
 
-        // ƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñ
+        // ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³è¡Œåˆ—
         static Matrix4 perspective(float fovy, float aspect, float nearPlane, float farPlane)
         {
             float tanHalfFovy = std::tan(fovy * 0.5f);
@@ -506,7 +506,7 @@ namespace Engine::Math
             return result;
         }
 
-        // ƒf[ƒ^ƒ|ƒCƒ“ƒ^[‚ğæ“¾iDirectX—pj
+        // ãƒ‡ãƒ¼ã‚¿ãƒã‚¤ãƒ³ã‚¿ãƒ¼ã‚’å–å¾—ï¼ˆDirectXç”¨ï¼‰
         const float* data() const { return &m[0][0]; }
     };
 }

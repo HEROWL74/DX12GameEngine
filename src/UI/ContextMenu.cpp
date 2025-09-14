@@ -1,4 +1,4 @@
-//src/UI/ContextMenu.cpp
+ï»¿//src/UI/ContextMenu.cpp
 #include "ContextMenu.hpp"
 #include "imgui.h"
 #include "../Utils/Common.hpp"
@@ -63,7 +63,7 @@ namespace Engine::UI
 
     void ContextMenu::drawModals()
     {
-        // DeleteŠm”Fƒ_ƒCƒAƒƒO
+        // Deleteé’ï½ºéš±é˜ªãƒ ç¹§ï½¤ç¹§ï½¢ç¹ï½­ç¹§ï½°
         if (m_showDeleteConfirm && m_deleteTarget)
         {
             ImGui::OpenPopup("Delete Confirmation");
@@ -102,7 +102,7 @@ namespace Engine::UI
             }
         }
 
-        // Renameƒ_ƒCƒAƒƒO
+        // Renameç¹Â€ç¹§ï½¤ç¹§ï½¢ç¹ï½­ç¹§ï½°
         if (m_showRenameDialog && m_renameTarget)
         {
             ImGui::OpenPopup("Rename Object");
@@ -159,16 +159,25 @@ namespace Engine::UI
         {
             draw3DObjectMenu();
 
-            // «—ˆ“I‚É’Ç‰Á—\’è
+            if (ImGui::MenuItem("Lua Script"))
+            {
+                std::string newScriptPath = "assets/scripts/NewScript.lua";
+                if (Engine::Scripting::LuaScriptUtility::createNewScript(newScriptPath))
+                {
+                    Engine::Scripting::LuaScriptUtility::openInVSCode(newScriptPath);
+                    Utils::log_info(std::format("Created Lua script: {}", newScriptPath));
+                }
+            }
+
+            
             if (ImGui::BeginMenu("Light"))
             {
                 if (ImGui::MenuItem("Directional Light"))
                 {
-                    // TODO: ƒ‰ƒCƒgì¬
+                 
                 }
                 if (ImGui::MenuItem("Point Light"))
                 {
-                    // TODO: ƒ|ƒCƒ“ƒgƒ‰ƒCƒgì¬
                 }
                 ImGui::EndMenu();
             }
@@ -177,7 +186,7 @@ namespace Engine::UI
             {
                 if (ImGui::MenuItem("Camera"))
                 {
-                    // TODO: ƒJƒƒ‰ì¬
+ 
                 }
                 ImGui::EndMenu();
             }
@@ -253,7 +262,7 @@ namespace Engine::UI
             return "GameObject";
         }
 
-        // ƒVƒ“ƒvƒ‹‚ÈƒJƒEƒ“ƒ^ƒx[ƒX‚ÌÀ‘•
+        // ç¹§ï½·ç¹ï½³ç¹åŠ±Îç¸ºï½ªç¹§ï½«ç¹§ï½¦ç¹ï½³ç¹§ï½¿ç¹å¶ãƒ»ç¹§ï½¹ç¸ºï½®è³æº¯ï½£ãƒ»
         static int globalCounter = 0;
         globalCounter++;
 

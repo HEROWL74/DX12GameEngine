@@ -1,18 +1,18 @@
-// src/Graphics/ConstantBuffer.cpp
+ï»¿// src/Graphics/ConstantBuffer.cpp
 #include "ConstantBuffer.hpp"
 
 namespace Engine::Graphics
 {
     Utils::VoidResult ConstantBufferManager::initialize(Device* device, UINT frameCount)
     {
-        // ƒJƒƒ‰’è”ƒoƒbƒtƒ@‚Ì‰Šú‰»
+        // ç¹§ï½«ç¹ï½¡ç¹ï½©è³å£½ç„šç¹èˆŒãƒ£ç¹è¼”ãƒç¸ºï½®è›»æ™„æ‚„è›¹ãƒ»
         auto cameraResult = m_cameraConstants.initialize(device, frameCount);
         if (!cameraResult)
         {
             return cameraResult;
         }
 
-        // ƒIƒuƒWƒFƒNƒg’è”ƒoƒbƒtƒ@‚Ì‰Šú‰»
+        // ç¹§ï½ªç¹æ‚¶ãšç¹§ï½§ç¹§ï½¯ç¹äº¥ï½®å£½ç„šç¹èˆŒãƒ£ç¹è¼”ãƒç¸ºï½®è›»æ™„æ‚„è›¹ãƒ»
         auto objectResult = m_objectConstants.initialize(device, frameCount);
         if (!objectResult)
         {

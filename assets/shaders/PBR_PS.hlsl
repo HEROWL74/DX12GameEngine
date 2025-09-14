@@ -9,9 +9,17 @@ float4 main(VertexOutput input) : SV_TARGET
     //TransformUV
     float2 uv = transformUV(input.uv);
     
-    // AlbedoSampling
-    float3 albedoSample = albedoTexture.Sample(linearSampler, uv).rgb;
-    float3 baseColor = albedo.rgb * albedoSample;
+// AlbedoSampling
+    float3 baseColor;
+    if (hasAlbedoTexture > 0.5f)
+    {
+        float3 albedoSample = albedoTexture.Sample(linearSampler, uv).rgb;
+        baseColor = albedo.rgb * albedoSample;
+    }
+    else
+    {
+        baseColor = albedo.rgb; //No texture 
+    }
     
     //Transform NormalMap
     float3 normalMap = normalTexture.Sample(linearSampler, uv).rgb;

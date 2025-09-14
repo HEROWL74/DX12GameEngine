@@ -1,4 +1,4 @@
-// src/Graphics/Device.hpp
+ï»¿// src/Graphics/Device.hpp
 #pragma once
 
 #include <Windows.h>
@@ -14,131 +14,161 @@ using Microsoft::WRL::ComPtr;
 namespace Engine::Graphics
 {
     // =============================================================================
-    // ƒAƒ_ƒvƒ^[î•ñ\‘¢‘Ì
+    // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼æƒ…å ±æ§‹é€ ä½“
     // =============================================================================
 
-    //GPUƒAƒ_ƒvƒ^[‚Ìî•ñ
+    //GPUã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã®æƒ…å ±
     struct AdapterInfo
     {
-        std::wstring description;       // ƒAƒ_ƒvƒ^[–¼
-        size_t dedicatedVideoMemory;    // ê—pƒrƒfƒIƒƒ‚ƒŠ (ƒoƒCƒg)
-        size_t dedicatedSystemMemory;   // ê—pƒVƒXƒeƒ€ƒƒ‚ƒŠ (ƒoƒCƒg)
-        size_t sharedSystemMemory;      // ‹¤—LƒVƒXƒeƒ€ƒƒ‚ƒŠ (ƒoƒCƒg)
-        bool isHardware;                // ƒn[ƒhƒEƒFƒAƒAƒ_ƒvƒ^[‚©
-        UINT vendorId;                  // ƒxƒ“ƒ_[ID
-        UINT deviceId;                  // ƒfƒoƒCƒXID
+        std::wstring description;       // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼å
+        size_t dedicatedVideoMemory;    // å°‚ç”¨ãƒ“ãƒ‡ã‚ªãƒ¡ãƒ¢ãƒª (ãƒã‚¤ãƒˆ)
+        size_t dedicatedSystemMemory;   // å°‚ç”¨ã‚·ã‚¹ãƒ†ãƒ ãƒ¡ãƒ¢ãƒª (ãƒã‚¤ãƒˆ)
+        size_t sharedSystemMemory;      // å…±æœ‰ã‚·ã‚¹ãƒ†ãƒ ãƒ¡ãƒ¢ãƒª (ãƒã‚¤ãƒˆ)
+        bool isHardware;                // ãƒãƒ¼ãƒ‰ã‚¦ã‚§ã‚¢ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹
+        UINT vendorId;                  // ãƒ™ãƒ³ãƒ€ãƒ¼ID
+        UINT deviceId;                  // ãƒ‡ãƒã‚¤ã‚¹ID
 
-        /// @brief ƒƒ‚ƒŠî•ñ‚ğ•¶š—ñ‚Åæ“¾
+        /// @brief ãƒ¡ãƒ¢ãƒªæƒ…å ±ã‚’æ–‡å­—åˆ—ã§å–å¾—
         [[nodiscard]] std::string getMemoryInfoString() const noexcept;
     };
 
     // =============================================================================
-    // ƒfƒoƒCƒXİ’è\‘¢‘Ì
+    // ãƒ‡ãƒã‚¤ã‚¹è¨­å®šæ§‹é€ ä½“
     // =============================================================================
 
-    //ƒfƒoƒCƒXì¬‚Ìİ’è
+    //ãƒ‡ãƒã‚¤ã‚¹ä½œæˆæ™‚ã®è¨­å®š
     struct DeviceSettings
     {
-        bool enableDebugLayer = true;           // ƒfƒoƒbƒOƒŒƒCƒ„[‚ğ—LŒø‚É‚·‚é‚©iƒfƒoƒbƒOƒrƒ‹ƒh‚Ì‚İj
-        bool enableGpuValidation = false;      // GPUŒŸØ‚ğ—LŒø‚É‚·‚é‚©id‚¢j
-        D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_11_0;  // Å¬‹@”\ƒŒƒxƒ‹
-        bool preferHighPerformanceAdapter = true;  // ‚«”\ƒAƒ_ƒvƒ^[‚ğ—Dæ‚·‚é‚©
+        bool enableDebugLayer = true;           // ãƒ‡ãƒãƒƒã‚°ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’æœ‰åŠ¹ã«ã™ã‚‹ã‹ï¼ˆãƒ‡ãƒãƒƒã‚°ãƒ“ãƒ«ãƒ‰ã®ã¿ï¼‰
+        bool enableGpuValidation = false;      // GPUæ¤œè¨¼ã‚’æœ‰åŠ¹ã«ã™ã‚‹ã‹ï¼ˆé‡ã„ï¼‰
+        D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_11_0;  // æœ€å°æ©Ÿèƒ½ãƒ¬ãƒ™ãƒ«
+        bool preferHighPerformanceAdapter = true;  // é«˜æ€§èƒ½ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’å„ªå…ˆã™ã‚‹ã‹
     };
 
     // =============================================================================
-    // DeviceƒNƒ‰ƒX
+    // Deviceã‚¯ãƒ©ã‚¹
     // =============================================================================
 
-    //DirectX 12ƒfƒoƒCƒX‚Ìì¬‚ÆŠÇ—‚ğs‚¤ƒNƒ‰ƒX
+    //DirectX 12ãƒ‡ãƒã‚¤ã‚¹ã®ä½œæˆã¨ç®¡ç†ã‚’è¡Œã†ã‚¯ãƒ©ã‚¹
     class Device
     {
     public:
-        //ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+        //ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
         Device() = default;
 
-        //ƒfƒXƒgƒ‰ƒNƒ^
+        //ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
         ~Device() = default;
 
-        // ƒRƒs[‹Ö~
+        // ã‚³ãƒ”ãƒ¼ç¦æ­¢
         Device(const Device&) = delete;
         Device& operator=(const Device&) = delete;
 
-        // ƒ€[ƒu‹–‰Â
+        // ãƒ ãƒ¼ãƒ–è¨±å¯
         Device(Device&&) noexcept = default;
         Device& operator=(Device&&) noexcept = default;
 
-        //ƒfƒoƒCƒX‚ğ‰Šú‰»
+        //ãƒ‡ãƒã‚¤ã‚¹ã‚’åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initialize(const DeviceSettings& settings = {});
 
-        //—˜—p‰Â”\‚ÈƒAƒ_ƒvƒ^[‚ğ—ñ‹“
+        //åˆ©ç”¨å¯èƒ½ãªã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’åˆ—æŒ™
         [[nodiscard]] std::vector<AdapterInfo> enumerateAdapters() const;
 
-        //D3D12ƒfƒoƒCƒX‚ğæ“¾
+        //D3D12ãƒ‡ãƒã‚¤ã‚¹ã‚’å–å¾—
         [[nodiscard]] ID3D12Device* getDevice() const noexcept { return m_device.Get(); }
 
-        //DXGIƒtƒ@ƒNƒgƒŠ‚ğæ“¾
+        //DXGIãƒ•ã‚¡ã‚¯ãƒˆãƒªã‚’å–å¾—
         [[nodiscard]] IDXGIFactory4* getDXGIFactory() const noexcept { return m_dxgiFactory.Get(); }
 
-        //ƒfƒoƒCƒX‚ª—LŒø‚©ƒ`ƒFƒbƒN
+        //ãƒ‡ãƒã‚¤ã‚¹ãŒæœ‰åŠ¹ã‹ãƒã‚§ãƒƒã‚¯
         [[nodiscard]] bool isValid() const noexcept { return m_device != nullptr; }
 
-        //Œ»İ‚ÌƒAƒ_ƒvƒ^[î•ñ‚ğæ“¾
+        //ç¾åœ¨ã®ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼æƒ…å ±ã‚’å–å¾—
         [[nodiscard]] const AdapterInfo& getCurrentAdapterInfo() const noexcept { return m_currentAdapterInfo; }
 
-        //ƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚é‹@”\ƒŒƒxƒ‹‚ğæ“¾
+        //ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹æ©Ÿèƒ½ãƒ¬ãƒ™ãƒ«ã‚’å–å¾—
         [[nodiscard]] D3D_FEATURE_LEVEL getFeatureLevel() const noexcept { return m_featureLevel; }
 
-        //ƒfƒoƒbƒOƒŒƒCƒ„[‚ª—LŒø‚©ƒ`ƒFƒbƒN
+        //ãƒ‡ãƒãƒƒã‚°ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæœ‰åŠ¹ã‹ãƒã‚§ãƒƒã‚¯
         [[nodiscard]] bool isDebugLayerEnabled() const noexcept { return m_debugLayerEnabled; }
 
-        //ƒfƒXƒNƒŠƒvƒ^‚ÌƒCƒ“ƒNƒŠƒƒ“ƒgƒTƒCƒY‚ğæ“¾
+        //ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ã®ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆã‚µã‚¤ã‚ºã‚’å–å¾—
         [[nodiscard]] UINT getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType) const noexcept;
 
-        //‹@”\ƒTƒ|[ƒgƒ`ƒFƒbƒN
+        //æ©Ÿèƒ½ã‚µãƒãƒ¼ãƒˆãƒã‚§ãƒƒã‚¯
         [[nodiscard]] bool checkFeatureSupport(D3D12_FEATURE feature, void* pFeatureSupportData, UINT featureSupportDataSize) const noexcept;
+
+        // SRVãƒ’ãƒ¼ãƒ—ã®ãƒãƒ³ãƒ‰ãƒ«å–å¾—
+        ID3D12DescriptorHeap* getSrvHeap() const noexcept { return m_srvHeap.Get(); }
+        D3D12_CPU_DESCRIPTOR_HANDLE getSrvCpuStart() const noexcept {
+            return m_srvHeap ? m_srvHeap->GetCPUDescriptorHandleForHeapStart() : D3D12_CPU_DESCRIPTOR_HANDLE{};
+        }
+        D3D12_GPU_DESCRIPTOR_HANDLE getSrvGpuStart() const noexcept {
+            return m_srvHeap ? m_srvHeap->GetGPUDescriptorHandleForHeapStart() : D3D12_GPU_DESCRIPTOR_HANDLE{};
+        }
+        // 1ã¤SRVã‚’ç¢ºä¿ã—ã¦ã€ãã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¿”ã™ï¼ˆè¶…ç°¡æ˜“ã‚¢ãƒ­ã‚±ãƒ¼ã‚¿ï¼‰
+        UINT allocateSrvIndex() noexcept { return m_srvAllocated++; }
+
+        // ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ã‚¹ã‚­ãƒ¥ãƒ¼
+        ID3D12CommandQueue* getGraphicsQueue() const noexcept { return m_graphicsQueue.Get(); }
+
+        void waitForGpu(); // ç°¡æ˜“åŒæœŸ
 
     private:
         // =============================================================================
-        // ƒƒ“ƒo•Ï”
+        // ãƒ¡ãƒ³ãƒå¤‰æ•°
         // =============================================================================
 
-        ComPtr<ID3D12Device> m_device;              // D3D12ƒfƒoƒCƒX
-        ComPtr<IDXGIFactory4> m_dxgiFactory;        // DXGIƒtƒ@ƒNƒgƒŠ
-        ComPtr<IDXGIAdapter1> m_adapter;            // ‘I‘ğ‚³‚ê‚½ƒAƒ_ƒvƒ^[
+        ComPtr<ID3D12Device> m_device;              // D3D12ãƒ‡ãƒã‚¤ã‚¹
+        ComPtr<IDXGIFactory4> m_dxgiFactory;        // DXGIãƒ•ã‚¡ã‚¯ãƒˆãƒª
+        ComPtr<IDXGIAdapter1> m_adapter;            // é¸æŠã•ã‚ŒãŸã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼
+        ComPtr<ID3D12DescriptorHeap> m_srvHeap;
 
-        AdapterInfo m_currentAdapterInfo{};         // Œ»İ‚ÌƒAƒ_ƒvƒ^[î•ñ
-        D3D_FEATURE_LEVEL m_featureLevel = D3D_FEATURE_LEVEL_11_0;  // ƒTƒ|[ƒg‹@”\ƒŒƒxƒ‹
-        bool m_debugLayerEnabled = false;           // ƒfƒoƒbƒOƒŒƒCƒ„[‚ª—LŒø‚©
+        AdapterInfo m_currentAdapterInfo{};         // ç¾åœ¨ã®ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼æƒ…å ±
+        D3D_FEATURE_LEVEL m_featureLevel = D3D_FEATURE_LEVEL_11_0;  // ã‚µãƒãƒ¼ãƒˆæ©Ÿèƒ½ãƒ¬ãƒ™ãƒ«
+        bool m_debugLayerEnabled = false;           // ãƒ‡ãƒãƒƒã‚°ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæœ‰åŠ¹ã‹
 
-        // ƒfƒXƒNƒŠƒvƒ^ƒTƒCƒY‚ÌƒLƒƒƒbƒVƒ…
+        // ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ã‚µã‚¤ã‚ºã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥
         UINT m_rtvDescriptorSize = 0;
         UINT m_dsvDescriptorSize = 0;
         UINT m_cbvSrvUavDescriptorSize = 0;
         UINT m_samplerDescriptorSize = 0;
 
+        UINT m_srvAllocated = 0; // SRVã‚’ä½•å€‹å‰²ã‚Šå½“ã¦ãŸã‹ã®ç°¡æ˜“ã‚«ã‚¦ãƒ³ã‚¿
+
+        ComPtr<ID3D12CommandQueue> m_graphicsQueue;
+        ComPtr<ID3D12Fence>        m_fence;
+        UINT64 m_fenceValue = 0;
+        HANDLE m_fenceEvent = nullptr;
+
         // =============================================================================
-        // ƒvƒ‰ƒCƒx[ƒgƒƒ\ƒbƒh
+        // ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆãƒ¡ã‚½ãƒƒãƒ‰
         // =============================================================================
 
-        //ƒfƒoƒbƒOƒŒƒCƒ„[‚ğ‰Šú‰»
+        //ãƒ‡ãƒãƒƒã‚°ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initializeDebugLayer(const DeviceSettings& settings);
 
-        /// DXGIƒtƒ@ƒNƒgƒŠ‚ğì¬
+        /// DXGIãƒ•ã‚¡ã‚¯ãƒˆãƒªã‚’ä½œæˆ
         [[nodiscard]] Utils::VoidResult createDXGIFactory();
 
-        //Å“K‚ÈƒAƒ_ƒvƒ^[‚ğ‘I‘ğ
+        //æœ€é©ãªã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’é¸æŠ
         [[nodiscard]] Utils::VoidResult selectBestAdapter(const DeviceSettings& settings);
 
-        //D3D12ƒfƒoƒCƒX‚ğì¬
+        //D3D12ãƒ‡ãƒã‚¤ã‚¹ã‚’ä½œæˆ
         [[nodiscard]] Utils::VoidResult createDevice(const DeviceSettings& settings);
 
-        //ƒfƒXƒNƒŠƒvƒ^ƒTƒCƒY‚ğƒLƒƒƒbƒVƒ…
+        //ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ã‚µã‚¤ã‚ºã‚’ã‚­ãƒ£ãƒƒã‚·ãƒ¥
         void cacheDescriptorSizes();
 
-        //ƒAƒ_ƒvƒ^[î•ñ‚ğæ“¾
+        //ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼æƒ…å ±ã‚’å–å¾—
         [[nodiscard]] AdapterInfo getAdapterInfo(IDXGIAdapter1* adapter) const;
 
-        //ƒAƒ_ƒvƒ^[‚ªD3D12‘Î‰‚©ƒ`ƒFƒbƒN
+        //ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ãŒD3D12å¯¾å¿œã‹ãƒã‚§ãƒƒã‚¯
         [[nodiscard]] bool isAdapterCompatible(IDXGIAdapter1* adapter, D3D_FEATURE_LEVEL minFeatureLevel) const;
+
+        [[nodiscard]] Utils::VoidResult createSrvHeap(UINT numDescriptors = 1024);
+
+        [[nodiscard]] Utils::VoidResult createGraphicsQueue();
+
+        
     };
 }

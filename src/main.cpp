@@ -1,4 +1,4 @@
-// src/main.cpp
+ï»¿// src/main.cpp
 #include <Windows.h>
 #include <iostream>
 #include "Core/App.hpp"
@@ -8,7 +8,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE,_In_ LPSTR, _In_ 
 {
     using namespace Engine;
 
-    // ƒRƒ“ƒ\[ƒ‹ƒEƒBƒ“ƒhƒE‚ğì¬iƒfƒoƒbƒOƒƒO•\¦—pj
+    // ç¹§ï½³ç¹ï½³ç¹§ï½½ç¹ï½¼ç¹ï½«ç¹§ï½¦ç¹§ï½£ç¹ï½³ç¹å³¨ãˆç¹§å‰ƒï½½æ‡ˆãƒ»ãƒ»åŒ»ãƒ§ç¹èˆŒãƒ£ç¹§ï½°ç¹ï½­ç¹§ï½°é™¦ï½¨é‰ï½ºé€•ï½¨ãƒ»ãƒ»
 #ifdef _DEBUG
     AllocConsole();
     freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
@@ -16,10 +16,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE,_In_ LPSTR, _In_ 
     std::cout << "=== DX12 Game Engine Debug Console ===" << std::endl;
 #endif
 
-    // ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ìì¬
+    // ç¹§ï½¢ç¹åŠ±Îœç¹§ï½±ç¹ï½¼ç¹§ï½·ç¹ï½§ç¹ï½³ç¸ºï½®è´æ‡ˆãƒ»
     Core::App app;
 
-    // ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì‰Šú‰»
+    // ç¹§ï½¢ç¹åŠ±Îœç¹§ï½±ç¹ï½¼ç¹§ï½·ç¹ï½§ç¹ï½³ç¸ºï½®è›»æ™„æ‚„è›¹ãƒ»
     auto initResult = app.initialize(hInstance, nCmdShow);
     if (!initResult)
     {
@@ -34,7 +34,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE,_In_ LPSTR, _In_ 
         return -1;
     }
 
-    // ƒƒCƒ“ƒ‹[ƒv‚ÌÀs
+    // ç¹ï½¡ç¹§ï½¤ç¹ï½³ç¹ï½«ç¹ï½¼ç¹åŠ±ãƒ»è³æº¯ï½¡ãƒ»
     const int exitCode = app.run();
 
 #ifdef _DEBUG

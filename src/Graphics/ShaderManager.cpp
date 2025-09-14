@@ -1,4 +1,4 @@
-//src/Graphics/ShaderManager.cpp
+ï»¿//src/Graphics/ShaderManager.cpp
 #include "ShaderManager.hpp"
 #include <format>
 #include <fstream>
@@ -8,19 +8,19 @@
 namespace Engine::Graphics
 {
     //=========================================================================
-    // ShaderÀ‘•
+    // Shaderè³æº¯ï½£ãƒ»
     //=========================================================================
 
     Utils::Result<std::shared_ptr<Shader>> Shader::compileFromFile(const ShaderCompileDesc& desc)
     {
-        // ƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+        // ç¹è¼”ãƒç¹§ï½¤ç¹ï½«éš±ï½­ç¸ºï½¿éœï½¼ç¸ºï½¿
         auto codeResult = readShaderFile(desc.filePath);
         if (!codeResult)
         {
             return std::unexpected(codeResult.error());
         }
 
-        // ƒCƒ“ƒNƒ‹[ƒhˆ—
+        // ç¹§ï½¤ç¹ï½³ç¹§ï½¯ç¹ï½«ç¹ï½¼ç¹ç‰™ãƒ»é€…ãƒ»
         std::string baseDir = std::filesystem::path(desc.filePath).parent_path().string();
         std::string processedCode = processIncludes(*codeResult, baseDir);
 
@@ -63,7 +63,7 @@ namespace Engine::Graphics
         m_entryPoint = entryPoint;
         m_filePath = filePath;
 
-        // ƒRƒ“ƒpƒCƒ‹ƒtƒ‰ƒO
+        // ç¹§ï½³ç¹ï½³ç¹ä»£ã†ç¹ï½«ç¹è¼”Î›ç¹§ï½°
         UINT compileFlags = 0;
         if (enableDebug)
         {
@@ -74,10 +74,10 @@ namespace Engine::Graphics
             compileFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
         }
 
-        // ƒ}ƒNƒ•ÏŠ·
+        // ç¹æ§­ã‘ç¹ï½­èŸç”»é‹¤
         auto d3dMacros = convertMacros(macros);
 
-        // ƒVƒF[ƒ_[ƒ^[ƒQƒbƒg
+        // ç¹§ï½·ç¹§ï½§ç¹ï½¼ç¹Â€ç¹ï½¼ç¹§ï½¿ç¹ï½¼ç¹§ï½²ç¹ãƒ»ãƒ¨
         std::string target = shaderTypeToTarget(type);
 
         ComPtr<ID3DBlob> errorBlob;
@@ -136,7 +136,7 @@ namespace Engine::Graphics
             d3dMacros.push_back(d3dMacro);
         }
 
-        // I’[
+        // é‚¨ã‚‰ï½«ï½¯
         D3D_SHADER_MACRO endMacro = { nullptr, nullptr };
         d3dMacros.push_back(endMacro);
 
@@ -144,7 +144,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // PipelineStateÀ‘•
+    // PipelineStateè³æº¯ï½£ãƒ»
     //=========================================================================
 
     Utils::Result<std::shared_ptr<PipelineState>> PipelineState::create(
@@ -209,7 +209,7 @@ namespace Engine::Graphics
         std::vector<D3D12_ROOT_PARAMETER1> rootParams;
         rootParams.reserve(m_desc.rootParameters.size());
 
-        // DescriptorTable—p‚ÌƒŒƒ“ƒW‚ğ•Û‚·‚éƒxƒNƒ^[
+        // DescriptorTableé€•ï½¨ç¸ºï½®ç¹ï½¬ç¹ï½³ç¹§ï½¸ç¹§å‰ƒï½¿æ™„æˆŸç¸ºå¶ï½‹ç¹å¶ã‘ç¹§ï½¿ç¹ï½¼
         std::vector<std::vector<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
         descriptorRanges.resize(m_desc.rootParameters.size());
 
@@ -248,7 +248,7 @@ namespace Engine::Graphics
 
             case RootParameterDesc::DescriptorTable:
                 rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-                // ƒŒƒ“ƒW‚ğƒRƒs[
+                // ç¹ï½¬ç¹ï½³ç¹§ï½¸ç¹§åµã•ç¹æ–ãƒ»
                 descriptorRanges[i] = param.ranges;
                 rootParam.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(descriptorRanges[i].size());
                 rootParam.DescriptorTable.pDescriptorRanges = descriptorRanges[i].data();
@@ -261,7 +261,7 @@ namespace Engine::Graphics
             rootParams.push_back(rootParam);
         }
 
-        // ƒXƒ^ƒeƒBƒbƒNƒTƒ“ƒvƒ‰[ˆ—
+        // ç¹§ï½¹ç¹§ï½¿ç¹ãƒ»ã…ç¹ãƒ»ã‘ç¹§ï½µç¹ï½³ç¹åŠ±Î›ç¹ï½¼èœƒï½¦é€…ãƒ»
         std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
         staticSamplers.reserve(m_desc.staticSamplers.size());
 
@@ -285,7 +285,7 @@ namespace Engine::Graphics
             staticSamplers.push_back(samplerDesc);
         }
 
-        // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‹Lq
+        // ç¹ï½«ç¹ï½¼ç¹åŒ»ã™ç¹§ï½°ç¹é˜ªãƒ¡ç¹ï½£éšªå€©ï½¿ï½°
         D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc = {};
         rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
         rootSigDesc.Desc_1_1.NumParameters = static_cast<UINT>(rootParams.size());
@@ -322,7 +322,7 @@ namespace Engine::Graphics
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 
-        // ƒVƒF[ƒ_[İ’è
+        // ç¹§ï½·ç¹§ï½§ç¹ï½¼ç¹Â€ç¹ï½¼éšªï½­è³ãƒ»
         if (m_desc.vertexShader && m_desc.vertexShader->isValid())
         {
             psoDesc.VS.pShaderBytecode = m_desc.vertexShader->getBytecode();
@@ -341,17 +341,17 @@ namespace Engine::Graphics
             psoDesc.GS.BytecodeLength = m_desc.geometryShader->getBytecodeSize();
         }
 
-        // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ
+        // ç¹ï½«ç¹ï½¼ç¹åŒ»ã™ç¹§ï½°ç¹é˜ªãƒ¡ç¹ï½£
         psoDesc.pRootSignature = m_rootSignature.Get();
 
-        // “ü—ÍƒŒƒCƒAƒEƒg
+        // èœˆï½¥èœ‰å¸™Îç¹§ï½¤ç¹§ï½¢ç¹§ï½¦ç¹ãƒ»
         psoDesc.InputLayout.pInputElementDescs = m_desc.inputLayout.empty() ? nullptr : m_desc.inputLayout.data();
         psoDesc.InputLayout.NumElements = static_cast<UINT>(m_desc.inputLayout.size());
 
-        // ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒW[
+        // ç¹åŠ±Îœç¹æº˜ãƒ¦ç¹§ï½£ç¹æ‚¶ãƒ¨ç¹æ˜´ÎŸç¹§ï½¸ç¹ï½¼
         psoDesc.PrimitiveTopologyType = m_desc.primitiveTopology;
 
-        // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg
+        // ç¹ï½¬ç¹ï½³ç¹Â€ç¹ï½¼ç¹§ï½¿ç¹ï½¼ç¹§ï½²ç¹ãƒ»ãƒ¨
         psoDesc.NumRenderTargets = static_cast<UINT>(m_desc.rtvFormats.size());
         for (size_t i = 0; i < m_desc.rtvFormats.size() && i < 8; ++i)
         {
@@ -359,12 +359,12 @@ namespace Engine::Graphics
         }
         psoDesc.DSVFormat = m_desc.dsvFormat;
 
-        // ƒTƒ“ƒvƒ‹İ’è
+        // ç¹§ï½µç¹ï½³ç¹åŠ±Îéšªï½­è³ãƒ»
         psoDesc.SampleDesc.Count = 1;
         psoDesc.SampleDesc.Quality = 0;
         psoDesc.SampleMask = UINT_MAX;
 
-        // ƒuƒŒƒ“ƒhƒXƒe[ƒg
+        // ç¹æ‚¶Îç¹ï½³ç¹å³¨ã›ç¹ãƒ»ãƒ»ç¹ãƒ»
         psoDesc.BlendState.RenderTarget[0].BlendEnable = m_desc.enableBlending;
         psoDesc.BlendState.RenderTarget[0].SrcBlend = m_desc.srcBlend;
         psoDesc.BlendState.RenderTarget[0].DestBlend = m_desc.destBlend;
@@ -374,7 +374,7 @@ namespace Engine::Graphics
         psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
         psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-        // ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒg
+        // ç¹ï½©ç¹§ï½¹ç¹§ï½¿ç¹ï½©ç¹§ï½¤ç¹§ï½¶ç¹ï½¼ç¹§ï½¹ç¹ãƒ»ãƒ»ç¹ãƒ»
         psoDesc.RasterizerState.FillMode = m_desc.fillMode;
         psoDesc.RasterizerState.CullMode = m_desc.cullMode;
         psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
@@ -387,7 +387,7 @@ namespace Engine::Graphics
         psoDesc.RasterizerState.ForcedSampleCount = 0;
         psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-        // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
+        // è±ºï½±è ï½¦ç¹§ï½¹ç¹ãƒ»Î¦ç¹§ï½·ç¹ï½«ç¹§ï½¹ç¹ãƒ»ãƒ»ç¹ãƒ»
         psoDesc.DepthStencilState.DepthEnable = m_desc.enableDepthTest;
         psoDesc.DepthStencilState.DepthWriteMask = m_desc.enableDepthWrite ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
         psoDesc.DepthStencilState.DepthFunc = m_desc.depthFunc;
@@ -401,7 +401,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // ShaderManagerÀ‘•
+    // ShaderManagerè³æº¯ï½£ãƒ»
     //=========================================================================
 
     Utils::VoidResult ShaderManager::initialize(Device* device)
@@ -430,7 +430,7 @@ namespace Engine::Graphics
 
     std::shared_ptr<Shader> ShaderManager::loadShader(const ShaderCompileDesc& desc)
     {
-        // ƒfƒoƒbƒO: thisƒ|ƒCƒ“ƒ^‚ÌŠm”F
+        // ç¹ãƒ»ãƒ°ç¹ãƒ»ã’: thisç¹æ˜´ã†ç¹ï½³ç¹§ï½¿ç¸ºï½®é’ï½ºéš±ãƒ»
         Utils::log_info(std::format("ShaderManager::loadShader called, this = {}",
             static_cast<void*>(this)));
 
@@ -540,7 +540,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult ShaderManager::createDefaultShaders()
     {
-        // HLSLƒtƒ@ƒCƒ‹‚©‚çƒVƒF[ƒ_[‚ğƒRƒ“ƒpƒCƒ‹
+        // HLSLç¹è¼”ãƒç¹§ï½¤ç¹ï½«ç¸ºä¹ï½‰ç¹§ï½·ç¹§ï½§ç¹ï½¼ç¹Â€ç¹ï½¼ç¹§åµã•ç¹ï½³ç¹ä»£ã†ç¹ï½«
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/PBR_VS.hlsl";
         vsDesc.entryPoint = "main";
@@ -594,43 +594,43 @@ namespace Engine::Graphics
 
     Utils::VoidResult ShaderManager::createDefaultPipelines()
     {
-        // PBRƒpƒCƒvƒ‰ƒCƒ“ì¬
+        // PBRç¹ä»£ã†ç¹åŠ±Î›ç¹§ï½¤ç¹ï½³è´æ‡ˆãƒ»
         PipelineStateDesc pbrDesc;
         pbrDesc.vertexShader = getShader("DefaultPBR_VS");
         pbrDesc.pixelShader = getShader("DefaultPBR_PS");
         pbrDesc.inputLayout = StandardInputLayouts::PBRVertex;
         pbrDesc.debugName = "DefaultPBR";
 
-        // Scene’è”ƒoƒbƒtƒ@ (b0)
+        // Sceneè³å£½ç„šç¹èˆŒãƒ£ç¹è¼”ãƒ (b0)
         RootParameterDesc sceneConstants;
         sceneConstants.type = RootParameterDesc::ConstantBufferView;
         sceneConstants.shaderRegister = 0;
         sceneConstants.visibility = D3D12_SHADER_VISIBILITY_ALL;
 
-        // Object’è”ƒoƒbƒtƒ@ (b1)
+        // Objectè³å£½ç„šç¹èˆŒãƒ£ç¹è¼”ãƒ (b1)
         RootParameterDesc objectConstants;
         objectConstants.type = RootParameterDesc::ConstantBufferView;
         objectConstants.shaderRegister = 1;
         objectConstants.visibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // Material’è”ƒoƒbƒtƒ@ (b2)
+        // Materialè³å£½ç„šç¹èˆŒãƒ£ç¹è¼”ãƒ (b2)
         RootParameterDesc materialConstants;
         materialConstants.type = RootParameterDesc::ConstantBufferView;
         materialConstants.shaderRegister = 2;
         materialConstants.visibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // PBRƒeƒNƒXƒ`ƒƒ—pƒfƒBƒXƒNƒŠƒvƒ^ƒe[ƒuƒ‹
+        // PBRç¹ãƒ»ã‘ç¹§ï½¹ç¹âˆšÎ•é€•ï½¨ç¹ãƒ»ã…ç¹§ï½¹ç¹§ï½¯ç¹ï½ªç¹åŠ±ã¡ç¹ãƒ»ãƒ»ç¹æ‚¶Î
         RootParameterDesc textureTable;
         textureTable.type = RootParameterDesc::DescriptorTable;
         textureTable.visibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // 6‚Â‚ÌƒeƒNƒXƒ`ƒƒ‚·‚×‚Ä‚ğ1‚Â‚ÌƒŒƒ“ƒW‚Å’è‹` (t0-t5)
+        // 6ç¸ºï½¤ç¸ºï½®ç¹ãƒ»ã‘ç¹§ï½¹ç¹âˆšÎ•ç¸ºå¶âˆ‹ç¸ºï½¦ç¹§ãƒ»ç¸ºï½¤ç¸ºï½®ç¹ï½¬ç¹ï½³ç¹§ï½¸ç¸ºï½§è³å¤‚ï½¾ï½© (t0-t5)
         std::vector<D3D12_DESCRIPTOR_RANGE1> srvRanges;
 
         D3D12_DESCRIPTOR_RANGE1 pbrTextureRange{};
         pbrTextureRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-        pbrTextureRange.NumDescriptors = 6;  // t0, t1, t2, t3, t4, t5 ‚Ì6‚Â
-        pbrTextureRange.BaseShaderRegister = 0;  // t0‚©‚çŠJn
+        pbrTextureRange.NumDescriptors = 6;  // t0, t1, t2, t3, t4, t5 ç¸ºï½®6ç¸ºï½¤
+        pbrTextureRange.BaseShaderRegister = 0;  // t0ç¸ºä¹ï½‰é«¢å¥ï½§ãƒ»
         pbrTextureRange.RegisterSpace = 0;
         pbrTextureRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
         pbrTextureRange.OffsetInDescriptorsFromTableStart = 0;
@@ -638,10 +638,10 @@ namespace Engine::Graphics
         srvRanges.push_back(pbrTextureRange);
         textureTable.ranges = srvRanges;
 
-        // ƒ‹[ƒgƒpƒ‰ƒ[ƒ^‚ğİ’è
+        // ç¹ï½«ç¹ï½¼ç¹åŒ»ãƒ±ç¹ï½©ç¹ï½¡ç¹ï½¼ç¹§ï½¿ç¹§å®šï½¨ï½­è³ãƒ»
         pbrDesc.rootParameters = { sceneConstants, objectConstants, materialConstants, textureTable };
 
-        // ƒXƒ^ƒeƒBƒbƒNƒTƒ“ƒvƒ‰[ (s0)
+        // ç¹§ï½¹ç¹§ï½¿ç¹ãƒ»ã…ç¹ãƒ»ã‘ç¹§ï½µç¹ï½³ç¹åŠ±Î›ç¹ï½¼ (s0)
         StaticSamplerDesc linearSampler;
         linearSampler.shaderRegister = 0;
         linearSampler.filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -651,7 +651,7 @@ namespace Engine::Graphics
 
         pbrDesc.staticSamplers = { linearSampler };
 
-        // ƒpƒCƒvƒ‰ƒCƒ“ì¬
+        // ç¹ä»£ã†ç¹åŠ±Î›ç¹§ï½¤ç¹ï½³è´æ‡ˆãƒ»
         auto pbrPipelineResult = PipelineState::create(m_device, pbrDesc);
         if (!pbrPipelineResult)
         {
@@ -683,7 +683,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // •W€“ü—ÍƒŒƒCƒAƒEƒg’è‹`
+    // è®“å‘ï½ºé–€ãƒ»èœ‰å¸™Îç¹§ï½¤ç¹§ï½¢ç¹§ï½¦ç¹äº¥ï½®å¤‚ï½¾ï½©
     //=========================================================================
 
     namespace StandardInputLayouts
@@ -716,7 +716,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // ƒ†[ƒeƒBƒŠƒeƒBŠÖ”À‘•
+    // ç¹ï½¦ç¹ï½¼ç¹ãƒ»ã…ç¹ï½ªç¹ãƒ»ã…é«¢ï½¢è¬¨ï½°è³æº¯ï½£ãƒ»
     //=========================================================================
 
     Utils::Result<std::string> readShaderFile(const std::string& filePath)
@@ -735,7 +735,7 @@ namespace Engine::Graphics
 
     std::string processIncludes(const std::string& shaderCode, const std::string& baseDir)
     {
-        // ŠÈ’P‚ÈƒCƒ“ƒNƒ‹[ƒhˆ—i#include "filename"‚ÌŒ`®‚Ì‚İ‘Î‰j
+        // é‚ï½¡èœŠå€¥â†‘ç¹§ï½¤ç¹ï½³ç¹§ï½¯ç¹ï½«ç¹ï½¼ç¹ç‰™ãƒ»é€…ãƒ»ï½¼ãƒ»include "filename"ç¸ºï½®è –ï½¢è ‘ä¸Šãƒ»ç¸ºï½¿èŸ‡ï½¾è ¢æ‡¶ï½¼ãƒ»
         std::string result = shaderCode;
         std::string includePattern = "#include \"";
 
@@ -753,7 +753,7 @@ namespace Engine::Graphics
                 auto includeResult = readShaderFile(fullPath);
                 if (includeResult)
                 {
-                    // ƒCƒ“ƒNƒ‹[ƒh•¶‚ğÀÛ‚Ìƒtƒ@ƒCƒ‹“à—e‚Å’uŠ·
+                    // ç¹§ï½¤ç¹ï½³ç¹§ï½¯ç¹ï½«ç¹ï½¼ç¹ç”»æšç¹§è²ï½®æ»„åœ€ç¸ºï½®ç¹è¼”ãƒç¹§ï½¤ç¹ï½«èœ€ãƒ»ï½®ï½¹ç¸ºï½§é„‚ï½®è¬ ãƒ»
                     size_t lineEnd = result.find("\n", pos);
                     if (lineEnd == std::string::npos) lineEnd = result.length();
 

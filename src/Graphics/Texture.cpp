@@ -1,11 +1,10 @@
-//src/Graphics/Texture.cpp
+ï»¿//src/Graphics/Texture.cpp
 #include "Texture.hpp"
 #include <format>
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
 
-// STB‰æ‘œƒ‰ƒCƒuƒ‰ƒŠiƒwƒbƒ_[ƒIƒ“ƒŠ[ƒ‰ƒCƒuƒ‰ƒŠj
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image.h"
@@ -14,7 +13,7 @@
 namespace Engine::Graphics
 {
     //=========================================================================
-    // TextureÀ‘•
+    // Textureè³æº¯ï½£ãƒ»
     //=========================================================================
 
     Utils::Result<std::shared_ptr<Texture>> Texture::createFromFile(
@@ -23,20 +22,20 @@ namespace Engine::Graphics
         bool generateMips,
         bool sRGB)
     {
-        // ‰æ‘œƒf[ƒ^‚ğ“Ç‚İ‚İ
+        // é€•ï½»èœ’ä¸Šãƒ§ç¹ï½¼ç¹§ï½¿ç¹§å®šï½ªï½­ç¸ºï½¿éœï½¼ç¸ºï½¿
         auto imageResult = TextureLoader::loadFromFile(filePath);
         if (!imageResult)
         {
             return std::unexpected(imageResult.error());
         }
 
-        // ƒeƒNƒXƒ`ƒƒİ’è‚ğì¬
+        // ç¹ãƒ»ã‘ç¹§ï½¹ç¹âˆšÎ•éšªï½­è³å£¹ï½’è´æ‡ˆãƒ»
         TextureDesc desc;
         desc.width = imageResult->width;
         desc.height = imageResult->height;
         desc.format = sRGB ? TextureFormat::R8G8B8A8_SRGB : imageResult->format;
-        desc.generateMips = generateMips;
-        desc.mipLevels = generateMips ? 0 : 1; // 0 = ©“®ŒvZ
+        desc.generateMips = false;
+        desc.mipLevels = 1; 
         desc.usage = TextureUsage::ShaderResource;
         desc.debugName = std::filesystem::path(filePath).filename().string();
 
@@ -98,7 +97,7 @@ namespace Engine::Graphics
         m_device = device;
         m_desc = desc;
 
-        // ƒ~ƒbƒvƒŒƒxƒ‹‚Ì©“®ŒvZ
+        // ç¹æº˜ãƒ£ç¹åŠ±Îç¹å¶Îç¸ºï½®é–¾ï½ªèœæˆŠï½¨è‚²ï½®ãƒ»
         if (m_desc.mipLevels == 0)
         {
             m_desc.mipLevels = static_cast<uint32_t>(std::floor(std::log2(max(m_desc.width, m_desc.height)))) + 1;
@@ -159,7 +158,7 @@ namespace Engine::Graphics
         D3D12_CLEAR_VALUE* clearValue = nullptr;
         D3D12_CLEAR_VALUE optimizedClearValue{};
 
-        // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚Ü‚½‚Í[“xƒXƒeƒ“ƒVƒ‹‚Ìê‡AÅ“K‰»ƒNƒŠƒA’l‚ğİ’è
+        // ç¹ï½¬ç¹ï½³ç¹Â€ç¹ï½¼ç¹§ï½¿ç¹ï½¼ç¹§ï½²ç¹ãƒ»ãƒ¨ç¸ºï½¾ç¸ºæº˜ãƒ»è±ºï½±è ï½¦ç¹§ï½¹ç¹ãƒ»Î¦ç¹§ï½·ç¹ï½«ç¸ºï½®è£ï½´èœ·åŒ»Â€âˆµæ€™é©•ï½©è›¹æ‚¶ã‘ç¹ï½ªç¹§ï½¢è›Ÿï½¤ç¹§å®šï½¨ï½­è³ãƒ»
         if ((m_desc.usage & TextureUsage::RenderTarget) != TextureUsage::None)
         {
             optimizedClearValue.Format = resourceDesc.Format;
@@ -181,7 +180,7 @@ namespace Engine::Graphics
             &heapProps,
             D3D12_HEAP_FLAG_NONE,
             &resourceDesc,
-            textureUsageToD3D12State(m_desc.usage),
+            D3D12_RESOURCE_STATE_COPY_DEST,
             clearValue,
             IID_PPV_ARGS(&m_resource)),
             Utils::ErrorType::ResourceCreation,
@@ -192,20 +191,133 @@ namespace Engine::Graphics
 
     Utils::VoidResult Texture::createViews()
     {
-        // Œ»İ‚ÍŠî–{“I‚ÈÀ‘•‚Ì‚İ
-        // Š®‘S‚ÈƒfƒXƒNƒŠƒvƒ^ŠÇ—‚ÍŒã‚ÅÀ‘•
+        // SRVãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿è¨˜è¿°
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.MipLevels = m_desc.mipLevels;
+
+        // SRVãƒ’ãƒ¼ãƒ—ã‹ã‚‰1æ ç¢ºä¿
+        const UINT index = m_device->allocateSrvIndex();
+        const UINT inc = m_device->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuStart = m_device->getSrvCpuStart();
+        D3D12_GPU_DESCRIPTOR_HANDLE gpuStart = m_device->getSrvGpuStart();
+
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = cpuStart;
+        cpuHandle.ptr += static_cast<SIZE_T>(index) * inc;
+
+        D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = gpuStart;
+        gpuHandle.ptr += static_cast<UINT64>(index) * inc;
+
+        // SRVä½œæˆ
+        m_device->getDevice()->CreateShaderResourceView(m_resource.Get(), &srvDesc, cpuHandle);
+
+        // è‡ªåˆ†ã®GPUãƒãƒ³ãƒ‰ãƒ«ã‚’ä¿æŒï¼ˆã‚·ã‚§ãƒ¼ãƒ€ã¸æ¸¡ã™ç”¨ï¼‰
+        m_srvHandle = gpuHandle;
+
         return {};
     }
 
-    Utils::VoidResult Texture::uploadData(const ImageData& imageData)
+
+    Utils::VoidResult Texture::uploadData(const ImageData& img)
     {
-        // Œ»İ‚ÍŠÈˆÕÀ‘•
-        // Š®‘S‚ÈƒAƒbƒvƒ[ƒh‹@”\‚ÍŒã‚ÅÀ‘•
+        // 1) ãƒ†ã‚¯ã‚¹ãƒãƒ£æœ¬ä½“(m_resource)ã¯ DEFAULTãƒ’ãƒ¼ãƒ—ãƒ»åˆæœŸçŠ¶æ…‹ COPY_DESTãƒ»Format=DXGI_FORMAT_R8G8B8A8_UNORM ã§ä½œã‚‰ã‚Œã¦ã„ã‚‹
+        // 2) ãƒ•ãƒƒãƒˆãƒ—ãƒªãƒ³ãƒˆå–å¾—ï¼ˆRowPitch ã¨ç·ã‚µã‚¤ã‚ºã‚’ãƒ‡ãƒã‚¤ã‚¹ã«è¨ˆç®—ã•ã›ã‚‹ï¼‰
+        D3D12_RESOURCE_DESC texDesc = m_resource->GetDesc();
+
+        UINT64 totalBytes = 0;
+        D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
+        UINT numRows = 0;
+        UINT64 rowSizeInBytes = 0;
+
+        m_device->getDevice()->GetCopyableFootprints(&texDesc, 0, 1, 0, &footprint, &numRows, &rowSizeInBytes, &totalBytes);
+
+        // 3) Uploadãƒãƒƒãƒ•ã‚¡ä½œæˆï¼ˆGENERIC_READï¼‰
+        Microsoft::WRL::ComPtr<ID3D12Resource> upload;
+        {
+            D3D12_HEAP_PROPERTIES heap = {};
+            heap.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+            D3D12_RESOURCE_DESC buf = {};
+            buf.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+            buf.Width = totalBytes;
+            buf.Height = 1;
+            buf.DepthOrArraySize = 1;
+            buf.MipLevels = 1;
+            buf.SampleDesc.Count = 1;
+            buf.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+            CHECK_HR(m_device->getDevice()->CreateCommittedResource(
+                &heap, D3D12_HEAP_FLAG_NONE, &buf,
+                D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                IID_PPV_ARGS(&upload)),
+                Utils::ErrorType::ResourceCreation, "Failed to create upload buffer");
+        }
+
+        // 4) è¡Œã”ã¨ã«ãƒ‘ãƒ‡ã‚£ãƒ³ã‚°è€ƒæ…®ã—ã¦ã‚³ãƒ”ãƒ¼
+        {
+            uint8_t* dst = nullptr;
+            D3D12_RANGE readRange{ 0,0 };
+            CHECK_HR(upload->Map(0, &readRange, reinterpret_cast<void**>(&dst)),
+                Utils::ErrorType::ResourceCreation, "Failed to map upload buffer");
+
+            const uint8_t* src = img.pixels.data();
+            const UINT srcRowPitch = (UINT)(img.rowPitch);           // ä¾‹: width * 4
+            const UINT dstRowPitch = footprint.Footprint.RowPitch;   // ãƒ‡ãƒã‚¤ã‚¹ãŒè¦æ±‚ã™ã‚‹256ã‚¢ãƒ©ã‚¤ãƒ³
+
+            for (UINT y = 0; y < numRows; ++y) {
+                std::memcpy(dst + footprint.Offset + y * dstRowPitch,
+                    src + y * srcRowPitch,
+                    srcRowPitch); // ãƒ‘ãƒ‡ã‚£ãƒ³ã‚°åˆ†ã¯æ›¸ã‹ãªãã¦OKï¼ˆæ®‹ã‚Šã¯æœªä½¿ç”¨ï¼‰
+            }
+
+            D3D12_RANGE written{ 0, (SIZE_T)totalBytes };
+            upload->Unmap(0, &written);
+        }
+
+        // 5) ã‚³ãƒãƒ³ãƒ‰ã§ Copy â†’ é·ç§»
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;
+        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> cmd;
+        CHECK_HR(m_device->getDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&allocator)),
+            Utils::ErrorType::ResourceCreation, "Failed to create command allocator");
+        CHECK_HR(m_device->getDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator.Get(), nullptr, IID_PPV_ARGS(&cmd)),
+            Utils::ErrorType::ResourceCreation, "Failed to create command list");
+
+        D3D12_TEXTURE_COPY_LOCATION dstLoc = {};
+        dstLoc.pResource = m_resource.Get();
+        dstLoc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+        dstLoc.SubresourceIndex = 0;
+
+        D3D12_TEXTURE_COPY_LOCATION srcLoc = {};
+        srcLoc.pResource = upload.Get();
+        srcLoc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+        srcLoc.PlacedFootprint = footprint;
+
+        cmd->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);
+
+        // COPY_DEST â†’ PIXEL_SHADER_RESOURCE
+        D3D12_RESOURCE_BARRIER barrier = {};
+        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Transition.pResource = m_resource.Get();
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        cmd->ResourceBarrier(1, &barrier);
+
+        CHECK_HR(cmd->Close(), Utils::ErrorType::Unknown, "Failed to close copy cmd list");
+        ID3D12CommandList* lists[] = { cmd.Get() };
+        m_device->getGraphicsQueue()->ExecuteCommandLists(1, lists);
+        m_device->waitForGpu();
+
         return {};
     }
+
 
     //=========================================================================
-    // TextureLoaderÀ‘•
+    // TextureLoaderè³æº¯ï½£ãƒ»
     //=========================================================================
 
     Utils::Result<ImageData> TextureLoader::loadFromFile(const std::string& filePath)
@@ -256,7 +368,7 @@ namespace Engine::Graphics
         ImageData imageData;
         imageData.width = static_cast<uint32_t>(width);
         imageData.height = static_cast<uint32_t>(height);
-        imageData.channels = 4; // STBI_rgb_alpha‚Å‹­§“I‚É4ƒ`ƒƒƒ“ƒlƒ‹
+        imageData.channels = 4; // STBI_rgb_alphaç¸ºï½§è ‘ï½·è›»ï½¶é€§ãƒ»â†“4ç¹âˆšÎ•ç¹ï½³ç¹é˜ªÎ
         imageData.format = TextureFormat::R8G8B8A8_UNORM;
 
         size_t dataSize = width * height * 4;
@@ -300,7 +412,7 @@ namespace Engine::Graphics
 
     Utils::Result<ImageData> TextureLoader::loadDDS(const std::string& filePath)
     {
-        // DDS“Ç‚İ‚İ‚Í•¡G‚È‚Ì‚ÅAŒ»İ‚Í–¢À‘•
+        // DDSéš±ï½­ç¸ºï½¿éœï½¼ç¸ºï½¿ç¸ºï½¯éšãƒ»å°…ç¸ºï½ªç¸ºï½®ç¸ºï½§ç¸²âˆ«æ¨Ÿè¨ï½¨ç¸ºï½¯è­›ï½ªè³æº¯ï½£ãƒ»
         return std::unexpected(Utils::make_error(Utils::ErrorType::FileI0, "DDS format not implemented yet"));
     }
 
@@ -362,7 +474,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // TextureManagerÀ‘•
+    // TextureManagerè³æº¯ï½£ãƒ»
     //=========================================================================
 
     Utils::VoidResult TextureManager::initialize(Device* device)
@@ -394,19 +506,19 @@ namespace Engine::Graphics
             return nullptr;
         }
 
-        // ƒLƒƒƒbƒVƒ…ƒ`ƒFƒbƒN
+        // ç¹§ï½­ç¹ï½£ç¹ãƒ»ã™ç¹ï½¥ç¹âˆšã‰ç¹ãƒ»ã‘
         std::string key = filePath;
         if (hasTexture(key))
         {
             return getTexture(key);
         }
 
-        // ƒeƒNƒXƒ`ƒƒ‚ğ“Ç‚İ‚İ
+        // ç¹ãƒ»ã‘ç¹§ï½¹ç¹âˆšÎ•ç¹§å®šï½ªï½­ç¸ºï½¿éœï½¼ç¸ºï½¿
         auto textureResult = Texture::createFromFile(m_device, filePath, generateMips, sRGB);
         if (!textureResult)
         {
             Utils::log_warning(std::format("Failed to load texture '{}': {}", filePath, textureResult.error().message));
-            return getWhiteTexture(); // ƒtƒH[ƒ‹ƒoƒbƒN
+            return getWhiteTexture(); // ç¹è¼”ã‹ç¹ï½¼ç¹ï½«ç¹èˆŒãƒ£ç¹§ï½¯
         }
 
         m_textures[key] = *textureResult;
@@ -436,13 +548,13 @@ namespace Engine::Graphics
 
     size_t TextureManager::getTotalMemoryUsage() const
     {
-        // ŠÈˆÕÀ‘•
-        return m_textures.size() * 1024 * 1024; // ‰¼‚Ì’l
+        // é‚ï½¡è­ç˜ï½®æº¯ï½£ãƒ»
+        return m_textures.size() * 1024 * 1024; // è‰ï½®ç¸ºï½®è›Ÿï½¤
     }
 
     void TextureManager::clearCache()
     {
-        // ƒfƒtƒHƒ‹ƒgƒeƒNƒXƒ`ƒƒˆÈŠO‚ğƒNƒŠƒA
+        // ç¹ãƒ»ãƒµç¹§ï½©ç¹ï½«ç¹åŒ»ãƒ¦ç¹§ï½¯ç¹§ï½¹ç¹âˆšÎ•è‰ï½¥èŸæ‚¶ï½’ç¹§ï½¯ç¹ï½ªç¹§ï½¢
         auto whiteTexture = m_whiteTexture;
         auto blackTexture = m_blackTexture;
         auto defaultNormalTexture = m_defaultNormalTexture;
@@ -456,28 +568,28 @@ namespace Engine::Graphics
 
     Utils::VoidResult TextureManager::createDefaultTextures()
     {
-        // ”’ƒeƒNƒXƒ`ƒƒi1x1j
+        // é€‹ï½½ç¹ãƒ»ã‘ç¹§ï½¹ç¹âˆšÎ•ãƒ»ãƒ»x1ãƒ»ãƒ»
         auto whiteResult = createSolidColorTexture(m_whiteTexture, 0xFFFFFFFF, "DefaultWhite");
         if (!whiteResult)
         {
             return whiteResult;
         }
 
-        // •ƒeƒNƒXƒ`ƒƒi1x1j
+        // é®Ÿåµãƒ¦ç¹§ï½¯ç¹§ï½¹ç¹âˆšÎ•ãƒ»ãƒ»x1ãƒ»ãƒ»
         auto blackResult = createSolidColorTexture(m_blackTexture, 0xFF000000, "DefaultBlack");
         if (!blackResult)
         {
             return blackResult;
         }
 
-        // ƒfƒtƒHƒ‹ƒg–@üƒ}ƒbƒvi1x1A–@ü‚ªãŒü‚«j
+        // ç¹ãƒ»ãƒµç¹§ï½©ç¹ï½«ç¹åŸŸï½³æ…•ï½·å£¹ãƒ»ç¹ãƒ»ãƒ»ãƒ»ãƒ»x1ç¸²âˆµï½³æ…•ï½·å£¹â€²è³é›é«„ç¸ºæ¾ï½¼ãƒ»
         auto normalResult = createSolidColorTexture(m_defaultNormalTexture, 0xFFFF8080, "DefaultNormal");
         if (!normalResult)
         {
             return normalResult;
         }
 
-        // ƒLƒƒƒbƒVƒ…‚É“o˜^
+        // ç¹§ï½­ç¹ï½£ç¹ãƒ»ã™ç¹ï½¥ç¸ºï½«é€‹ï½»éª­ï½²
         m_textures["__white__"] = m_whiteTexture;
         m_textures["__black__"] = m_blackTexture;
         m_textures["__default_normal__"] = m_defaultNormalTexture;
@@ -490,7 +602,7 @@ namespace Engine::Graphics
         uint32_t color,
         const std::string& name)
     {
-        // 1x1‚ÌƒCƒ[ƒWƒf[ƒ^‚ğì¬
+        // 1x1ç¸ºï½®ç¹§ï½¤ç¹ï½¡ç¹ï½¼ç¹§ï½¸ç¹ãƒ»ãƒ»ç¹§ï½¿ç¹§å‰ƒï½½æ‡ˆãƒ»
         ImageData imageData;
         imageData.width = 1;
         imageData.height = 1;
@@ -498,7 +610,7 @@ namespace Engine::Graphics
         imageData.format = TextureFormat::R8G8B8A8_UNORM;
         imageData.pixels.resize(4);
 
-        // ƒJƒ‰[ƒf[ƒ^‚ğİ’èiRGBAj
+        // ç¹§ï½«ç¹ï½©ç¹ï½¼ç¹ãƒ»ãƒ»ç¹§ï½¿ç¹§å®šï½¨ï½­è³å¤²ï½¼ãƒ»GBAãƒ»ãƒ»
         imageData.pixels[0] = (color >> 16) & 0xFF; // R
         imageData.pixels[1] = (color >> 8) & 0xFF;  // G
         imageData.pixels[2] = color & 0xFF;         // B
@@ -525,7 +637,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // ƒ†[ƒeƒBƒŠƒeƒBŠÖ”À‘•
+    // ç¹ï½¦ç¹ï½¼ç¹ãƒ»ã…ç¹ï½ªç¹ãƒ»ã…é«¢ï½¢è¬¨ï½°è³æº¯ï½£ãƒ»
     //=========================================================================
 
     uint32_t getBytesPerPixel(TextureFormat format)
@@ -546,12 +658,12 @@ namespace Engine::Graphics
         case TextureFormat::D24_UNORM_S8_UINT:
             return 4;
         case TextureFormat::BC1_UNORM:
-            return 0; // ˆ³kƒtƒH[ƒ}ƒbƒg‚Í“Á•ÊŒvZ
+            return 0; // è¨ï½§é‚µï½®ç¹è¼”ã‹ç¹ï½¼ç¹æ§­ãƒ£ç¹åŒ»ãƒ»è¿šï½¹è›»ï½¥éšªè‚²ï½®ãƒ»
         case TextureFormat::BC3_UNORM:
         case TextureFormat::BC7_UNORM:
-            return 0; // ˆ³kƒtƒH[ƒ}ƒbƒg‚Í“Á•ÊŒvZ
+            return 0; // è¨ï½§é‚µï½®ç¹è¼”ã‹ç¹ï½¼ç¹æ§­ãƒ£ç¹åŒ»ãƒ»è¿šï½¹è›»ï½¥éšªè‚²ï½®ãƒ»
         default:
-            return 4; // ƒfƒtƒHƒ‹ƒg
+            return 4; // ç¹ãƒ»ãƒµç¹§ï½©ç¹ï½«ç¹ãƒ»
         }
     }
 
@@ -584,7 +696,7 @@ namespace Engine::Graphics
         {
         case TextureFormat::R8G8B8A8_UNORM:  return DXGI_FORMAT_R8G8B8A8_UNORM;
         case TextureFormat::R8G8B8A8_SRGB:   return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        case TextureFormat::R8G8B8_UNORM:    return DXGI_FORMAT_R8G8B8A8_UNORM; // 3ƒ`ƒƒƒ“ƒlƒ‹‚Í4ƒ`ƒƒƒ“ƒlƒ‹‚Æ‚µ‚Äˆµ‚¤
+        case TextureFormat::R8G8B8_UNORM:    return DXGI_FORMAT_R8G8B8A8_UNORM; // 3ç¹âˆšÎ•ç¹ï½³ç¹é˜ªÎç¸ºï½¯4ç¹âˆšÎ•ç¹ï½³ç¹é˜ªÎç¸ºï½¨ç¸ºåŠ±â€»è¬‡ï½±ç¸ºãƒ»
         case TextureFormat::R8_UNORM:        return DXGI_FORMAT_R8_UNORM;
         case TextureFormat::R16G16B16A16_FLOAT: return DXGI_FORMAT_R16G16B16A16_FLOAT;
         case TextureFormat::BC1_UNORM:       return DXGI_FORMAT_BC1_UNORM;
@@ -637,7 +749,7 @@ namespace Engine::Graphics
 
     D3D12_RESOURCE_STATES textureUsageToD3D12State(TextureUsage usage)
     {
-        // Å‚àˆê”Ê“I‚È‰Šúó‘Ô‚ğ•Ô‚·
+        // è­›Â€ç¹§ã‚†ï½¸Â€é—Šï½¬é€§ãƒ»â†‘è›»æ™„æ‚„è¿¥ï½¶è«·ä¹ï½’éœ‘æ–â˜†
         if ((usage & TextureUsage::RenderTarget) != TextureUsage::None)
         {
             return D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -653,7 +765,7 @@ namespace Engine::Graphics
             return D3D12_RESOURCE_STATE_COPY_DEST;
         }
 
-        // ƒfƒtƒHƒ‹ƒg‚ÍƒVƒF[ƒ_[ƒŠƒ\[ƒX
+        // ç¹ãƒ»ãƒµç¹§ï½©ç¹ï½«ç¹åŒ»ãƒ»ç¹§ï½·ç¹§ï½§ç¹ï½¼ç¹Â€ç¹ï½¼ç¹ï½ªç¹§ï½½ç¹ï½¼ç¹§ï½¹
         return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     }
 }

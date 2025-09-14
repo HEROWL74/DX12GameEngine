@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <Windows.h>
 #include <expected>
@@ -9,19 +9,19 @@
 namespace Engine::Utils 
 {
     // =============================================================================
-    // ƒGƒ‰[Œ^’è‹`
+    // ã‚¨ãƒ©ãƒ¼å‹å®šç¾©
     // =============================================================================
 
-    //ƒGƒ“ƒWƒ““à‚Å”­¶‚·‚éƒGƒ‰[‚Ìí—Ş
+    //ã‚¨ãƒ³ã‚¸ãƒ³å†…ã§ç™ºç”Ÿã™ã‚‹ã‚¨ãƒ©ãƒ¼ã®ç¨®é¡
     enum class ErrorType
     {
-        WindowCreation, //ƒEƒBƒ“ƒhƒEì¬ƒGƒ‰[
-        DeviceCreation, //ƒfƒoƒCƒXì¬ƒGƒ‰[
-        SwapChainCreation,//ƒXƒƒbƒvƒ`ƒFƒCƒ“ì¬ƒGƒ‰[
-        ResourceCreation, // ƒŠƒ\[ƒXì¬ƒGƒ‰[
-        ShaderCompilation, // ƒVƒF[ƒ_[ƒRƒ“ƒpƒCƒ‹ƒGƒ‰[
-        FileI0, // ƒtƒ@ƒCƒ‹IO ƒGƒ‰[
-        Unknown // •s–¾‚ÈƒGƒ‰[
+        WindowCreation, //ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½œæˆã‚¨ãƒ©ãƒ¼
+        DeviceCreation, //ãƒ‡ãƒã‚¤ã‚¹ä½œæˆã‚¨ãƒ©ãƒ¼
+        SwapChainCreation,//ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³ä½œæˆã‚¨ãƒ©ãƒ¼
+        ResourceCreation, // ãƒªã‚½ãƒ¼ã‚¹ä½œæˆã‚¨ãƒ©ãƒ¼
+        ShaderCompilation, // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã‚¨ãƒ©ãƒ¼
+        FileI0, // ãƒ•ã‚¡ã‚¤ãƒ«IO ã‚¨ãƒ©ãƒ¼
+        Unknown // ä¸æ˜ãªã‚¨ãƒ©ãƒ¼
     };
 
     struct Error
@@ -29,9 +29,9 @@ namespace Engine::Utils
         ErrorType type;
         std::string message;
         std::source_location location;
-        HRESULT hr = S_OK; //WindowsAPI—p‚ÌHRESULT
+        HRESULT hr = S_OK; //WindowsAPIç”¨ã®HRESULT
 
-        //ƒGƒ‰[ƒƒbƒZ[ƒW‚ğæ“¾
+        //ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å–å¾—
         [[nodiscard]] std::string what() const noexcept
         {
             std::string result = std::format(
@@ -53,22 +53,22 @@ namespace Engine::Utils
     };
 
     // =============================================================================
-   // ResultŒ^‚Ì’è‹`istd::expected‚Ì•Ê–¼j
+   // Resultå‹ã®å®šç¾©ï¼ˆstd::expectedã®åˆ¥åï¼‰
      // =============================================================================
 
-    //¬Œ÷‚Ì’l‚©ƒGƒ‰[‚ğ•\‚·Œ^
+    //æˆåŠŸæ™‚ã®å€¤ã‹ã‚¨ãƒ©ãƒ¼ã‚’è¡¨ã™å‹
     template <typename T>
     using Result = std::expected<T, Error>;
 
-    //vpidŒ^‚Å‚à–ß‚è’l‚ğ•Ô‚·‚æ‚¤‚É‚·‚é
+    //vpidå‹ã§ã‚‚æˆ»ã‚Šå€¤ã‚’è¿”ã™ã‚ˆã†ã«ã™ã‚‹
     using VoidResult = Result<void>;
 
     // =============================================================================
-     //@brief ƒGƒ‰[ì¬—p‚Ìƒwƒ‹ƒp[ŠÖ”
+     //@brief ã‚¨ãƒ©ãƒ¼ä½œæˆç”¨ã®ãƒ˜ãƒ«ãƒ‘ãƒ¼é–¢æ•°
      // =============================================================================
 
-    // ƒGƒ‰[‚ğì¬‚·‚éƒwƒ‹ƒp[ŠÖ”
-  // HRESULT ‚ ‚è
+    // ã‚¨ãƒ©ãƒ¼ã‚’ä½œæˆã™ã‚‹ãƒ˜ãƒ«ãƒ‘ãƒ¼é–¢æ•°
+  // HRESULT ã‚ã‚Š
     [[nodiscard]] constexpr Error make_error(
         ErrorType type,
         std::string_view message,
@@ -78,7 +78,7 @@ namespace Engine::Utils
         return Error{ type, std::string(message), location, hr };
     }
 
-    // HRESULT ‚È‚µiCHECK_CONDITION —pj
+    // HRESULT ãªã—ï¼ˆCHECK_CONDITION ç”¨ï¼‰
     [[nodiscard]] constexpr Error make_error(
         ErrorType type,
         std::string_view message,
@@ -91,11 +91,11 @@ namespace Engine::Utils
 
 
     // =============================================================================
-   // HRESULT ƒ`ƒFƒbƒN—pƒ}ƒNƒ
+   // HRESULT ãƒã‚§ãƒƒã‚¯ç”¨ãƒã‚¯ãƒ­
    // =============================================================================
 
 
-    //RESULT‚ğƒ`ƒFƒbƒN‚µ‚ÄA¸”s‚ÉƒGƒ‰[‚ğ•Ô‚·ƒ}ƒNƒ
+    //RESULTã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦ã€å¤±æ•—æ™‚ã«ã‚¨ãƒ©ãƒ¼ã‚’è¿”ã™ãƒã‚¯ãƒ­
 #define CHECK_HR(hr, error_type, message) \
     do { \
         HRESULT _hr = (hr); \
@@ -107,7 +107,7 @@ namespace Engine::Utils
 
 #undef CHECK_CONDITION
 
-    /// ğŒ‚ğƒ`ƒFƒbƒN‚µ‚ÄA¸”s‚ÉƒGƒ‰[‚ğ•Ô‚·ƒ}ƒNƒ
+    /// æ¡ä»¶ã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦ã€å¤±æ•—æ™‚ã«ã‚¨ãƒ©ãƒ¼ã‚’è¿”ã™ãƒã‚¯ãƒ­
 #define CHECK_CONDITION(condition, error_type, message) \
         do { \
             if (!(condition)) { \
@@ -115,21 +115,21 @@ namespace Engine::Utils
             } \
         } while(0)
 
-    //ƒƒOo—Í—p‚Ìƒwƒ‹ƒp[ŠÖ”
+    //ãƒ­ã‚°å‡ºåŠ›ç”¨ã®ãƒ˜ãƒ«ãƒ‘ãƒ¼é–¢æ•°
 
-    //ƒGƒ‰[‚ğƒfƒoƒbƒOo—Í‚É•\¦
+    //ã‚¨ãƒ©ãƒ¼ã‚’ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›ã«è¡¨ç¤º
     inline void log_error(const Error& error) noexcept
     {
         OutputDebugStringA(error.what().c_str());
     }
 
-    //î•ñ‚ğƒfƒoƒbƒOo—Í‚É•\¦
+    //æƒ…å ±ã‚’ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›ã«è¡¨ç¤º
     inline void log_info(std::string_view message) noexcept
     {
         OutputDebugStringA(std::format("[INFO] {}\n", message).c_str());
     }
 
-    //Œx‚ğƒfƒoƒbƒO‚É•\¦
+    //è­¦å‘Šã‚’ãƒ‡ãƒãƒƒã‚°ã«è¡¨ç¤º
     inline void log_warning(std::string_view message) noexcept 
     {
         OutputDebugStringA(std::format("[WARNING] {}\n", message).c_str());

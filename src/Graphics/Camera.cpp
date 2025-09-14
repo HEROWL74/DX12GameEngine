@@ -1,4 +1,4 @@
-// src/Graphics/Camera.cpp
+ï»¿// src/Graphics/Camera.cpp
 #include "Camera.hpp"
 #include <algorithm>
 
@@ -37,7 +37,7 @@ namespace Engine::Graphics
         Math::Vector3 right = Math::Vector3::cross(forward, up).normalized();
         Math::Vector3 newUp = Math::Vector3::cross(right, forward);
 
-        // ‰ñ“]Šp“x‚ðŒvŽZ
+        // è—æ«ï½»ï½¢éš—è²žï½ºï½¦ç¹§å®šï½¨è‚²ï½®ãƒ»
         m_rotation.y = Math::degrees(std::atan2(forward.x, forward.z));
         m_rotation.x = Math::degrees(std::asin(-forward.y));
         m_rotation.z = 0.0f;
@@ -146,7 +146,7 @@ namespace Engine::Graphics
     void Camera::rotatePitch(float pitch)
     {
         m_rotation.x += pitch;
-        m_rotation.x = std::clamp(m_rotation.x, -89.0f, 89.0f);  // ã‰º‚Ì‰ñ“]‚ð§ŒÀ
+        m_rotation.x = std::clamp(m_rotation.x, -89.0f, 89.0f);  // è³è´‹ï½¸ä¹ãƒ»è—æ«ï½»ï½¢ç¹§è²žå®›é«¯ãƒ»
         m_viewMatrixDirty = true;
     }
 
@@ -171,17 +171,17 @@ namespace Engine::Graphics
 
     Math::Vector3 Camera::screenToWorldPoint(const Math::Vector3& screenPoint, float viewportWidth, float viewportHeight) const
     {
-        // NDCÀ•W‚É•ÏŠ·
+        // NDCè Žï½§è®“å¶â†“èžŸç”»é‹¤
         float x = (2.0f * screenPoint.x) / viewportWidth - 1.0f;
         float y = 1.0f - (2.0f * screenPoint.y) / viewportHeight;
         float z = screenPoint.z;
 
-        // ƒNƒŠƒbƒvÀ•W
+        // ç¹§ï½¯ç¹ï½ªç¹ãƒ»ãƒ»è Žï½§è®“ãƒ»
         Math::Vector3 clipCoords(x, y, z);
 
-        // ƒrƒ…[EƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñ‚Ì‹ts—ñ‚ðŒvŽZ
-        // –{Ši“I‚ÈŽÀ‘•‚Å‚Í‹ts—ñŒvŽZ‚ª•K—v
-        return clipCoords;  // TODO: ³Šm‚È‹t•ÏŠ·‚ðŽÀ‘•
+        // ç¹è–™Î—ç¹ï½¼ç¹ï½»ç¹åŠ±ÎŸç¹§ï½¸ç¹§ï½§ç¹§ï½¯ç¹§ï½·ç¹ï½§ç¹ï½³é™¦æ‚Ÿãƒ»ç¸ºï½®é¨¾ãƒ»ï½¡æ‚Ÿãƒ»ç¹§å®šï½¨è‚²ï½®ãƒ»
+        // è­›ï½¬è­¬ï½¼é€§ãƒ»â†‘èž³æº¯ï½£ãƒ»ã€’ç¸ºï½¯é¨¾ãƒ»ï½¡æ‚Ÿãƒ»éšªè‚²ï½®åŠ±â€²è ¢ãƒ»ï½¦ãƒ»
+        return clipCoords;  // TODO: è±ï½£é’ï½ºç¸ºï½ªé¨¾ãƒ»ï½¤ç”»é‹¤ç¹§è²žï½®æº¯ï½£ãƒ»
     }
 
     void Camera::updateViewMatrix() const
@@ -210,15 +210,15 @@ namespace Engine::Graphics
 
     void Camera::normalizeRotation()
     {
-        // YŽ²‰ñ“]‚ð-180~180“x‚É³‹K‰»
+        // Yéœ†ï½¸è—æ«ï½»ï½¢ç¹§ãƒ»180~180è Žï½¦ç¸ºï½«è±ï½£éš•ä¸žå–§
         while (m_rotation.y > 180.0f) m_rotation.y -= 360.0f;
         while (m_rotation.y < -180.0f) m_rotation.y += 360.0f;
 
-        // ‚˜Ž²‰ñ“]‚ð-89~89“x‚É§ŒÀi^ãE^‰º‚ðŒü‚©‚È‚¢‚æ‚¤‚Éj
+        // ãƒ»å€©ï½»ï½¸è—æ«ï½»ï½¢ç¹§ãƒ»89~89è Žï½¦ç¸ºï½«è›»ï½¶é«¯æ’°ï½¼è‚²æ‚„è³ç¿«ãƒ»é€µæ»‰ï½¸ä¹ï½’èœ·ä»£Â°ç¸ºï½ªç¸ºãƒ»ï½ˆç¸ºãƒ»â†“ãƒ»ãƒ»
         m_rotation.x = std::clamp(m_rotation.x, -89.0f, 89.0f);
     }
 
-    // FPSCameraControllerŽÀ‘•
+    // FPSCameraControllerèž³æº¯ï½£ãƒ»
     FPSCameraController::FPSCameraController(Camera* camera)
         : m_camera(camera)
         , m_movementSpeed(5.0f)
@@ -228,8 +228,8 @@ namespace Engine::Graphics
 
     void FPSCameraController::update(float deltaTime)
     {
-        // Œ»Ý‚Í‰½‚à‚µ‚È‚¢
-        // TODO: «—ˆ“I‚É‚ÍŠµ«‚âƒXƒ€[ƒWƒ“ƒO‚ð’Ç‰Á‚·‚é—\’è
+        // è¿´ï½¾è¨ï½¨ç¸ºï½¯è´è¼”ï½‚ç¸ºåŠ±â†‘ç¸ºãƒ»
+        // TODO: èŸ†ãƒ»æ“‚é€§ãƒ»â†“ç¸ºï½¯è«·ï½£è«¤ï½§ç¹§ãƒ»ã›ç¹ï£°ç¹ï½¼ç¹§ï½¸ç¹ï½³ç¹§ï½°ç¹§å®šï½¿ï½½èœ‰ï£°ç¸ºå¶ï½‹èŽ äº¥ï½®ãƒ»
     }
 
     void FPSCameraController::processKeyboard(bool forward, bool backward, bool left, bool right, bool up, bool down, float deltaTime)
@@ -237,13 +237,13 @@ namespace Engine::Graphics
         float velocity = m_movementSpeed * deltaTime;
 
         if (forward)
-            m_camera->moveForward(velocity);    // •„†‚ðC³
+            m_camera->moveForward(velocity);    // éš¨ï½¦èœ¿ï½·ç¹§å‰ƒï½¿ï½®è±ï½£
         if (backward)
-            m_camera->moveForward(-velocity);   // •„†‚ðC³
+            m_camera->moveForward(-velocity);   // éš¨ï½¦èœ¿ï½·ç¹§å‰ƒï½¿ï½®è±ï½£
         if (right)
-            m_camera->moveRight(velocity);      // •„†‚ðC³
+            m_camera->moveRight(velocity);      // éš¨ï½¦èœ¿ï½·ç¹§å‰ƒï½¿ï½®è±ï½£
         if (left)
-            m_camera->moveRight(-velocity);     // •„†‚ðC³
+            m_camera->moveRight(-velocity);     // éš¨ï½¦èœ¿ï½·ç¹§å‰ƒï½¿ï½®è±ï½£
         if (up)
             m_camera->moveUp(velocity);
         if (down)

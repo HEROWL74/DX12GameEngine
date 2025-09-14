@@ -1,4 +1,4 @@
-//src/Graphics/Device.cpp
+ï»¿//src/Graphics/Device.cpp
 #include "Device.hpp"
 #include <format>
 #include <algorithm>
@@ -6,7 +6,7 @@
 namespace Engine::Graphics
 {
     // =============================================================================
-   // AdapterInfoÀ‘•
+   // AdapterInfoè³æº¯ï½£ãƒ»
    // =============================================================================
 
     std::string AdapterInfo::getMemoryInfoString() const noexcept
@@ -21,43 +21,48 @@ namespace Engine::Graphics
         );
     }
     // =============================================================================
-    //DeviceÀ‘•
+    //Deviceè³æº¯ï½£ãƒ»
     // =============================================================================
 
     Utils::VoidResult Device::initialize(const DeviceSettings& settings)
     {
         Utils::log_info("Initializing Graphics Device...");
 
-        //ƒfƒoƒbƒOƒŒƒCƒ„[‚Ì‰Šú‰»
+        //ç¹ãƒ»ãƒ°ç¹ãƒ»ã’ç¹ï½¬ç¹§ï½¤ç¹ï½¤ç¹ï½¼ç¸ºï½®è›»æ™„æ‚„è›¹ãƒ»
         auto debugResult = initializeDebugLayer(settings);
         if (!debugResult)
         {
             return debugResult;
         }
 
-        //DXGIƒtƒ@ƒNƒgƒŠ‚Ìì¬
+        //DXGIç¹è¼”ãƒç¹§ï½¯ç¹åŒ»Îœç¸ºï½®è´æ‡ˆãƒ»
         auto factoryResult = createDXGIFactory();
         if (!factoryResult)
         {
             return factoryResult;
         }
 
-        //Å“K‚ÈƒAƒ_ƒvƒ^[‚Ì‘I‘ğ
+        //è­›Â€é©•ï½©ç¸ºï½ªç¹§ï½¢ç¹Â€ç¹åŠ±ã¡ç¹ï½¼ç¸ºï½®é©•ï½¸è¬šãƒ»
         auto adapterResult = selectBestAdapter(settings);
         if (!adapterResult)
         {
             return adapterResult;
         }
 
-        //D3D12ƒfƒoƒCƒX‚Ìì¬
+        //D3D12ç¹ãƒ»ãƒ°ç¹§ï½¤ç¹§ï½¹ç¸ºï½®è´æ‡ˆãƒ»
         auto deviceResult = createDevice(settings);
         if (!deviceResult)
         {
             return deviceResult;
         }
 
-        //ƒfƒBƒXƒNƒŠƒvƒ^ƒTƒCƒY‚ÌƒLƒƒƒbƒVƒ…
+      
         cacheDescriptorSizes();
+
+        auto queueResult = createGraphicsQueue();
+        if (!queueResult) { return queueResult; }
+        auto srvHeapResult = createSrvHeap(1024);
+        if (!srvHeapResult) { return srvHeapResult; }
 
         Utils::log_info(std::format("Graphics Device initialized successfully"));
         Utils::log_info(std::format("Selected Adapter: {}",
@@ -121,7 +126,7 @@ namespace Engine::Graphics
     }
 
     //======================================================================
-    //ƒvƒ‰ƒCƒx[ƒgƒƒ\ƒbƒhÀ‘•
+    //ç¹åŠ±Î›ç¹§ï½¤ç¹å¶ãƒ»ç¹åŒ»Î“ç¹§ï½½ç¹ãƒ»ãƒ©è³æº¯ï½£ãƒ»
 
     Utils::VoidResult Device::initializeDebugLayer(const DeviceSettings& settings)
     {
@@ -135,7 +140,7 @@ namespace Engine::Graphics
                 m_debugLayerEnabled = true;
                 Utils::log_info("D3D12 Debug Layer enabled");
 
-                //GPUŒŸØ‚Ì—LŒø‰»
+                //GPUè®€æ‡†ï½¨ï½¼ç¸ºï½®è­›ç‰™æŸ‘è›¹ãƒ»
                 if (settings.enableGpuValidation)
                 {
                     ComPtr<ID3D12Debug1> debugController1;
@@ -152,7 +157,7 @@ namespace Engine::Graphics
             }
         }
         #else
-        //ƒŠƒŠ[ƒXƒrƒ‹ƒh‚Å‚ÍAƒfƒoƒbƒOƒŒƒCƒ„[‚ğ–³Œø‚É‚·‚é
+        //ç¹ï½ªç¹ï½ªç¹ï½¼ç¹§ï½¹ç¹è–™Îç¹å³¨ã€’ç¸ºï½¯ç¸²âˆšãƒ§ç¹èˆŒãƒ£ç¹§ï½°ç¹ï½¬ç¹§ï½¤ç¹ï½¤ç¹ï½¼ç¹§å ¤â”Œèœ‰ï½¹ç¸ºï½«ç¸ºå¶ï½‹
         UNREFERENCED_PARAMETER(settings);
         #endif
 
@@ -187,7 +192,7 @@ namespace Engine::Graphics
         {
             AdapterInfo info = getAdapterInfo(adapter.Get());
 
-            //D3D12‘Î‰ƒ`ƒFƒbƒN
+            //D3D12èŸ‡ï½¾è ¢æ‡Šãƒ¡ç¹§ï½§ç¹ãƒ»ã‘
             if (!isAdapterCompatible(adapter.Get(), settings.minFeatureLevel))
             {
                 Utils::log_info(std::format("Skipping incompatible adapter: {}",
@@ -201,12 +206,12 @@ namespace Engine::Graphics
                 std::string(info.description.begin(), info.description.end()),
                 info.getMemoryInfoString()));
 
-            //ƒAƒ_ƒvƒ^[‘I‘ğƒƒWƒbƒN
+            //ç¹§ï½¢ç¹Â€ç¹åŠ±ã¡ç¹ï½¼é©•ï½¸è¬šæ§­ÎŸç¹§ï½¸ç¹ãƒ»ã‘
             bool shouldSelect = false;
 
             if (settings.preferHighPerformanceAdapter)
             {
-                // ‚«”\—DæFƒn[ƒhƒEƒFƒAƒAƒ_ƒvƒ^[‚ÅÅ‘åƒrƒfƒIƒƒ‚ƒŠ
+                // é¬®ä¿¶Â€ï½§é–­ï½½èœ†ï½ªèœˆèŒ¨ï½¼å£¹ãƒ¯ç¹ï½¼ç¹å³¨ãˆç¹§ï½§ç¹§ï½¢ç¹§ï½¢ç¹Â€ç¹åŠ±ã¡ç¹ï½¼ç¸ºï½§è­›Â€èŸï½§ç¹è–™ãƒ§ç¹§ï½ªç¹ï½¡ç¹ï½¢ç¹ï½ª
                 if (info.isHardware && info.dedicatedVideoMemory > maxVideoMemory)
                 {
                     shouldSelect = true;
@@ -218,7 +223,7 @@ namespace Engine::Graphics
             }
             else
             {
-                //Å‰‚ÉŒ©‚Â‚©‚Á‚½‘Î‰ƒAƒ_ƒvƒ^[‚ğg—p
+                //è­›Â€è›»æ˜´â†“éš•ä¹â–½ç¸ºä¹â–²ç¸ºæº·ï½¯ï½¾è ¢æ‡Šã„ç¹Â€ç¹åŠ±ã¡ç¹ï½¼ç¹§å‰ƒï½½ï½¿é€•ï½¨
                 if (!bestAdapter)
                 {
                     shouldSelect = true;
@@ -245,7 +250,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult Device::createDevice(const DeviceSettings& settings)
     {
-        //ƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚éÅ‚‚Ì‹@”\ƒŒƒxƒ‹‚ğs
+        //ç¹§ï½µç¹æ˜´ãƒ»ç¹åŒ»ï¼†ç¹§å¾Œâ€»ç¸ºãƒ»ï½‹è­›Â€é¬®å€¥ãƒ»è®–æº¯ãƒ»ç¹ï½¬ç¹å¶Îç¹§å®šï½©ï½¦é™¦ãƒ»
         const D3D_FEATURE_LEVEL featureLevels[] = {
             D3D_FEATURE_LEVEL_12_2,
             D3D_FEATURE_LEVEL_12_1,
@@ -312,5 +317,50 @@ namespace Engine::Graphics
         HRESULT hr = D3D12CreateDevice(adapter, minFeatureLevel, IID_PPV_ARGS(&testDevice));
 
         return SUCCEEDED(hr);
+    }
+
+    Utils::VoidResult Device::createGraphicsQueue()
+    {
+        D3D12_COMMAND_QUEUE_DESC desc = {};
+        desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+
+        CHECK_HR(m_device->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_graphicsQueue)),
+            Utils::ErrorType::DeviceCreation, "Failed to create graphics command queue");
+
+        // ãƒ•ã‚§ãƒ³ã‚¹ & ã‚¤ãƒ™ãƒ³ãƒˆ
+        CHECK_HR(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)),
+            Utils::ErrorType::DeviceCreation, "Failed to create fence");
+        m_fenceValue = 1;
+        m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+
+        return {};
+    }
+
+    Utils::VoidResult Device::createSrvHeap(UINT numDescriptors)
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.NumDescriptors = numDescriptors;
+        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+        CHECK_HR(m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_srvHeap)),
+            Utils::ErrorType::ResourceCreation, "Failed to create SRV descriptor heap");
+
+        m_srvAllocated = 0;
+        return {};
+    }
+
+    void Device::waitForGpu()
+    {
+        if (!m_graphicsQueue || !m_fence) return;
+
+        const UINT64 fenceToWait = m_fenceValue++;
+        m_graphicsQueue->Signal(m_fence.Get(), fenceToWait);
+        if (m_fence->GetCompletedValue() < fenceToWait)
+        {
+            m_fence->SetEventOnCompletion(fenceToWait, m_fenceEvent);
+            WaitForSingleObject(m_fenceEvent, INFINITE);
+        }
     }
 }

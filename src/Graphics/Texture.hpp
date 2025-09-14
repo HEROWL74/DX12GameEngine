@@ -1,4 +1,4 @@
-//src/Graphics/Texture.hpp
+ï»¿//src/Graphics/Texture.hpp
 #pragma once
 
 #include <string>
@@ -10,31 +10,32 @@
 #include <dxgi1_6.h>
 #include "../Utils/Common.hpp"
 #include "Device.hpp"
+#include "../UI/imgui.h"
 
 using Microsoft::WRL::ComPtr;
 
 namespace Engine::Graphics
 {
     //=========================================================================
-    // ƒeƒNƒXƒ`ƒƒƒtƒH[ƒ}ƒbƒg—ñ‹“Œ^
+    // ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆåˆ—æŒ™å‹
     //=========================================================================
     enum class TextureFormat
     {
         Unknown,
-        R8G8B8A8_UNORM,     // ˆê”Ê“I‚ÈRGBAƒtƒH[ƒ}ƒbƒg
-        R8G8B8A8_SRGB,      // sRGBF‹óŠÔ
-        R8G8B8_UNORM,       // RGBiƒAƒ‹ƒtƒ@‚È‚µj
-        R8_UNORM,           // ƒOƒŒ[ƒXƒP[ƒ‹
-        R16G16B16A16_FLOAT, // HDR—p
-        BC1_UNORM,          // DXT1ˆ³k
-        BC3_UNORM,          // DXT5ˆ³k
-        BC7_UNORM,          // ‚•i¿ˆ³k
-        D32_FLOAT,          // [“xƒoƒbƒtƒ@—p
-        D24_UNORM_S8_UINT   // [“xƒXƒeƒ“ƒVƒ‹—p
+        R8G8B8A8_UNORM,     // ä¸€èˆ¬çš„ãªRGBAãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ
+        R8G8B8A8_SRGB,      // sRGBè‰²ç©ºé–“
+        R8G8B8_UNORM,       // RGBï¼ˆã‚¢ãƒ«ãƒ•ã‚¡ãªã—ï¼‰
+        R8_UNORM,           // ã‚°ãƒ¬ãƒ¼ã‚¹ã‚±ãƒ¼ãƒ«
+        R16G16B16A16_FLOAT, // HDRç”¨
+        BC1_UNORM,          // DXT1åœ§ç¸®
+        BC3_UNORM,          // DXT5åœ§ç¸®
+        BC7_UNORM,          // é«˜å“è³ªåœ§ç¸®
+        D32_FLOAT,          // æ·±åº¦ãƒãƒƒãƒ•ã‚¡ç”¨
+        D24_UNORM_S8_UINT   // æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ç”¨
     };
 
     //=========================================================================
-    // ƒeƒNƒXƒ`ƒƒƒ^ƒCƒv—ñ‹“Œ^
+    // ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚¿ã‚¤ãƒ—åˆ—æŒ™å‹
     //=========================================================================
     enum class TextureDimension
     {
@@ -45,20 +46,20 @@ namespace Engine::Graphics
     };
 
     //=========================================================================
-    // ƒeƒNƒXƒ`ƒƒg—p–@ƒtƒ‰ƒO
+    // ãƒ†ã‚¯ã‚¹ãƒãƒ£ä½¿ç”¨æ³•ãƒ•ãƒ©ã‚°
     //=========================================================================
     enum class TextureUsage : uint32_t
     {
         None = 0,
-        ShaderResource = 1 << 0,    // ƒVƒF[ƒ_[ƒŠƒ\[ƒX‚Æ‚µ‚Äg—p
-        RenderTarget = 1 << 1,      // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚Æ‚µ‚Äg—p
-        DepthStencil = 1 << 2,      // [“xƒXƒeƒ“ƒVƒ‹‚Æ‚µ‚Äg—p
-        UnorderedAccess = 1 << 3,   // ƒRƒ“ƒsƒ…[ƒgƒVƒF[ƒ_[‚Å‚Ì“Ç‚İ‘‚«
-        CopySource = 1 << 4,        // ƒRƒs[Œ³‚Æ‚µ‚Äg—p
-        CopyDestination = 1 << 5    // ƒRƒs[æ‚Æ‚µ‚Äg—p
+        ShaderResource = 1 << 0,    // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒªã‚½ãƒ¼ã‚¹ã¨ã—ã¦ä½¿ç”¨
+        RenderTarget = 1 << 1,      // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¨ã—ã¦ä½¿ç”¨
+        DepthStencil = 1 << 2,      // æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã¨ã—ã¦ä½¿ç”¨
+        UnorderedAccess = 1 << 3,   // ã‚³ãƒ³ãƒ”ãƒ¥ãƒ¼ãƒˆã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã§ã®èª­ã¿æ›¸ã
+        CopySource = 1 << 4,        // ã‚³ãƒ”ãƒ¼å…ƒã¨ã—ã¦ä½¿ç”¨
+        CopyDestination = 1 << 5    // ã‚³ãƒ”ãƒ¼å…ˆã¨ã—ã¦ä½¿ç”¨
     };
 
-    // ƒrƒbƒg‰‰Zq‚ÌƒI[ƒo[ƒ[ƒh
+    // ãƒ“ãƒƒãƒˆæ¼”ç®—å­ã®ã‚ªãƒ¼ãƒãƒ¼ãƒ­ãƒ¼ãƒ‰
     constexpr TextureUsage operator|(TextureUsage a, TextureUsage b)
     {
         return static_cast<TextureUsage>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
@@ -70,7 +71,7 @@ namespace Engine::Graphics
     }
 
     //=========================================================================
-    // ƒeƒNƒXƒ`ƒƒì¬İ’è
+    // ãƒ†ã‚¯ã‚¹ãƒãƒ£ä½œæˆè¨­å®š
     //=========================================================================
     struct TextureDesc
     {
@@ -87,7 +88,7 @@ namespace Engine::Graphics
     };
 
     //=========================================================================
-    // ‰æ‘œƒf[ƒ^\‘¢‘Ì
+    // ç”»åƒãƒ‡ãƒ¼ã‚¿æ§‹é€ ä½“
     //=========================================================================
     struct ImageData
     {
@@ -96,12 +97,12 @@ namespace Engine::Graphics
         uint32_t height = 0;
         uint32_t channels = 0;
         TextureFormat format = TextureFormat::Unknown;
-        uint32_t rowPitch = 0;      // 1s‚ÌƒoƒCƒg”
-        uint32_t slicePitch = 0;    // 1ƒXƒ‰ƒCƒX‚ÌƒoƒCƒg”
+        uint32_t rowPitch = 0;      // 1è¡Œã®ãƒã‚¤ãƒˆæ•°
+        uint32_t slicePitch = 0;    // 1ã‚¹ãƒ©ã‚¤ã‚¹ã®ãƒã‚¤ãƒˆæ•°
     };
 
     //=========================================================================
-    // ƒeƒNƒXƒ`ƒƒƒNƒ‰ƒX
+    // ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚¯ãƒ©ã‚¹
     //=========================================================================
     class Texture
     {
@@ -109,13 +110,13 @@ namespace Engine::Graphics
         Texture() = default;
         ~Texture() = default;
 
-        // ƒRƒs[Eƒ€[ƒu
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–
         Texture(const Texture&) = delete;
         Texture& operator=(const Texture&) = delete;
         Texture(Texture&&) = default;
         Texture& operator=(Texture&&) = default;
 
-        // ƒtƒ@ƒCƒ‹‚©‚ç‚Ìì¬
+        // ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰ã®ä½œæˆ
         [[nodiscard]] static Utils::Result<std::shared_ptr<Texture>> createFromFile(
             Device* device,
             const std::string& filePath,
@@ -123,36 +124,36 @@ namespace Engine::Graphics
             bool sRGB = false
         );
 
-        // ƒƒ‚ƒŠ‚©‚ç‚Ìì¬
+        // ãƒ¡ãƒ¢ãƒªã‹ã‚‰ã®ä½œæˆ
         [[nodiscard]] static Utils::Result<std::shared_ptr<Texture>> createFromMemory(
             Device* device,
             const ImageData& imageData,
             const TextureDesc& desc
         );
 
-        // ‹ó‚ÌƒeƒNƒXƒ`ƒƒ‚Ìì¬
+        // ç©ºã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ä½œæˆ
         [[nodiscard]] static Utils::Result<std::shared_ptr<Texture>> create(
             Device* device,
             const TextureDesc& desc
         );
 
-        // Šî–{î•ñ‚Ìæ“¾
+        // åŸºæœ¬æƒ…å ±ã®å–å¾—
         const TextureDesc& getDesc() const { return m_desc; }
         uint32_t getWidth() const { return m_desc.width; }
         uint32_t getHeight() const { return m_desc.height; }
         uint32_t getMipLevels() const { return m_desc.mipLevels; }
         TextureFormat getFormat() const { return m_desc.format; }
 
-        // D3D12ƒŠƒ\[ƒX‚Ìæ“¾
+        // D3D12ãƒªã‚½ãƒ¼ã‚¹ã®å–å¾—
         ID3D12Resource* getResource() const { return m_resource.Get(); }
         D3D12_GPU_DESCRIPTOR_HANDLE getSRVHandle() const { return m_srvHandle; }
         D3D12_GPU_DESCRIPTOR_HANDLE getRTVHandle() const { return m_rtvHandle; }
         D3D12_GPU_DESCRIPTOR_HANDLE getDSVHandle() const { return m_dsvHandle; }
 
-        // —LŒø«ƒ`ƒFƒbƒN
+        // æœ‰åŠ¹æ€§ãƒã‚§ãƒƒã‚¯
         bool isValid() const { return m_resource != nullptr; }
 
-        // ƒfƒoƒbƒO–¼‚Ìİ’è
+        // ãƒ‡ãƒãƒƒã‚°åã®è¨­å®š
         void setDebugName(const std::string& name);
 
     private:
@@ -160,12 +161,13 @@ namespace Engine::Graphics
         TextureDesc m_desc;
         ComPtr<ID3D12Resource> m_resource;
 
-        // ƒfƒXƒNƒŠƒvƒ^ƒnƒ“ƒhƒ‹
+        // ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒãƒ³ãƒ‰ãƒ«
         D3D12_GPU_DESCRIPTOR_HANDLE m_srvHandle{};
         D3D12_GPU_DESCRIPTOR_HANDLE m_rtvHandle{};
         D3D12_GPU_DESCRIPTOR_HANDLE m_dsvHandle{};
 
-        // ‰Šú‰»i“à•”g—pj
+
+        // åˆæœŸåŒ–ï¼ˆå†…éƒ¨ä½¿ç”¨ï¼‰
         [[nodiscard]] Utils::VoidResult initialize(Device* device, const TextureDesc& desc);
         [[nodiscard]] Utils::VoidResult createResource();
         [[nodiscard]] Utils::VoidResult createViews();
@@ -173,7 +175,7 @@ namespace Engine::Graphics
     };
 
     //=========================================================================
-    // ƒeƒNƒXƒ`ƒƒƒ[ƒ_[ƒNƒ‰ƒX
+    // ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ­ãƒ¼ãƒ€ãƒ¼ã‚¯ãƒ©ã‚¹
     //=========================================================================
     class TextureLoader
     {
@@ -181,34 +183,36 @@ namespace Engine::Graphics
         TextureLoader() = default;
         ~TextureLoader() = default;
 
-        // ƒRƒs[Eƒ€[ƒu‹Ö~
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
         TextureLoader(const TextureLoader&) = delete;
         TextureLoader& operator=(const TextureLoader&) = delete;
 
-        // ‰æ‘œƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+        // ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
         [[nodiscard]] static Utils::Result<ImageData> loadFromFile(const std::string& filePath);
 
-        // ŠeƒtƒH[ƒ}ƒbƒg•Ê‚Ì“Ç‚İ‚İ
+        // å„ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆåˆ¥ã®èª­ã¿è¾¼ã¿
         [[nodiscard]] static Utils::Result<ImageData> loadPNG(const std::string& filePath);
         [[nodiscard]] static Utils::Result<ImageData> loadJPEG(const std::string& filePath);
         [[nodiscard]] static Utils::Result<ImageData> loadDDS(const std::string& filePath);
         [[nodiscard]] static Utils::Result<ImageData> loadTGA(const std::string& filePath);
+
+
         /*
-        // ƒ~ƒbƒvƒ}ƒbƒv¶¬
+        // ãƒŸãƒƒãƒ—ãƒãƒƒãƒ—ç”Ÿæˆ
         [[nodiscard]] static Utils::Result<std::vector<ImageData>> generateMipmaps(const ImageData& baseImage);
 
-        // ƒtƒH[ƒ}ƒbƒg•ÏŠ·
+        // ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆå¤‰æ›
         [[nodiscard]] static Utils::Result<ImageData> convertFormat(
             const ImageData& sourceImage,
             TextureFormat targetFormat
         );
         */
-        // ƒtƒ@ƒCƒ‹Œ`®‚Ì”»’è
+        // ãƒ•ã‚¡ã‚¤ãƒ«å½¢å¼ã®åˆ¤å®š
         static std::string getFileExtension(const std::string& filePath);
         static bool isSupportedFormat(const std::string& extension);
 
     private:
-        // “à•”ƒwƒ‹ƒp[ŠÖ”
+        // å†…éƒ¨ãƒ˜ãƒ«ãƒ‘ãƒ¼é–¢æ•°
         static uint32_t calculateRowPitch(uint32_t width, TextureFormat format);
         static uint32_t calculateSlicePitch(uint32_t rowPitch, uint32_t height);
         static DXGI_FORMAT textureFormatToDXGI(TextureFormat format);
@@ -216,7 +220,7 @@ namespace Engine::Graphics
     };
 
     //=========================================================================
-    // ƒeƒNƒXƒ`ƒƒƒ}ƒl[ƒWƒƒ[ƒNƒ‰ƒX
+    // ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚¯ãƒ©ã‚¹
     //=========================================================================
     class TextureManager
     {
@@ -224,14 +228,14 @@ namespace Engine::Graphics
         TextureManager() = default;
         ~TextureManager() = default;
 
-        // ƒRƒs[Eƒ€[ƒu‹Ö~
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
         TextureManager(const TextureManager&) = delete;
         TextureManager& operator=(const TextureManager&) = delete;
 
-        // ‰Šú‰»
+        // åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initialize(Device* device);
 
-        // ƒeƒNƒXƒ`ƒƒ‚Ìì¬Eæ“¾
+        // ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ä½œæˆãƒ»å–å¾—
         [[nodiscard]] std::shared_ptr<Texture> loadTexture(
             const std::string& filePath,
             bool generateMips = true,
@@ -242,34 +246,34 @@ namespace Engine::Graphics
         bool hasTexture(const std::string& name) const;
         void removeTexture(const std::string& name);
 
-        // ƒfƒtƒHƒ‹ƒgƒeƒNƒXƒ`ƒƒ
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ†ã‚¯ã‚¹ãƒãƒ£
         std::shared_ptr<Texture> getWhiteTexture() const { return m_whiteTexture; }
         std::shared_ptr<Texture> getBlackTexture() const { return m_blackTexture; }
         std::shared_ptr<Texture> getDefaultNormalTexture() const { return m_defaultNormalTexture; }
 
-        // “Œvî•ñ
+        // çµ±è¨ˆæƒ…å ±
         size_t getTextureCount() const { return m_textures.size(); }
         size_t getTotalMemoryUsage() const;
 
-        // ƒLƒƒƒbƒVƒ…ƒNƒŠƒA
+        // ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚¯ãƒªã‚¢
         void clearCache();
 
-        // —LŒø«ƒ`ƒFƒbƒN
+        // æœ‰åŠ¹æ€§ãƒã‚§ãƒƒã‚¯
         bool isValid() const { return m_initialized && m_device != nullptr; }
 
     private:
         Device* m_device = nullptr;
         bool m_initialized = false;
 
-        // ƒeƒNƒXƒ`ƒƒƒLƒƒƒbƒVƒ…
+        // ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚­ãƒ£ãƒƒã‚·ãƒ¥
         std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
 
-        // ƒfƒtƒHƒ‹ƒgƒeƒNƒXƒ`ƒƒ
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ†ã‚¯ã‚¹ãƒãƒ£
         std::shared_ptr<Texture> m_whiteTexture;
         std::shared_ptr<Texture> m_blackTexture;
         std::shared_ptr<Texture> m_defaultNormalTexture;
 
-        // ‰Šú‰»ƒwƒ‹ƒp[
+        // åˆæœŸåŒ–ãƒ˜ãƒ«ãƒ‘ãƒ¼
         [[nodiscard]] Utils::VoidResult createDefaultTextures();
         [[nodiscard]] Utils::VoidResult createSolidColorTexture(
             std::shared_ptr<Texture>& texture,
@@ -279,20 +283,20 @@ namespace Engine::Graphics
     };
 
     //=========================================================================
-    // ƒ†[ƒeƒBƒŠƒeƒBŠÖ”
+    // ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£é–¢æ•°
     //=========================================================================
 
-    // ƒtƒH[ƒ}ƒbƒgî•ñ‚Ìæ“¾
+    // ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæƒ…å ±ã®å–å¾—
     uint32_t getBytesPerPixel(TextureFormat format);
     bool isCompressedFormat(TextureFormat format);
     bool isSRGBFormat(TextureFormat format);
     bool isDepthFormat(TextureFormat format);
 
-    // DXGI_FORMAT•ÏŠ·
+    // DXGI_FORMATå¤‰æ›
     DXGI_FORMAT textureFormatToDXGI(TextureFormat format);
     TextureFormat dxgiToTextureFormat(DXGI_FORMAT format);
 
-    // ƒeƒNƒXƒ`ƒƒg—p–@‚©‚çD3D12ƒtƒ‰ƒO‚Ö‚Ì•ÏŠ·
+    // ãƒ†ã‚¯ã‚¹ãƒãƒ£ä½¿ç”¨æ³•ã‹ã‚‰D3D12ãƒ•ãƒ©ã‚°ã¸ã®å¤‰æ›
     D3D12_RESOURCE_FLAGS textureUsageToD3D12Flags(TextureUsage usage);
     D3D12_RESOURCE_STATES textureUsageToD3D12State(TextureUsage usage);
 }

@@ -1,4 +1,4 @@
-// src/Input/InputManager.cpp
+ï»¿// src/Input/InputManager.cpp
 #include "InputManager.hpp"
 #include "../Utils/Common.hpp"
 #include <format>
@@ -28,15 +28,15 @@ namespace Engine::Input
             return;
         }
 
-        // ‰Šúó‘Ô‚ğƒŠƒZƒbƒg
+        // è›»æ™„æ‚„è¿¥ï½¶è«·ä¹ï½’ç¹ï½ªç¹§ï½»ç¹ãƒ»ãƒ¨
         m_keyStates.fill(false);
         m_prevKeyStates.fill(false);
         m_mouseState.reset();
 
-        // ƒEƒBƒ“ƒhƒE‚Ì’†SÀ•W‚ğŒvZ
+        // ç¹§ï½¦ç¹§ï½£ç¹ï½³ç¹å³¨ãˆç¸ºï½®è³ï½­è ¢ãƒ»ï½ºï½§è®“å¶ï½’éšªè‚²ï½®ãƒ»
         calculateWindowCenter();
 
-        // Raw Input ‚ğ—LŒø‰»i‚¸“xƒ}ƒEƒX“ü—Í—pj
+        // Raw Input ç¹§å‘ˆæ€èœ‰ï½¹è›¹å„ï½¼ç£¯ï½«å€¡ï½²ï½¾è ï½¦ç¹æ§­ãˆç¹§ï½¹èœˆï½¥èœ‰å¸·ç•‘ãƒ»ãƒ»
         setRawMouseInput(true);
 
         m_initialized = true;
@@ -50,23 +50,23 @@ namespace Engine::Input
             return;
         }
 
-        // •K‚¸‘Š‘Îƒ‚[ƒh‚ğ‰ğœ
+        // è ¢ãƒ»â˜…é€¶ï½¸èŸ‡ï½¾ç¹ï½¢ç¹ï½¼ç¹å³¨ï½’éš—ï½£é«¯ï½¤
         setRelativeMouseMode(false);
 
-        // Raw Input‚ğ–³Œø‰»
+        // Raw Inputç¹§å ¤â”Œèœ‰ï½¹è›¹ãƒ»
         setRawMouseInput(false);
 
-        // ƒ}ƒEƒXƒLƒƒƒvƒ`ƒƒ‚ğ‰ğ•ú
+        // ç¹æ§­ãˆç¹§ï½¹ç¹§ï½­ç¹ï½£ç¹åŠ±ãƒ¡ç¹ï½£ç¹§å®šï½§ï½£è¬¾ï½¾
         if (m_mouseCaptured)
         {
             ReleaseCapture();
             m_mouseCaptured = false;
         }
 
-        // ƒJ[ƒ\ƒ‹‚ğ•\¦
+        // ç¹§ï½«ç¹ï½¼ç¹§ï½½ç¹ï½«ç¹§å®šï½¡ï½¨é‰ï½º
         showCursor(true);
 
-        // ƒVƒXƒeƒ€‚ÌƒJ[ƒ\ƒ‹ˆÊ’u‚ğ•œŒ³i”O‚Ì‚½‚ßj
+        // ç¹§ï½·ç¹§ï½¹ç¹ãƒ»Î’ç¸ºï½®ç¹§ï½«ç¹ï½¼ç¹§ï½½ç¹ï½«è´å’²ï½½ï½®ç¹§è²ï½¾ï½©èœˆãƒ»ï½¼äº¥ï½¿ï½µç¸ºï½®ç¸ºæº˜ï½ãƒ»ãƒ»
         POINT centerPoint;
         centerPoint.x = GetSystemMetrics(SM_CXSCREEN) / 2;
         centerPoint.y = GetSystemMetrics(SM_CYSCREEN) / 2;
@@ -85,17 +85,17 @@ namespace Engine::Input
             return;
         }
 
-        // ‘OƒtƒŒ[ƒ€‚Ìó‘Ô‚ğ•Û‘¶
+        // èœ‘é˜ªãƒµç¹ï½¬ç¹ï½¼ç¹ï£°ç¸ºï½®è¿¥ï½¶è«·ä¹ï½’è«æ™ï½­ãƒ»
         m_prevKeyStates = m_keyStates;
         m_mouseState.savePreviousState();
 
-        // ƒL[ƒ{[ƒhó‘Ô‚ğXV
+        // ç¹§ï½­ç¹ï½¼ç¹æ‡Šãƒ»ç¹è‡¥æ†¾è«·ä¹ï½’è­–ï½´è­ï½°
         updateKeyboardState();
 
-        // ƒ}ƒEƒXó‘Ô‚ğXV
+        // ç¹æ§­ãˆç¹§ï½¹è¿¥ï½¶è«·ä¹ï½’è­–ï½´è­ï½°
         updateMouseState();
 
-        // ƒtƒŒ[ƒ€ŒÅ—L‚Ìƒf[ƒ^‚ğƒŠƒZƒbƒg
+        // ç¹è¼”Îç¹ï½¼ç¹ï£°è—ï½ºè­›å³¨ãƒ»ç¹ãƒ»ãƒ»ç¹§ï½¿ç¹§åµÎœç¹§ï½»ç¹ãƒ»ãƒ¨
         resetFrameData();
     }
 
@@ -182,11 +182,11 @@ namespace Engine::Input
 
         m_cursorVisible = show;
 
-        // ShowCursor()‚Í“à•”ƒJƒEƒ“ƒ^[‚ğg—p‚·‚é‚½‚ßA
-        // ŠmÀ‚É•\¦/”ñ•\¦‚É‚·‚é‚½‚ß‚É“KØ‚É§Œä
+        // ShowCursor()ç¸ºï½¯èœ€ãƒ»Îšç¹§ï½«ç¹§ï½¦ç¹ï½³ç¹§ï½¿ç¹ï½¼ç¹§å‰ƒï½½ï½¿é€•ï½¨ç¸ºå¶ï½‹ç¸ºæº˜ï½ç¸²ãƒ»
+        // é’ï½ºè³æº˜â†“é™¦ï½¨é‰ï½º/é«±æ«ï½¡ï½¨é‰ï½ºç¸ºï½«ç¸ºå¶ï½‹ç¸ºæº˜ï½ç¸ºï½«é©•ï½©è›»ãƒ»â†“è›»ï½¶è •ï½¡
         if (show)
         {
-            // ƒJ[ƒ\ƒ‹‚ğ•\¦‚·‚é‚Ü‚ÅShowCursor(TRUE)‚ğŒJ‚è•Ô‚·
+            // ç¹§ï½«ç¹ï½¼ç¹§ï½½ç¹ï½«ç¹§å®šï½¡ï½¨é‰ï½ºç¸ºå¶ï½‹ç¸ºï½¾ç¸ºï½§ShowCursor(TRUE)ç¹§å ¤ï½¹ï½°ç¹§é¡˜ï½¿æ–â˜†
             int count = ShowCursor(TRUE);
             while (count < 0)
             {
@@ -195,7 +195,7 @@ namespace Engine::Input
         }
         else
         {
-            // ƒJ[ƒ\ƒ‹‚ğ”ñ•\¦‚É‚·‚é‚Ü‚ÅShowCursor(FALSE)‚ğŒJ‚è•Ô‚·
+            // ç¹§ï½«ç¹ï½¼ç¹§ï½½ç¹ï½«ç¹§å¸æ’¼é™¦ï½¨é‰ï½ºç¸ºï½«ç¸ºå¶ï½‹ç¸ºï½¾ç¸ºï½§ShowCursor(FALSE)ç¹§å ¤ï½¹ï½°ç¹§é¡˜ï½¿æ–â˜†
             int count = ShowCursor(FALSE);
             while (count >= 0)
             {
@@ -250,35 +250,35 @@ namespace Engine::Input
         {
             Utils::log_info("Enabling relative mouse mode");
 
-            // 1. ƒEƒBƒ“ƒhƒE’†‰›ˆÊ’u‚ğŒvZ
+            // 1. ç¹§ï½¦ç¹§ï½£ç¹ï½³ç¹å³¨ãˆè³ï½­èŸï½®è´å’²ï½½ï½®ç¹§å®šï½¨è‚²ï½®ãƒ»
             calculateWindowCenter();
 
-            // 2. ƒ}ƒEƒXƒLƒƒƒvƒ`ƒƒ‚ğæ‚Éİ’è
+            // 2. ç¹æ§­ãˆç¹§ï½¹ç¹§ï½­ç¹ï½£ç¹åŠ±ãƒ¡ç¹ï½£ç¹§è²ãƒ»ç¸ºï½«éšªï½­è³ãƒ»
             captureMouse(true);
 
-            // 3. Raw Input‚ğ—LŒø‰»
+            // 3. Raw Inputç¹§å‘ˆæ€èœ‰ï½¹è›¹ãƒ»
             setRawMouseInput(true);
 
-            // 4. ƒ}ƒEƒX‚ğ’†‰›‚ÉˆÚ“®
+            // 4. ç¹æ§­ãˆç¹§ï½¹ç¹§å‰ƒï½¸ï½­èŸï½®ç¸ºï½«é˜ï½»èœãƒ»
             setMousePosition(m_windowCenter.x, m_windowCenter.y);
 
-            // 5. ÅŒã‚ÉƒJ[ƒ\ƒ‹‚ğ”ñ•\¦
+            // 5. è­›Â€è •å¾Œâ†“ç¹§ï½«ç¹ï½¼ç¹§ï½½ç¹ï½«ç¹§å¸æ’¼é™¦ï½¨é‰ï½º
             showCursor(false);
         }
         else
         {
             Utils::log_info("Disabling relative mouse mode");
 
-            // 1. Å‰‚ÉƒJ[ƒ\ƒ‹‚ğ•\¦
+            // 1. è­›Â€è›»æ˜´â†“ç¹§ï½«ç¹ï½¼ç¹§ï½½ç¹ï½«ç¹§å®šï½¡ï½¨é‰ï½º
             showCursor(true);
 
-            // 2. Raw Input‚ğ–³Œø‰»
+            // 2. Raw Inputç¹§å ¤â”Œèœ‰ï½¹è›¹ãƒ»
             setRawMouseInput(false);
 
-            // 3. ƒ}ƒEƒXƒLƒƒƒvƒ`ƒƒ‚ğ‰ğœ
+            // 3. ç¹æ§­ãˆç¹§ï½¹ç¹§ï½­ç¹ï½£ç¹åŠ±ãƒ¡ç¹ï½£ç¹§å®šï½§ï½£é«¯ï½¤
             captureMouse(false);
 
-            // 4. ƒfƒ‹ƒ^‚ğƒŠƒZƒbƒg
+            // 4. ç¹ãƒ»Îç¹§ï½¿ç¹§åµÎœç¹§ï½»ç¹ãƒ»ãƒ¨
             m_mouseState.deltaX = 0;
             m_mouseState.deltaY = 0;
         }
@@ -330,7 +330,7 @@ namespace Engine::Input
         info += std::format("Relative Mode: {}\n", m_relativeMode);
         info += std::format("Cursor Visible: {}\n", m_cursorVisible);
 
-        // ‰Ÿ‚³‚ê‚Ä‚¢‚éƒL[‚Ìî•ñ
+        // è¬šï½¼ç¸ºè¼”ï½Œç¸ºï½¦ç¸ºãƒ»ï½‹ç¹§ï½­ç¹ï½¼ç¸ºï½®è« ãƒ»ï£°ï½±
         info += "Pressed Keys: ";
         for (size_t i = 0; i < MAX_KEYS; ++i)
         {
@@ -346,7 +346,7 @@ namespace Engine::Input
 
     void InputManager::updateKeyboardState()
     {
-        // Windows API‚ÅƒL[ƒ{[ƒhó‘Ô‚ğ’¼Úæ“¾
+        // Windows APIç¸ºï½§ç¹§ï½­ç¹ï½¼ç¹æ‡Šãƒ»ç¹è‡¥æ†¾è«·ä¹ï½’é€¶ï½´è¬—ï½¥èœ¿é–€ï½¾ãƒ»
         BYTE keyboardState[256];
         if (GetKeyboardState(keyboardState))
         {
@@ -357,7 +357,7 @@ namespace Engine::Input
         }
     }
 
-    // InputManager.cpp ‚Ì updateMouseState ‚ğC³
+    // InputManager.cpp ç¸ºï½® updateMouseState ç¹§å‰ƒï½¿ï½®è±ï½£
     void InputManager::updateMouseState()
     {
         if (!m_initialized)
@@ -365,7 +365,7 @@ namespace Engine::Input
             return;
         }
 
-        // ‘Š‘Îƒ‚[ƒh‚Å‚È‚¢ê‡‚Ì‚İ’Êí‚ÌˆÊ’uæ“¾
+        // é€¶ï½¸èŸ‡ï½¾ç¹ï½¢ç¹ï½¼ç¹å³¨ã€’ç¸ºï½ªç¸ºãƒ»ï£°ï½´èœ·åŒ»ãƒ»ç¸ºï½¿é¨¾å£¼ï½¸ï½¸ç¸ºï½®è´å’²ï½½ï½®èœ¿é–€ï½¾ãƒ»
         if (!m_relativeMode)
         {
             POINT cursorPos;
@@ -375,9 +375,9 @@ namespace Engine::Input
                 m_mouseState.setPosition(cursorPos.x, cursorPos.y);
             }
         }
-        // ‘Š‘Îƒ‚[ƒh‚Ìê‡ARaw Input‚©‚ç‚Ìƒfƒ‹ƒ^‚Ì‚İ‚ğg—p
+        // é€¶ï½¸èŸ‡ï½¾ç¹ï½¢ç¹ï½¼ç¹å³¨ãƒ»è£ï½´èœ·åŒ»Â€ãƒ½aw Inputç¸ºä¹ï½‰ç¸ºï½®ç¹ãƒ»Îç¹§ï½¿ç¸ºï½®ç¸ºï½¿ç¹§å‰ƒï½½ï½¿é€•ï½¨
 
-        // ƒEƒBƒ“ƒhƒE“à”»’è
+        // ç¹§ï½¦ç¹§ï½£ç¹ï½³ç¹å³¨ãˆèœ€ãƒ»æ„›è³ãƒ»
         RECT clientRect;
         if (GetClientRect(m_windowHandle, &clientRect))
         {
@@ -390,7 +390,7 @@ namespace Engine::Input
 
     void InputManager::resetFrameData()
     {
-        // ƒzƒC[ƒ‹ƒf[ƒ^‚ğƒŠƒZƒbƒg
+        // ç¹å¸™ã†ç¹ï½¼ç¹ï½«ç¹ãƒ»ãƒ»ç¹§ï½¿ç¹§åµÎœç¹§ï½»ç¹ãƒ»ãƒ¨
         m_mouseState.wheelDelta = 0.0f;
         m_mouseState.horizontalWheelDelta = 0.0f;
     }
@@ -418,7 +418,7 @@ namespace Engine::Input
 
         if (enable)
         {
-            rid.dwFlags = RIDEV_INPUTSINK;  // ƒAƒNƒeƒBƒu‚Å‚È‚¢‚àóM
+            rid.dwFlags = RIDEV_INPUTSINK;  // ç¹§ï½¢ç¹§ï½¯ç¹ãƒ»ã…ç¹æ‚¶ã€’ç¸ºï½ªç¸ºãƒ»å‡¾ç¹§ã‚‡å¥³è«ï½¡
             rid.hwndTarget = m_windowHandle;
         }
         else
@@ -445,11 +445,11 @@ namespace Engine::Input
         bool isPressed = (message == WM_KEYDOWN || message == WM_SYSKEYDOWN);
         bool wasPressed = isKeyDown(keyCode);
 
-        // ó‘Ô‚ğXV
+        // è¿¥ï½¶è«·ä¹ï½’è­–ï½´è­ï½°
         size_t index = keyCodeToIndex(keyCode);
         m_keyStates[index] = isPressed;
 
-        // ƒR[ƒ‹ƒoƒbƒNŒÄ‚Ño‚µ
+        // ç¹§ï½³ç¹ï½¼ç¹ï½«ç¹èˆŒãƒ£ç¹§ï½¯èœ»ï½¼ç¸ºï½³èœƒï½ºç¸ºãƒ»
         if (isPressed && !wasPressed && m_keyPressedCallback)
         {
             m_keyPressedCallback(keyCode);
@@ -495,8 +495,8 @@ namespace Engine::Input
         return true;
 
         default:
-            // ƒ}ƒEƒXƒ{ƒ^ƒ“ƒƒbƒZ[ƒW‚Ìˆ—
-            MouseButton button = win32ToMouseButton(message, wParam);  // wParam‚à“n‚·
+            // ç¹æ§­ãˆç¹§ï½¹ç¹æ‡Šã¡ç¹ï½³ç¹ï½¡ç¹ãƒ»ãç¹ï½¼ç¹§ï½¸ç¸ºï½®èœƒï½¦é€…ãƒ»
+            MouseButton button = win32ToMouseButton(message, wParam);  // wParamç¹§ã‚ˆï½¸ï½¡ç¸ºãƒ»
             if (button != static_cast<MouseButton>(255))
             {
                 bool isPressed = (message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN ||
@@ -530,19 +530,19 @@ namespace Engine::Input
         {
             if (raw.header.dwType == RIM_TYPEMOUSE && m_relativeMode)
             {
-                // ¶‚Ìƒ}ƒEƒXˆÚ“®—Ê‚ğæ“¾
+                // é€•æº˜ãƒ»ç¹æ§­ãˆç¹§ï½¹é˜ï½»èœæš®ã¼ç¹§è²å™è •ãƒ»
                 int deltaX = raw.data.mouse.lLastX;
                 int deltaY = raw.data.mouse.lLastY;
 
-                // Š´“x‚ğ“K—pi®”‚ÅŒvZ‚µ‚Ä‚©‚çİ’èj
+                // è«¢æº·ï½ºï½¦ç¹§å¸â†é€•ï½¨ãƒ»åŸŸç´›è¬¨ï½°ç¸ºï½§éšªè‚²ï½®åŠ±ï¼ ç¸ºï½¦ç¸ºä¹ï½‰éšªï½­è³å¤²ï½¼ãƒ»
                 float adjustedDeltaX = deltaX * m_mouseSensitivity;
                 float adjustedDeltaY = deltaY * m_mouseSensitivity;
 
-                // ƒfƒ‹ƒ^‚ğ’¼Úİ’è
+                // ç¹ãƒ»Îç¹§ï½¿ç¹§å ¤å³©è¬—ï½¥éšªï½­è³ãƒ»
                 m_mouseState.deltaX = static_cast<int>(adjustedDeltaX);
                 m_mouseState.deltaY = static_cast<int>(adjustedDeltaY);
 
-                // ‘Š‘Îƒ‚[ƒh‚Å‚Í‰æ–Ê’†‰›‚ğˆÛ
+                // é€¶ï½¸èŸ‡ï½¾ç¹ï½¢ç¹ï½¼ç¹å³¨ã€’ç¸ºï½¯é€•ï½»é«±ï½¢è³ï½­èŸï½®ç¹§å ¤ï½¶ï½­è¬–ãƒ»
                 setMousePosition(m_windowCenter.x, m_windowCenter.y);
 
                 return true;

@@ -1,4 +1,4 @@
-//src/Graphics/Material.hpp
+ï»¿//src/Graphics/Material.hpp
 #pragma once
 
 #include <string>
@@ -14,55 +14,58 @@ using Microsoft::WRL::ComPtr;
 
 namespace Engine::Graphics
 {
-	//‘O•ûéŒ¾
+	//å‰æ–¹å®£è¨€
 	class Texture;
 
 	//======================================================================
-	//ƒeƒNƒXƒ`ƒƒƒ^ƒCƒv—ñ‹“Œ^
+	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚¿ã‚¤ãƒ—åˆ—æŒ™å‹
 	//======================================================================
 	enum class TextureType
 	{
-		Albedo, //ƒx[ƒXƒJƒ‰[iŠgU”½ËFj
-		Normal, //–@üƒ}ƒbƒv
-		Metallic, //ƒƒ^ƒŠƒbƒN
-		Roughness,//ƒ‰ƒtƒlƒX
-		AO,      //ƒAƒ“ƒrƒGƒ“ƒgƒIƒNƒ‹[ƒWƒ‡ƒ“
-		Emissive, //”­Œõ
-		Height,   //‚‚³ƒ}ƒbƒv
-		Count  //ƒeƒNƒXƒ`ƒƒ‚Ì”‚ÌŒvZ—p
+		Albedo, //ãƒ™ãƒ¼ã‚¹ã‚«ãƒ©ãƒ¼ï¼ˆæ‹¡æ•£åå°„è‰²ï¼‰
+		Normal, //æ³•ç·šãƒãƒƒãƒ—
+		Metallic, //ãƒ¡ã‚¿ãƒªãƒƒã‚¯
+		Roughness,//ãƒ©ãƒ•ãƒã‚¹
+		AO,      //ã‚¢ãƒ³ãƒ“ã‚¨ãƒ³ãƒˆã‚ªã‚¯ãƒ«ãƒ¼ã‚¸ãƒ§ãƒ³
+		Emissive, //ç™ºå…‰
+		Height,   //é«˜ã•ãƒãƒƒãƒ—
+		Count  //ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®æ•°ã®è¨ˆç®—ç”¨
 	};
 
 	//======================================================================
-	//ƒ}ƒeƒŠƒAƒ‹ƒvƒƒpƒeƒB\‘¢‘Ì
+	//ãƒãƒ†ãƒªã‚¢ãƒ«ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£æ§‹é€ ä½“
 	//======================================================================
 	struct MaterialProperties
 	{
-		//PBRƒpƒ‰ƒ[ƒ^
-		Math::Vector3 albedo = Math::Vector3(1.0f, 1.0f, 1.0f);  //ƒx[ƒXƒJƒ‰[
-		float metallic = 0.0f;  //ƒƒ^ƒŠƒbƒN’li0.0 == ”ñ‹à‘®, 1.0 == ‹à‘®j
-		float roughness = 0.5f; //ƒ‰ƒtƒlƒX’li0.0 == Š®‘S‚ÉŠŠ‚ç‚©, 1.0 == Š®‘S‚É‘e‚¢j
-		float ao = 1.0f;  //ƒAƒ“ƒrƒGƒ“ƒgƒIƒNƒ‹[ƒWƒ‡ƒ“
+		//PBRãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+		Math::Vector3 albedo = Math::Vector3(1.0f, 1.0f, 1.0f);  //ãƒ™ãƒ¼ã‚¹ã‚«ãƒ©ãƒ¼
+		float metallic = 0.0f;  //ãƒ¡ã‚¿ãƒªãƒƒã‚¯å€¤ï¼ˆ0.0 == éé‡‘å±, 1.0 == é‡‘å±ï¼‰
+		float roughness = 0.5f; //ãƒ©ãƒ•ãƒã‚¹å€¤ï¼ˆ0.0 == å®Œå…¨ã«æ»‘ã‚‰ã‹, 1.0 == å®Œå…¨ã«ç²—ã„ï¼‰
+		float ao = 1.0f;  //ã‚¢ãƒ³ãƒ“ã‚¨ãƒ³ãƒˆã‚ªã‚¯ãƒ«ãƒ¼ã‚¸ãƒ§ãƒ³
 
-		//”­Œõ
-		Math::Vector3 emissive = Math::Vector3(0.0f, 0.0f, 0.0f); //”­ŒõF
-		float emissiveStrength = 1.0f;  //”­Œõ‹­“x
+		//ç™ºå…‰
+		Math::Vector3 emissive = Math::Vector3(0.0f, 0.0f, 0.0f); //ç™ºå…‰è‰²
+		float emissiveStrength = 1.0f;  //ç™ºå…‰å¼·åº¦
 
-		//‚»‚Ì‘¼‚ÌƒvƒƒpƒeƒB
-		float normalStrength = 1.0f;  //–@üƒ}ƒbƒv‚Ì‹­“x
-		float heightScale = 0.05f;    //‚‚³ƒ}ƒbƒv‚ÌƒXƒP[ƒ‹
+		//ãã®ä»–ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
+		float normalStrength = 1.0f;  //æ³•ç·šãƒãƒƒãƒ—ã®å¼·åº¦
+		float heightScale = 0.05f;    //é«˜ã•ãƒãƒƒãƒ—ã®ã‚¹ã‚±ãƒ¼ãƒ«
 
-		//ƒAƒ‹ƒtƒ@ŠÖ˜A
-		float alpha = 1.0f;    //“§–¾“x
-		bool useAlphaTest = false; //ƒAƒ‹ƒtƒ@ƒeƒXƒg‚ğg—p‚·‚é‚©‚µ‚È‚¢‚©
-		float alphaTestThreshold = 0.5f;  //ƒAƒ‹ƒtƒ@ƒeƒXƒg‚Ìè‡’li‚¢‚«‚¿j
+		//ã‚¢ãƒ«ãƒ•ã‚¡é–¢é€£
+		float alpha = 1.0f;    //é€æ˜åº¦
+		bool useAlphaTest = false; //ã‚¢ãƒ«ãƒ•ã‚¡ãƒ†ã‚¹ãƒˆã‚’ä½¿ç”¨ã™ã‚‹ã‹ã—ãªã„ã‹
+		float alphaTestThreshold = 0.5f;  //ã‚¢ãƒ«ãƒ•ã‚¡ãƒ†ã‚¹ãƒˆã®é–¾å€¤ï¼ˆã„ãã¡ï¼‰
 
-		//ƒeƒNƒXƒ`ƒƒ‚Ìƒ^ƒCƒŠƒ“ƒO
-		Math::Vector2 uvScale = Math::Vector2(1.0f, 1.0f);  //UVƒXƒP[ƒ‹
-		Math::Vector2 uvOffset = Math::Vector2(0.0f, 0.0f); //UVƒIƒtƒZƒbƒg
+		//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ã‚¿ã‚¤ãƒªãƒ³ã‚°
+		Math::Vector2 uvScale = Math::Vector2(1.0f, 1.0f);  //UVã‚¹ã‚±ãƒ¼ãƒ«
+		Math::Vector2 uvOffset = Math::Vector2(0.0f, 0.0f); //UVã‚ªãƒ•ã‚»ãƒƒãƒˆ
+
+		int useAlbedoTex = 0;  //0=ä½¿ã‚ãªã„, 1=ä½¿ã†
+		int pad[3]{};   //ã‚¢ãƒ©ã‚¤ãƒ³ãƒ¡ãƒ³ãƒˆç”¨
 	};
 
 	//======================================================================
-	//ƒ}ƒeƒŠƒAƒ‹ƒNƒ‰ƒX
+	//ãƒãƒ†ãƒªã‚¢ãƒ«ã‚¯ãƒ©ã‚¹
 	//======================================================================
 	class Material
 	{
@@ -70,54 +73,54 @@ namespace Engine::Graphics
 		Material(const std::string& name = "DefaultMaterial");
 		~Material() = default;
 
-		// ƒRƒs[Eƒ€[ƒu
+		// ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–
 		Material(const Material&) = delete;
 		Material& operator=(const Material&) = delete;
 		Material(Material&&) = default;
 		Material& operator=(Material&&) = default;
 
-		// ‰Šú‰»
+		// åˆæœŸåŒ–
 		[[nodiscard]] Utils::VoidResult initialize(Device* device);
 
-		// Šî–{î•ñ
+		// åŸºæœ¬æƒ…å ±
 		const std::string& getName() const { return m_name; }
 		void setName(const std::string& name) { m_name = name; }
 
-		// ƒ}ƒeƒŠƒAƒ‹ƒvƒƒpƒeƒB
+		// ãƒãƒ†ãƒªã‚¢ãƒ«ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
 		const MaterialProperties& getProperties() const { return m_properties; }
 		MaterialProperties& getProperties() { return m_properties; }
 		void setProperties(const MaterialProperties& properties);
 
-		// ŒÂ•ÊƒvƒƒpƒeƒBƒAƒNƒZƒX
+		// å€‹åˆ¥ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚¢ã‚¯ã‚»ã‚¹
 		void setAlbedo(const Math::Vector3& albedo) { m_properties.albedo = albedo; m_isDirty = true; }
 		void setMetallic(float metallic) { m_properties.metallic = metallic; m_isDirty = true; }
 		void setRoughness(float roughness) { m_properties.roughness = roughness; m_isDirty = true; }
 		void setEmissive(const Math::Vector3& emissive) { m_properties.emissive = emissive; m_isDirty = true; }
 
-		// ƒeƒNƒXƒ`ƒƒŠÇ—
+		// ãƒ†ã‚¯ã‚¹ãƒãƒ£ç®¡ç†
 		void setTexture(TextureType type, std::shared_ptr<Texture> texture);
 		std::shared_ptr<Texture> getTexture(TextureType type) const;
 		bool hasTexture(TextureType type) const;
 		void removeTexture(TextureType type);
 
-		// GPU’è”ƒoƒbƒtƒ@‚ÌXV
+		// GPUå®šæ•°ãƒãƒƒãƒ•ã‚¡ã®æ›´æ–°
 		[[nodiscard]] Utils::VoidResult updateConstantBuffer();
 		ID3D12Resource* getConstantBuffer() const { return m_constantBuffer.Get(); }
 
-		// ƒVƒF[ƒ_[ƒŠƒ\[ƒXƒrƒ…[‚Ìæ“¾
+		// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒªã‚½ãƒ¼ã‚¹ãƒ“ãƒ¥ãƒ¼ã®å–å¾—
 		D3D12_GPU_DESCRIPTOR_HANDLE getSRVGpuHandle() const { return m_srvGpuHandle; }
 		D3D12_CPU_DESCRIPTOR_HANDLE getSRVCpuHandle() const { return m_srvCpuHandle; }
 
-		// —LŒø«ƒ`ƒFƒbƒN
+		// æœ‰åŠ¹æ€§ãƒã‚§ãƒƒã‚¯
 		bool isValid() const { return m_initialized && m_device != nullptr; }
 
-		// ƒ}ƒeƒŠƒAƒ‹‚Ì“K—piƒŒƒ“ƒ_ƒŠƒ“ƒO‚ÉŒÄ‚Ôj
+		// ãƒãƒ†ãƒªã‚¢ãƒ«ã®é©ç”¨ï¼ˆãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°æ™‚ã«å‘¼ã¶ï¼‰
 		void bind(ID3D12GraphicsCommandList* commandList, UINT rootParameterIndex) const;
 
 		friend class MaterialManager;
 		void setDirty(bool dirty = true) { m_isDirty = dirty; }
 
-		// ƒtƒ@ƒCƒ‹“üo—ÍiŒã‚ÅÀ‘•j
+		// ãƒ•ã‚¡ã‚¤ãƒ«å…¥å‡ºåŠ›ï¼ˆå¾Œã§å®Ÿè£…ï¼‰
 		[[nodiscard]] Utils::VoidResult saveToFile(const std::string& filePath) const;
 		[[nodiscard]] Utils::VoidResult loadFromFile(const std::string& filePath);
 	private:
@@ -127,40 +130,42 @@ namespace Engine::Graphics
 		bool m_initialized = false;
 		bool m_isDirty = true;
 
-		//ƒeƒNƒXƒ`ƒƒƒ}ƒbƒv
+		//ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒãƒƒãƒ—
 		std::unordered_map<TextureType, std::shared_ptr<Texture>> m_textures;
 
-		//GPUƒŠƒ\[ƒX
+		//GPUãƒªã‚½ãƒ¼ã‚¹
 		ComPtr<ID3D12Resource> m_constantBuffer;
 		void* m_constantBufferData = nullptr;
 
-		//ƒfƒBƒXƒNƒŠƒvƒ^ƒnƒ“ƒhƒ‹
+		//ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒãƒ³ãƒ‰ãƒ«
 		D3D12_CPU_DESCRIPTOR_HANDLE m_srvCpuHandle{};
 		D3D12_GPU_DESCRIPTOR_HANDLE m_srvGpuHandle{};
 
 		ComPtr<ID3D12DescriptorHeap> m_cbvDescriptorHeap;
 		D3D12_GPU_DESCRIPTOR_HANDLE m_cbvGpuHandle{};
 
-		ComPtr<ID3D12DescriptorHeap> m_srvDescriptorHeap;  // ƒeƒNƒXƒ`ƒƒ—pSRVƒq[ƒv
+		ComPtr<ID3D12DescriptorHeap> m_srvDescriptorHeap;  // ãƒ†ã‚¯ã‚¹ãƒãƒ£ç”¨SRVãƒ’ãƒ¼ãƒ—
 
 
-		//‰Šú‰»ƒwƒ‹ƒp[
+		//åˆæœŸåŒ–ãƒ˜ãƒ«ãƒ‘ãƒ¼
 	    [[nodiscard]] Utils::VoidResult createConstantBuffer();
 		[[nodiscard]] Utils::VoidResult createDescriptors();
 
-		//GPU’è”ƒoƒbƒtƒ@—p‚Ì\‘¢‘Ì
+		//GPUå®šæ•°ãƒãƒƒãƒ•ã‚¡ç”¨ã®æ§‹é€ ä½“
 		struct MaterialConstantBuffer
 		{
-			Math::Vector4 albedo; //xyz: ƒx[ƒXƒJƒ‰[ w: ƒƒ^ƒŠƒbƒN
-			Math::Vector4 roughnessAoEmissiveStrength; //x:ƒ‰ƒtƒlƒX y:ƒAƒ“ƒrƒGƒ“ƒgƒIƒNƒ‹[ƒWƒ‡ƒ“ z: ”­Œõ‹­“x w: ƒpƒfƒBƒ“ƒO
-			Math::Vector4 emissive;  //xyz: ”­Œõ w: –@ü‹­“x
-			Math::Vector4 alphaParams;  // xFƒAƒ‹ƒtƒ@’li“§–¾“x) // yFƒAƒ‹ƒtƒ@ƒeƒXƒg‚ğg‚¤‚©‚Ç‚¤‚©itrue / falsej// zFƒAƒ‹ƒtƒ@ƒeƒXƒg‚Ì‚µ‚«‚¢’liƒJƒbƒgƒIƒt’l)// wFƒnƒCƒgƒ}ƒbƒv‚Ì‚‚³ƒXƒP[ƒ‹
-			Math::Vector4 uvTransform; //xy: UVƒXƒP[ƒ‹ zw: UVƒIƒtƒZƒbƒg
+			Math::Vector4 albedo; //xyz: ãƒ™ãƒ¼ã‚¹ã‚«ãƒ©ãƒ¼ w: ãƒ¡ã‚¿ãƒªãƒƒã‚¯
+			Math::Vector4 roughnessAoEmissiveStrength; //x:ãƒ©ãƒ•ãƒã‚¹ y:ã‚¢ãƒ³ãƒ“ã‚¨ãƒ³ãƒˆã‚ªã‚¯ãƒ«ãƒ¼ã‚¸ãƒ§ãƒ³ z: ç™ºå…‰å¼·åº¦ w: ãƒ‘ãƒ‡ã‚£ãƒ³ã‚°
+			Math::Vector4 emissive;  //xyz: ç™ºå…‰ w: æ³•ç·šå¼·åº¦
+			Math::Vector4 alphaParams;  // xï¼šã‚¢ãƒ«ãƒ•ã‚¡å€¤ï¼ˆé€æ˜åº¦) // yï¼šã‚¢ãƒ«ãƒ•ã‚¡ãƒ†ã‚¹ãƒˆã‚’ä½¿ã†ã‹ã©ã†ã‹ï¼ˆtrue / falseï¼‰// zï¼šã‚¢ãƒ«ãƒ•ã‚¡ãƒ†ã‚¹ãƒˆã®ã—ãã„å€¤ï¼ˆã‚«ãƒƒãƒˆã‚ªãƒ•å€¤)// wï¼šãƒã‚¤ãƒˆãƒãƒƒãƒ—ã®é«˜ã•ã‚¹ã‚±ãƒ¼ãƒ«
+			Math::Vector4 uvTransform; //xy: UVã‚¹ã‚±ãƒ¼ãƒ« zw: UVã‚ªãƒ•ã‚»ãƒƒãƒˆ
+			int hasAlbedoTexture;
+			int pad[3];
 		};
 	};
 
 	//============================================================
-	//ƒ}ƒeƒŠƒAƒ‹ƒ}ƒl[ƒWƒWƒƒ[ƒNƒ‰ƒX
+	//ãƒãƒ†ãƒªã‚¢ãƒ«ãƒãƒãƒ¼ã‚¸ã‚¸ãƒ£ãƒ¼ã‚¯ãƒ©ã‚¹
 	//============================================================
 	class MaterialManager
 	{
@@ -168,31 +173,31 @@ namespace Engine::Graphics
 		MaterialManager() = default;
 		~MaterialManager() = default;
 
-		//ƒRƒs[Eƒ€[ƒu‹Ö~
+		//ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
 		MaterialManager(const MaterialManager&) = delete;
 		MaterialManager& operator=(const MaterialManager&) = delete;
 
-		//‰Šú‰»
+		//åˆæœŸåŒ–
 		[[nodiscard]] Utils::VoidResult initialize(Device* device);
 
-		//ƒ}ƒeƒŠƒAƒ‹ŠÇ—
+		//ãƒãƒ†ãƒªã‚¢ãƒ«ç®¡ç†
 		std::shared_ptr<Material> createMaterial(const std::string& name);
 		std::shared_ptr<Material> getMaterial(const std::string& name) const;
 		bool hasMaterial(const std::string& name) const;
 		void removeMaterial(const std::string& name);
 
-		//ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹
+		//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒãƒ†ãƒªã‚¢ãƒ«
           std::shared_ptr<Material> getDefaultMaterial() const { return m_defaultMaterial; }
 
-		  //‘Sƒ}ƒeƒŠƒAƒ‹‚Ìæ“¾
+		  //å…¨ãƒãƒ†ãƒªã‚¢ãƒ«ã®å–å¾—
 		  const std::unordered_map<std::string, std::shared_ptr<Material>>& getAllMaterial() const { return m_materials; };
 
-		  //ƒŠƒ\[ƒX‚ÌXV
+		  //ãƒªã‚½ãƒ¼ã‚¹ã®æ›´æ–°
 		  void updateAllMaterials();
 
 		
 
-		  //—LŒø«ƒ`ƒFƒbƒN
+		  //æœ‰åŠ¹æ€§ãƒã‚§ãƒƒã‚¯
 		  bool isValid() const { return m_initialized && m_device != nullptr; }
 
 	private:
@@ -206,12 +211,13 @@ namespace Engine::Graphics
 	};
 
 	//============================================================
-	//ƒ†[ƒeƒBƒŠƒeƒBŠÖ”
+	//ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£é–¢æ•°
 	//============================================================
     
-	//TextureType‚ğ•¶š—ñ‚É•ÏŠ·
+	//TextureTypeã‚’æ–‡å­—åˆ—ã«å¤‰æ›
 	std::string textureTypeToString(TextureType type);
 
-	//•¶š—ñ‚ğTextureType‚É•ÏŠ·
+	//æ–‡å­—åˆ—ã‚’TextureTypeã«å¤‰æ›
 	TextureType stringToTextureType(const std::string& str);
 }
+

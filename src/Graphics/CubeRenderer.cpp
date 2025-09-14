@@ -1,4 +1,4 @@
-// src/Graphics/CubeRenderer.cpp
+ï»¿// src/Graphics/CubeRenderer.cpp
 #include "CubeRenderer.hpp"
 #include <format>
 
@@ -6,7 +6,7 @@ namespace Engine::Graphics
 {
     Utils::VoidResult CubeRenderer::initialize(Device* device, ShaderManager* shaderManager)
     {
-        // ƒfƒoƒbƒO—p: nullƒ`ƒFƒbƒN
+       
         CHECK_CONDITION(device != nullptr, Utils::ErrorType::Unknown, "Device is null");
         CHECK_CONDITION(device->isValid(), Utils::ErrorType::Unknown, "Device is not valid");
 
@@ -14,21 +14,20 @@ namespace Engine::Graphics
         m_shaderManager = shaderManager;
         Utils::log_info("Initializing Cube Renderer...");
 
-        // ’è”ƒoƒbƒtƒ@ƒ}ƒl[ƒWƒƒ[‚ğ‰Šú‰»
         auto constantBufferResult = m_constantBufferManager.initialize(device);
         if (!constantBufferResult) {
             Utils::log_error(constantBufferResult.error());
             return constantBufferResult;
         }
 
-        // —§•û‘Ì‚Ì’¸“_ƒf[ƒ^‚ğİ’è
+    
         setupCubeVertices();
 
-        // ƒ[ƒ‹ƒhs—ñ‚ğ‰Šú‰»
+      
         updateWorldMatrix();
 
-        // ŠeƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ‡Ÿ‰Šú‰»
-        auto rootSigResult = createRootSignature();
+    
+        auto rootSigResult = createPBRRootSignature();
         if (!rootSigResult) {
             Utils::log_error(rootSigResult.error());
             return rootSigResult;
@@ -64,13 +63,11 @@ namespace Engine::Graphics
 
     void CubeRenderer::render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex)
     {
-        // ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹‚ª‚È‚¢ê‡‚Íİ’è
         if (!m_material && m_materialManager)
         {
             m_material = m_materialManager->getDefaultMaterial();
         }
 
-        // ’è”ƒoƒbƒtƒ@‚ğXV
         CameraConstants cameraConstants{};
         cameraConstants.viewMatrix = camera.getViewMatrix();
         cameraConstants.projectionMatrix = camera.getProjectionMatrix();
@@ -85,56 +82,62 @@ namespace Engine::Graphics
         m_constantBufferManager.updateCameraConstants(frameIndex, cameraConstants);
         m_constantBufferManager.updateObjectConstants(frameIndex, objectConstants);
 
-        // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚ÆƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚ğİ’è
         commandList->SetGraphicsRootSignature(m_rootSignature.Get());
         commandList->SetPipelineState(m_pipelineState.Get());
 
-        // ’è”ƒoƒbƒtƒ@‚ğİ’è
         commandList->SetGraphicsRootConstantBufferView(0, m_constantBufferManager.getCameraConstantsGPUAddress(frameIndex));
         commandList->SetGraphicsRootConstantBufferView(1, m_constantBufferManager.getObjectConstantsGPUAddress(frameIndex));
 
-        // ƒ}ƒeƒŠƒAƒ‹’è”ƒoƒbƒtƒ@‚ğƒoƒCƒ“ƒh
         if (m_material && m_material->getConstantBuffer())
         {
-            commandList->SetGraphicsRootConstantBufferView(2,
-                m_material->getConstantBuffer()->GetGPUVirtualAddress());
+            commandList->SetGraphicsRootConstantBufferView(2, m_material->getConstantBuffer()->GetGPUVirtualAddress());
         }
 
-        // ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒW‚ğİ’èiOŠpŒ`ƒŠƒXƒgj
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        //SRVãƒ’ãƒ¼ãƒ—ã‚’ã‚»ãƒƒãƒˆ
+        ID3D12DescriptorHeap* heaps[] = { m_device->getSrvHeap() };
+        commandList->SetDescriptorHeaps(1, heaps);
 
-        // ’¸“_ƒoƒbƒtƒ@‚ÆƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚ğİ’è
+        //Albedoãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ãƒã‚¤ãƒ³ãƒ‰ (RootParam=3)
+        if (m_material)
+        {
+            auto tex = m_material->getTexture(TextureType::Albedo);
+            if (tex)
+            {
+                commandList->SetGraphicsRootDescriptorTable(3, tex->getSRVHandle());
+            }
+        }
+
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
         commandList->IASetIndexBuffer(&m_indexBufferView);
 
-        // —§•û‘Ì‚ğ•`‰æi36ƒCƒ“ƒfƒbƒNƒXA1ƒCƒ“ƒXƒ^ƒ“ƒXj
         commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
     }
 
     Utils::VoidResult CubeRenderer::createRootSignature()
     {
-        // 3‚Â‚Ì’è”ƒoƒbƒtƒ@—pƒ‹[ƒgƒVƒOƒlƒ`ƒƒiCamera, Object, Materialj
+        // 3ç¸ºï½¤ç¸ºï½®è³å£½ç„šç¹èˆŒãƒ£ç¹è¼”ãƒé€•ï½¨ç¹ï½«ç¹ï½¼ç¹åŒ»ã™ç¹§ï½°ç¹é˜ªãƒ¡ç¹ï½£ãƒ»ãƒ»amera, Object, Materialãƒ»ãƒ»
         D3D12_ROOT_PARAMETER rootParameters[3];
 
-        // ƒJƒƒ‰’è”ƒoƒbƒtƒ@ (b0)
+        // ç¹§ï½«ç¹ï½¡ç¹ï½©è³å£½ç„šç¹èˆŒãƒ£ç¹è¼”ãƒ (b0)
         rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[0].Descriptor.ShaderRegister = 0;
         rootParameters[0].Descriptor.RegisterSpace = 0;
         rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // ƒIƒuƒWƒFƒNƒg’è”ƒoƒbƒtƒ@ (b1)
+        // ç¹§ï½ªç¹æ‚¶ãšç¹§ï½§ç¹§ï½¯ç¹äº¥ï½®å£½ç„šç¹èˆŒãƒ£ç¹è¼”ãƒ (b1)
         rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[1].Descriptor.ShaderRegister = 1;
         rootParameters[1].Descriptor.RegisterSpace = 0;
         rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // ƒ}ƒeƒŠƒAƒ‹’è”ƒoƒbƒtƒ@ (b2)
+        // ç¹æ§­ãƒ¦ç¹ï½ªç¹§ï½¢ç¹ï½«è³å£½ç„šç¹èˆŒãƒ£ç¹è¼”ãƒ (b2)
         rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[2].Descriptor.ShaderRegister = 2;
         rootParameters[2].Descriptor.RegisterSpace = 0;
         rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // Static Sampler‚ğ’Ç‰ÁiƒVƒF[ƒ_[‚Ìs0‚É‘Î‰j
+        // Static Samplerç¹§å®šï½¿ï½½èœ‰ï£°ãƒ»åŒ»ã™ç¹§ï½§ç¹ï½¼ç¹Â€ç¹ï½¼ç¸ºï½®s0ç¸ºï½«èŸ‡ï½¾è ¢æ‡¶ï½¼ãƒ»
         D3D12_STATIC_SAMPLER_DESC samplerDesc{};
         samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
         samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -153,7 +156,7 @@ namespace Engine::Graphics
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
         rootSignatureDesc.NumParameters = _countof(rootParameters);
         rootSignatureDesc.pParameters = rootParameters;
-        rootSignatureDesc.NumStaticSamplers = 1; // 1‚Â‚ÌƒTƒ“ƒvƒ‰[‚ğ’Ç‰Á
+        rootSignatureDesc.NumStaticSamplers = 1; // 1ç¸ºï½¤ç¸ºï½®ç¹§ï½µç¹ï½³ç¹åŠ±Î›ç¹ï½¼ç¹§å®šï½¿ï½½èœ‰ï£°
         rootSignatureDesc.pStaticSamplers = &samplerDesc;
         rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
@@ -180,28 +183,28 @@ namespace Engine::Graphics
 
     Utils::VoidResult CubeRenderer::createPBRRootSignature()
     {
-        // 4‚Â‚Ìƒ‹[ƒgƒpƒ‰ƒ[ƒ^: Camera, Object, Material, Textures
+        // 4ç¸ºï½¤ç¸ºï½®ç¹ï½«ç¹ï½¼ç¹åŒ»ãƒ±ç¹ï½©ç¹ï½¡ç¹ï½¼ç¹§ï½¿: Camera, Object, Material, Textures
         D3D12_ROOT_PARAMETER rootParameters[4];
 
-        // ƒJƒƒ‰’è”ƒoƒbƒtƒ@ (b0)
+        // (b0)
         rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[0].Descriptor.ShaderRegister = 0;
         rootParameters[0].Descriptor.RegisterSpace = 0;
         rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // ƒIƒuƒWƒFƒNƒg’è”ƒoƒbƒtƒ@ (b1)
+        // (b1)
         rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[1].Descriptor.ShaderRegister = 1;
         rootParameters[1].Descriptor.RegisterSpace = 0;
         rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // ƒ}ƒeƒŠƒAƒ‹’è”ƒoƒbƒtƒ@ (b2)
+        // (b2)
         rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[2].Descriptor.ShaderRegister = 2;
         rootParameters[2].Descriptor.RegisterSpace = 0;
         rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // ƒeƒNƒXƒ`ƒƒƒfƒXƒNƒŠƒvƒ^ƒe[ƒuƒ‹ (t0-t5)
+        // ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã‚»ãƒƒãƒˆ(t0-t5)
         static D3D12_DESCRIPTOR_RANGE textureRange{};
         textureRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
         textureRange.NumDescriptors = 6;
@@ -214,7 +217,7 @@ namespace Engine::Graphics
         rootParameters[3].DescriptorTable.pDescriptorRanges = &textureRange;
         rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // ƒXƒ^ƒeƒBƒbƒNƒTƒ“ƒvƒ‰[
+
         D3D12_STATIC_SAMPLER_DESC samplerDesc{};
         samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
         samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -260,7 +263,7 @@ namespace Engine::Graphics
 
     Utils::VoidResult CubeRenderer::createShaders()
     {
-        // ShaderCompileDesc ‚ğg—p‚µ‚ÄƒVƒF[ƒ_[‚ğƒ[ƒh
+        // ShaderCompileDesc
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
@@ -290,7 +293,6 @@ namespace Engine::Graphics
 
     Utils::VoidResult CubeRenderer::createPipelineState()
     {
-        // ‚Ü‚¸ƒVƒF[ƒ_[‚ğƒ[ƒhiƒLƒƒƒbƒVƒ…‚É‘¶İ‚µ‚È‚¢ê‡‚Ì‚½‚ßj
         ShaderCompileDesc vsDesc;
         vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
@@ -317,29 +319,28 @@ namespace Engine::Graphics
             return std::unexpected(Utils::make_error(Utils::ErrorType::ShaderCompilation, "Failed to load pixel shader"));
         }
 
-        // ƒ[ƒh‚³‚ê‚½ƒVƒF[ƒ_[‚ğg—piloadShader‚Ì–ß‚è’l‚ğ’¼Úg—pj
-        auto vertexShader = vertexShaderResult;
-        auto pixelShader = pixelShaderResult;
+        auto& vertexShader = vertexShaderResult;
+        auto& pixelShader = pixelShaderResult;
 
         CHECK_CONDITION(vertexShader != nullptr, Utils::ErrorType::ShaderCompilation,
             "Vertex shader is null");
         CHECK_CONDITION(pixelShader != nullptr, Utils::ErrorType::ShaderCompilation,
             "Pixel shader is null");
 
-        // “ü—ÍƒŒƒCƒAƒEƒg‚ğ’è‹`
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
         };
 
-        // ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚Ìİ’è
+        // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆè¨­å®š
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
         psoDesc.pRootSignature = m_rootSignature.Get();
         psoDesc.VS = { vertexShader->getBytecode(), vertexShader->getBytecodeSize() };
         psoDesc.PS = { pixelShader->getBytecode(), pixelShader->getBytecodeSize() };
 
-        // Œy‚è‚Ìİ’è‚Í“¯‚¶...
+  
         psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
         psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
@@ -352,7 +353,7 @@ namespace Engine::Graphics
         psoDesc.RasterizerState.ForcedSampleCount = 0;
         psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-        // ƒuƒŒƒ“ƒhƒXƒe[ƒg
+  
         psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
         psoDesc.BlendState.IndependentBlendEnable = FALSE;
         const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc = {
@@ -367,7 +368,7 @@ namespace Engine::Graphics
             psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
         }
 
-        // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
+
         psoDesc.DepthStencilState.DepthEnable = TRUE;
         psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
         psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
@@ -381,7 +382,7 @@ namespace Engine::Graphics
         psoDesc.DepthStencilState.FrontFace = defaultStencilOp;
         psoDesc.DepthStencilState.BackFace = defaultStencilOp;
 
-        // ‚»‚Ì‘¼‚Ìİ’è
+
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.NumRenderTargets = 1;
@@ -399,7 +400,7 @@ namespace Engine::Graphics
     {
         const UINT vertexBufferSize = sizeof(m_cubeVertices);
 
-        // ’¸“_ƒoƒbƒtƒ@—p‚Ìƒq[ƒvƒvƒƒpƒeƒBiƒAƒbƒvƒ[ƒhƒq[ƒvj
+    
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -407,7 +408,6 @@ namespace Engine::Graphics
         heapProps.CreationNodeMask = 1;
         heapProps.VisibleNodeMask = 1;
 
-        // ƒŠƒ\[ƒX‹Lqq
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         resourceDesc.Alignment = 0;
@@ -430,7 +430,7 @@ namespace Engine::Graphics
             IID_PPV_ARGS(&m_vertexBuffer)),
             Utils::ErrorType::ResourceCreation, "Failed to create vertex buffer");
 
-        // ’¸“_ƒf[ƒ^‚ğƒoƒbƒtƒ@‚ÉƒRƒs[
+        
         UINT8* pVertexDataBegin;
         D3D12_RANGE readRange{ 0, 0 };
 
@@ -440,7 +440,7 @@ namespace Engine::Graphics
         memcpy(pVertexDataBegin, m_cubeVertices.data(), sizeof(m_cubeVertices));
         m_vertexBuffer->Unmap(0, nullptr);
 
-        // ’¸“_ƒoƒbƒtƒ@ƒrƒ…[‚ğİ’è
+ 
         m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
         m_vertexBufferView.StrideInBytes = sizeof(Vertex);
         m_vertexBufferView.SizeInBytes = vertexBufferSize;
@@ -452,7 +452,7 @@ namespace Engine::Graphics
     {
         const UINT indexBufferSize = sizeof(m_cubeIndices);
 
-        // ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@—p‚Ìƒq[ƒvƒvƒƒpƒeƒB
+        
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -460,7 +460,7 @@ namespace Engine::Graphics
         heapProps.CreationNodeMask = 1;
         heapProps.VisibleNodeMask = 1;
 
-        // ƒŠƒ\[ƒX‹Lqq
+
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         resourceDesc.Alignment = 0;
@@ -483,7 +483,6 @@ namespace Engine::Graphics
             IID_PPV_ARGS(&m_indexBuffer)),
             Utils::ErrorType::ResourceCreation, "Failed to create index buffer");
 
-        // ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^‚ğƒoƒbƒtƒ@‚ÉƒRƒs[
         UINT8* pIndexDataBegin;
         D3D12_RANGE readRange{ 0, 0 };
 
@@ -493,7 +492,7 @@ namespace Engine::Graphics
         memcpy(pIndexDataBegin, m_cubeIndices.data(), sizeof(m_cubeIndices));
         m_indexBuffer->Unmap(0, nullptr);
 
-        // ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@ƒrƒ…[‚ğİ’è
+       
         m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
         m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
         m_indexBufferView.SizeInBytes = indexBufferSize;
@@ -503,65 +502,64 @@ namespace Engine::Graphics
 
     void CubeRenderer::setupCubeVertices()
     {
-        // —§•û‘Ì‚Ì24’¸“_iŠe–Ê‚É4’¸“_AˆÙ‚È‚éF‚ğİ’èj
         m_cubeVertices = { {
-                // ‘O–ÊiZ+j- Ô
-                {{ -0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // ¶‰º
-                {{  0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // ‰E‰º
-                {{  0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // ‰Eã
-                {{ -0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // ¶ã
+                // Front (+Z)
+                { {-0.5f, -0.5f,  0.5f}, {1,0,0}, {0,0} }, // å·¦ä¸‹
+                { { 0.5f, -0.5f,  0.5f}, {1,0,0}, {1,0} }, // å³ä¸‹
+                { { 0.5f,  0.5f,  0.5f}, {1,0,0}, {1,1} }, // å³ä¸Š
+                { {-0.5f,  0.5f,  0.5f}, {1,0,0}, {0,1} }, // å·¦ä¸Š
 
-                // ”w–ÊiZ-j- —Î
-                {{  0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // ¶‰º
-                {{ -0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // ‰E‰º
-                {{ -0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // ‰Eã
-                {{  0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // ¶ã
+                // Back (-Z)
+                { {-0.5f, -0.5f, -0.5f}, {0,1,0}, {0,0} }, // å·¦ä¸‹
+                { { 0.5f, -0.5f, -0.5f}, {0,1,0}, {1,0} }, // å³ä¸‹
+                { { 0.5f,  0.5f, -0.5f}, {0,1,0}, {1,1} }, // å³ä¸Š
+                { {-0.5f,  0.5f, -0.5f}, {0,1,0}, {0,1} }, // å·¦ä¸Š
 
-                // ¶–ÊiX-j- Â
-                {{ -0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}, // ¶‰º
-                {{ -0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}}, // ‰E‰º
-                {{ -0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}}, // ‰Eã
-                {{ -0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}, // ¶ã
+                // Left (-X)
+                { {-0.5f, -0.5f, -0.5f}, {0,0,1}, {0,0} },
+                { {-0.5f, -0.5f,  0.5f}, {0,0,1}, {1,0} },
+                { {-0.5f,  0.5f,  0.5f}, {0,0,1}, {1,1} },
+                { {-0.5f,  0.5f, -0.5f}, {0,0,1}, {0,1} },
 
-                // ‰E–ÊiX+j- ‰©
-                {{  0.5f, -0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}}, // ¶‰º
-                {{  0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}}, // ‰E‰º
-                {{  0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}}, // ‰Eã
-                {{  0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}}, // ¶ã
+                // Right (+X)
+                { { 0.5f, -0.5f,  0.5f}, {1,1,0}, {0,0} },
+                { { 0.5f, -0.5f, -0.5f}, {1,1,0}, {1,0} },
+                { { 0.5f,  0.5f, -0.5f}, {1,1,0}, {1,1} },
+                { { 0.5f,  0.5f,  0.5f}, {1,1,0}, {0,1} },
 
-                // ã–ÊiY+j- ƒ}ƒ[ƒ“ƒ^
-                {{ -0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}}, // ¶‰º
-                {{  0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}}, // ‰E‰º
-                {{  0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}}, // ‰Eã
-                {{ -0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}}, // ¶ã
+                // Top (+Y)
+                { {-0.5f,  0.5f,  0.5f}, {1,0,1}, {0,0} },
+                { { 0.5f,  0.5f,  0.5f}, {1,0,1}, {1,0} },
+                { { 0.5f,  0.5f, -0.5f}, {1,0,1}, {1,1} },
+                { {-0.5f,  0.5f, -0.5f}, {1,0,1}, {0,1} },
 
-                // ‰º–ÊiY-j- ƒVƒAƒ“
-                {{ -0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}}, // ¶‰º
-                {{  0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}}, // ‰E‰º
-                {{  0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}}, // ‰Eã
-                {{ -0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}}  // ¶ã
+                // Bottom (-Y)
+                { {-0.5f, -0.5f, -0.5f}, {0,1,1}, {0,0} },
+                { { 0.5f, -0.5f, -0.5f}, {0,1,1}, {1,0} },
+                { { 0.5f, -0.5f,  0.5f}, {0,1,1}, {1,1} },
+                { {-0.5f, -0.5f,  0.5f}, {0,1,1}, {0,1} }
             } };
 
-        // —§•û‘Ì‚ÌƒCƒ“ƒfƒbƒNƒXi36ƒCƒ“ƒfƒbƒNƒXj
         m_cubeIndices = { {
-                // ‘O–Ê
-                0, 1, 2,  2, 3, 0,
-                // ”w–Ê
-                4, 5, 6,  6, 7, 4,
-                // ¶–Ê
-                8, 9, 10,  10, 11, 8,
-                // ‰E–Ê
-                12, 13, 14,  14, 15, 12,
-                // ã–Ê
-                16, 17, 18,  18, 19, 16,
-                // ‰º–Ê
-                20, 21, 22,  22, 23, 20
+                // Front (CCW: å·¦ä¸‹, å³ä¸Š, å³ä¸‹) 
+                0, 2, 1,  0, 3, 2,
+                // Back
+                4, 6, 5,  4, 7, 6,
+                // Left
+                8, 10, 9,  8, 11, 10,
+                // Right
+                12, 14, 13,  12, 15, 14,
+                // Top
+                16, 18, 17,  16, 19, 18,
+                // Bottom
+                20, 22, 21,  20, 23, 22
             } };
     }
 
+
+
     void CubeRenderer::updateWorldMatrix()
     {
-        // ƒXƒP[ƒ‹ -> ‰ñ“] -> ˆÚ“®‚Ì‡‚Ås—ñ‚ğ‡¬
         Math::Matrix4 scaleMatrix = Math::Matrix4::scaling(m_scale);
         Math::Matrix4 rotationMatrix = Math::Matrix4::rotationX(Math::radians(m_rotation.x)) *
             Math::Matrix4::rotationY(Math::radians(m_rotation.y)) *

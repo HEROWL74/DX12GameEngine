@@ -70,6 +70,18 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -79,6 +91,7 @@
       <LanguageStandard>stdcpp23</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -96,6 +109,7 @@
       <LanguageStandard>stdcpp23</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -111,11 +125,16 @@
       <LanguageStandard>stdcpp23</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -128,15 +147,22 @@
       <LanguageStandard>stdcpp23</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\App.hpp" />
+    <ClInclude Include="src\Core\EditorState.hpp" />
     <ClInclude Include="src\Core\GameObject.hpp" />
+    <ClInclude Include="src\Core\PlayModeController.hpp" />
     <ClInclude Include="src\Core\Window.hpp" />
     <ClInclude Include="src\Graphics\Camera.hpp" />
     <ClInclude Include="src\Graphics\ConstantBuffer.hpp" />
@@ -158,6 +184,10 @@
     <ClInclude Include="src\Input\KeyCode.hpp" />
     <ClInclude Include="src\Input\MouseState.hpp" />
     <ClInclude Include="src\Math\Math.hpp" />
+    <ClInclude Include="src\Scripting\LuaBindings.hpp" />
+    <ClInclude Include="src\Scripting\LuaScriptUtility.hpp" />
+    <ClInclude Include="src\Scripting\ScriptComponent.hpp" />
+    <ClInclude Include="src\Scripting\ScriptManager.hpp" />
     <ClInclude Include="src\UI\backends\imgui_impl_dx12.h" />
     <ClInclude Include="src\UI\backends\imgui_impl_win32.h" />
     <ClInclude Include="src\UI\ContextMenu.hpp" />
@@ -174,6 +204,7 @@
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp" />
     <ClCompile Include="src\Core\GameObject.cpp" />
+    <ClCompile Include="src\Core\PlayModeController.cpp" />
     <ClCompile Include="src\Core\Window.cpp" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
     <ClCompile Include="src\Graphics\ConstantBuffer.cpp" />
@@ -187,6 +218,9 @@
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Scripting\LuaScriptUtility.cpp" />
+    <ClCompile Include="src\Scripting\ScriptComponent.cpp" />
+    <ClCompile Include="src\Scripting\ScriptManager.cpp" />
     <ClCompile Include="src\UI\backends\imgui_impl_dx12.cpp" />
     <ClCompile Include="src\UI\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="src\UI\ContextMenu.cpp" />
@@ -241,6 +275,8 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\scripts\move.lua" />
+    <None Include="assets\scripts\test.lua" />
     <None Include="assets\shaders\Common.hlsli" />
     <None Include="assets\shaders\Lighting.hlsli" />
   </ItemGroup>

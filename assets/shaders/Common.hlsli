@@ -50,6 +50,7 @@ cbuffer ObjectConstants : register(b1)
 cbuffer MaterialConstants : register(b2)
 {
     float4 albedo;                          //xyz: albedo, w: metallic
+    int hasAlbedoTexture;                 //0.0 or 1.0
     float4 roughnessAoEmissiveStrength;     //x: roughness, y: ao, z: emissiveStrength, w: padding
     float4 emissive;                        //xyz: emissive, w: normalStrength
     float4 alphaParams;                     //x: alpha, y; useAlphaTest, z:  alphaTestThreshold, w: heightScale

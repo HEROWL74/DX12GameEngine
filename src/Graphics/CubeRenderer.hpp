@@ -1,4 +1,4 @@
-// src/Graphics/CubeRenderer.hpp
+ï»¿// src/Graphics/CubeRenderer.hpp
 #pragma once
 
 #include <Windows.h>
@@ -13,31 +13,32 @@
 #include "VertexTypes.hpp"
 #include "../Math/Math.hpp"
 #include "../Utils/Common.hpp"
+#include "Texture.hpp"
 
 using Microsoft::WRL::ComPtr;
 
 namespace Engine::Graphics
 {
-    // —§•û‘Ì•`‰æê—p‚ÌƒŒƒ“ƒ_ƒ‰[
+    // ç«‹æ–¹ä½“æç”»å°‚ç”¨ã®ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼
     class CubeRenderer
     {
     public:
         CubeRenderer() = default;
         ~CubeRenderer() = default;
 
-        // ƒRƒs[Eƒ€[ƒu‹Ö~
+        // ã‚³ãƒ”ãƒ¼ãƒ»ãƒ ãƒ¼ãƒ–ç¦æ­¢
         CubeRenderer(const CubeRenderer&) = delete;
         CubeRenderer& operator=(const CubeRenderer&) = delete;
         CubeRenderer(CubeRenderer&&) = delete;
         CubeRenderer& operator=(CubeRenderer&&) = delete;
 
-        // ‰Šú‰»
+        // åˆæœŸåŒ–
         [[nodiscard]] Utils::VoidResult initialize(Device* device, ShaderManager* shaderManager);
 
-        // —§•û‘Ì‚ğ•`‰æ
+        // ç«‹æ–¹ä½“ã‚’æç”»
         void render(ID3D12GraphicsCommandList* commandList, const Camera& camera, UINT frameIndex);
 
-        // 3D‹óŠÔ‚Å‚ÌˆÊ’uE‰ñ“]EƒXƒP[ƒ‹‚ğİ’è
+        // 3Dç©ºé–“ã§ã®ä½ç½®ãƒ»å›è»¢ãƒ»ã‚¹ã‚±ãƒ¼ãƒ«ã‚’è¨­å®š
         void setPosition(const Math::Vector3& position) { m_position = position; updateWorldMatrix(); }
         void setRotation(const Math::Vector3& rotation) { m_rotation = rotation; updateWorldMatrix(); }
         void setScale(const Math::Vector3& scale) { m_scale = scale; updateWorldMatrix(); }
@@ -45,12 +46,12 @@ namespace Engine::Graphics
         void setMaterial(std::shared_ptr<Graphics::Material> material) { m_material = material; }
         void setMaterialManager(Graphics::MaterialManager* manager) { m_materialManager = manager; }
 
-        // ƒQƒbƒ^[
+        // ã‚²ãƒƒã‚¿ãƒ¼
         const Math::Vector3& getPosition() const { return m_position; }
         const Math::Vector3& getRotation() const { return m_rotation; }
         const Math::Vector3& getScale() const { return m_scale; }
 
-        // —LŒø‚©ƒ`ƒFƒbƒN
+        // æœ‰åŠ¹ã‹ãƒã‚§ãƒƒã‚¯
         [[nodiscard]] bool isValid() const noexcept {
             return m_rootSignature != nullptr &&
                 m_pipelineState != nullptr &&
@@ -65,17 +66,17 @@ namespace Engine::Graphics
         ConstantBufferManager m_constantBufferManager;
         bool m_usePBRPipeline = false;
 
-        // 3D•ÏŠ·ƒpƒ‰ƒ[ƒ^
+        // 3Då¤‰æ›ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
         Math::Vector3 m_position = Math::Vector3::zero();
         Math::Vector3 m_rotation = Math::Vector3::zero();
         Math::Vector3 m_scale = Math::Vector3::one();
         Math::Matrix4 m_worldMatrix;
 
-        //ƒ}ƒeƒŠƒAƒ‹ŠÇ—ƒ|ƒCƒ“ƒ^
+        //ãƒãƒ†ãƒªã‚¢ãƒ«ç®¡ç†ãƒã‚¤ãƒ³ã‚¿
         std::shared_ptr<Graphics::Material> m_material;
         Graphics::MaterialManager* m_materialManager = nullptr;
 
-        // •`‰æƒŠƒ\[ƒX
+        // æç”»ãƒªã‚½ãƒ¼ã‚¹
         ComPtr<ID3D12RootSignature> m_rootSignature;
         ComPtr<ID3D12PipelineState> m_pipelineState;
         ComPtr<ID3D12Resource> m_vertexBuffer;
@@ -83,13 +84,13 @@ namespace Engine::Graphics
         D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView{};
         D3D12_INDEX_BUFFER_VIEW m_indexBufferView{};
 
-        // —§•û‘Ì‚Ì’¸“_ƒf[ƒ^i24’¸“_ - Še–Ê‚É4’¸“_j
+        // ç«‹æ–¹ä½“ã®é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ï¼ˆ24é ‚ç‚¹ - å„é¢ã«4é ‚ç‚¹ï¼‰
         std::array<Vertex, 24> m_cubeVertices;
 
-        // —§•û‘Ì‚ÌƒCƒ“ƒfƒbƒNƒXƒf[ƒ^i36ƒCƒ“ƒfƒbƒNƒX - 12OŠpŒ` * 3’¸“_j
+        // ç«‹æ–¹ä½“ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒ‡ãƒ¼ã‚¿ï¼ˆ36ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ - 12ä¸‰è§’å½¢ * 3é ‚ç‚¹ï¼‰
         std::array<uint16_t, 36> m_cubeIndices;
 
-        // ‰Šú‰»—pƒƒ\ƒbƒh
+        // åˆæœŸåŒ–ç”¨ãƒ¡ã‚½ãƒƒãƒ‰
         [[nodiscard]] Utils::VoidResult createRootSignature();
         [[nodiscard]] Utils::VoidResult createPBRRootSignature();
         [[nodiscard]] Utils::VoidResult createShaders();
@@ -97,10 +98,10 @@ namespace Engine::Graphics
         [[nodiscard]] Utils::VoidResult createVertexBuffer();
         [[nodiscard]] Utils::VoidResult createIndexBuffer();
 
-        // —§•û‘Ì‚Ì’¸“_ƒf[ƒ^‚ğİ’è
+        // ç«‹æ–¹ä½“ã®é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
         void setupCubeVertices();
 
-        // ƒ[ƒ‹ƒhs—ñ‚ğXV
+        // ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã‚’æ›´æ–°
         void updateWorldMatrix();
     };
 }
