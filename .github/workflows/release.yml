@@ -56,7 +56,7 @@ jobs:
           copy x64\Release\DX12GameEngine.exe package_src\
           xcopy assets package_src\assets /E /I /Y
           xcopy src package_src\src /E /I /Y
-          copy imgui.ini package_arc\
+          copy imgui.ini package_src\
           powershell Compress-Archive -Path package_src\* -DestinationPath DX12GameEngine-with-src.zip
 
       # GitHub Release にアップロード
@@ -68,6 +68,5 @@ jobs:
             DX12GameEngine-with-src.zip
           draft: false
           prerelease: false
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
