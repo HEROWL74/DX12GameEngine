@@ -18,15 +18,26 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      # Release ビルド
+      # vcpkg セットアップ
+      - name: Setup vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
+
+      # 必要ライブラリをインストール
+      - name: Install dependencies
+        run: |
+          .\vcpkg\vcpkg.exe install sol2 nlohmann-json
+
+      # Release ビルド (vcpkg を統合)
       - name: Build with MSBuild
-        run: msbuild DX12GameEngine.sln /p:Configuration=Release
+        run: msbuild DX12GameEngine.sln /p:Configuration=Release /p:VcpkgEnableManifest=true
 
       # exe + assets パッケージ
       - name: Create package (runtime only)
         run: |
           mkdir package_runtime
-          copy DX12GameEngine.exe package_runtime\
+          copy x64\Release\DX12GameEngine.exe package_runtime\
           xcopy assets package_runtime\assets /E /I /Y
           powershell Compress-Archive -Path package_runtime\* -DestinationPath DX12GameEngine.zip
 
@@ -34,7 +45,7 @@ jobs:
       - name: Create package (with source)
         run: |
           mkdir package_src
-          copy DX12GameEngine.exe package_src\
+          copy x64\Release\DX12GameEngine.exe package_src\
           xcopy assets package_src\assets /E /I /Y
           xcopy src package_src\src /E /I /Y
           powershell Compress-Archive -Path package_src\* -DestinationPath DX12GameEngine-with-src.zip
