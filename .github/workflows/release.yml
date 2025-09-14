@@ -30,7 +30,7 @@ jobs:
 
       # Release ビルド (manifest 有効)
       - name: Build with MSBuild
-        run: msbuild DX12GameEngine.sln /p:Configuration=Release /p:VcpkgEnableManifest=true /p:VcpkgRoot=${{ github.workspace }}\vcpkg
+        run: msbuild DX12GameEngine.sln /p:Configuration=Release /p:VcpkgEnableManifest=true
 
       # exe + assets パッケージ
       - name: Create package (runtime only)
