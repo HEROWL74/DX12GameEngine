@@ -544,7 +544,7 @@ namespace Engine::Graphics
                 // Front (CCW: 左下, 右上, 右下) 
                 0, 2, 1,  0, 3, 2,
                 // Back
-                4, 6, 5,  4, 7, 6,
+                4, 5, 6,  4, 6, 7,
                 // Left
                 8, 10, 9,  8, 11, 10,
                 // Right
