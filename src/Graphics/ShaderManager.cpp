@@ -542,7 +542,7 @@ namespace Engine::Graphics
     {
         // HLSL繝輔ぃ繧､繝ｫ縺九ｉ繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵さ繝ｳ繝代う繝ｫ
         ShaderCompileDesc vsDesc;
-        vsDesc.filePath = "assets/shaders/PBR_VS.hlsl";
+        vsDesc.filePath = "engine-assets/shaders/PBR_VS.hlsl";
         vsDesc.entryPoint = "main";
         vsDesc.type = ShaderType::Vertex;
 
@@ -553,7 +553,7 @@ namespace Engine::Graphics
         }
 
         ShaderCompileDesc psDesc;
-        psDesc.filePath = "assets/shaders/PBR_PS.hlsl";
+        psDesc.filePath = "engine-assets/shaders/PBR_PS.hlsl";
         psDesc.entryPoint = "main";
         psDesc.type = ShaderType::Pixel;
 

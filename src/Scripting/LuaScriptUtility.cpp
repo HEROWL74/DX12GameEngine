@@ -2,6 +2,7 @@
 #include "LuaScriptUtility.hpp"
 #include <fstream>
 #include <Windows.h>
+#include <filesystem>
 
 namespace Engine::Scripting
 {
@@ -23,14 +24,23 @@ namespace Engine::Scripting
 
 	void LuaScriptUtility::openInVSCode(const std::string& path)
 	{
+		std::filesystem::path scriptPath(path);
+		std::string folder = scriptPath.parent_path().string();
+
 		//"code"コマンドを使用
 		ShellExecuteA(
 			nullptr,
 			"open",
 			"code",
-			path.c_str(),
+			folder.c_str(),
 			nullptr,
 			SW_HIDE
 		);
+	}
+
+	std::string LuaScriptUtility::normalizePath(const std::string& name) {
+		std::filesystem::path p(name);
+		p.replace_extension(".lua");
+		return p.string();
 	}
 }

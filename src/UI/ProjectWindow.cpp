@@ -2,6 +2,7 @@
 #include "ProjectWindow.hpp"
 #include <format>
 #include <algorithm>
+#include <fstream>
 
 namespace Engine::UI
 {
@@ -23,18 +24,22 @@ namespace Engine::UI
          
             if (ImGui::BeginChild("AssetArea", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())))
             {
-                if (m_showGrid)
-                {
-                    drawAssetGrid();
+                if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(0)) {
+                    m_selectedAsset = nullptr;
                 }
-                else
-                {
-                    drawAssetList();
-                }
-                drawContextMenu();
+                if (m_showGrid) drawAssetGrid();
+                else            drawAssetList();
+                // drawContextMenu(); ← ここは削除
             }
             ImGui::EndChild();
 
+            drawContextMenu();
+
+            // ここで一括処理
+            if (!m_pendingPathChange.empty()) {
+                setProjectPath(m_pendingPathChange);
+                m_pendingPathChange.clear();
+            }
  
             drawAssetPreview();
         }
@@ -154,38 +159,25 @@ namespace Engine::UI
           
             ImGui::BeginGroup();
 
-      
+            
             bool isSelected = (m_selectedAsset == &asset);
             if (isSelected)
             {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
             }
-
-            if (asset.type == AssetInfo::Type::Folder && m_folderIcon && m_imguiManager)
-            {
-                static ImTextureID folderIconID = 0;
-                if (!folderIconID)
-                    folderIconID = m_imguiManager->registerTexture(m_folderIcon.get());
-
-                ImGui::Image(folderIconID, ImVec2(m_iconSize, m_iconSize));
-
-                if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))
-                {
-                    m_selectedAsset = &asset;
-                    loadAssetPreview(asset);
-                }
-                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
-                {
-                    setProjectPath(asset.path.string());
-                }
+            if (asset.type == AssetInfo::Type::Folder) {
+                Utils::log_info("Drawing folder icon, ID=" + std::to_string((uint64_t)m_folderIconID));
+                if (m_folderIconID)
+                    ImGui::Image(m_folderIconID, ImVec2(m_iconSize, m_iconSize));
+            }
+            else if (asset.extension == ".lua") {
+                Utils::log_info("Drawing lua icon, ID=" + std::to_string((uint64_t)m_luaIconID));
+                if (m_luaIconID)
+                    ImGui::Image(m_luaIconID, ImVec2(m_iconSize, m_iconSize));
             }
             else
             {
-                if (ImGui::Button("##icon", ImVec2(m_iconSize, m_iconSize)))
-                {
-                    m_selectedAsset = &asset;
-                    loadAssetPreview(asset);
-                }
+                ImGui::Button("##icon", ImVec2(m_iconSize, m_iconSize));
             }
 
 
@@ -196,17 +188,16 @@ namespace Engine::UI
 
             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
             {
-                if (asset.type == AssetInfo::Type::Folder)
-                {
-                    setProjectPath(asset.path.string());
+                std::string clickedPath = asset.path.string(); // ← コピーしておく
+
+                if (asset.type == AssetInfo::Type::Folder) {
+                    m_pendingPathChange = clickedPath; // 次の処理にまわす
                 }
-                else if (asset.type == AssetInfo::Type::Script)
-                {
-                    Engine::Scripting::LuaScriptUtility::openInVSCode(asset.path.string());
-                }
-                else if (m_assetDropCallback)
-                {
-                    m_assetDropCallback(asset);
+                else if (asset.type == AssetInfo::Type::Script && !asset.renaming) {
+                    if (asset.extension == ".lua")
+                        Engine::Scripting::LuaScriptUtility::openInVSCode(clickedPath);
+                    else if (asset.extension == ".cpp")
+                        Engine::Scripting::CppScriptUtility::openInVSCode(clickedPath);
                 }
             }
 
@@ -220,12 +211,44 @@ namespace Engine::UI
                 if (ImGui::InputText("##rename", asset.renameBuffer, sizeof(asset.renameBuffer),
                     ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
                 {
-                    // Enterで確定 → ファイルリネーム
                     std::filesystem::path newPath = asset.path.parent_path() / asset.renameBuffer;
+
+                    // 拡張子補正
+                    if (asset.extension == ".lua") {
+                        newPath.replace_extension(".lua");
+                    }
+                    else if (asset.extension == ".cpp") {
+                        newPath.replace_extension(".cpp");
+                    }
+
                     try {
                         std::filesystem::rename(asset.path, newPath);
+
+                        // 🔧 C++ の場合、中の class 名も置換
+                        if (asset.extension == ".cpp") {
+                            std::ifstream in(newPath);
+                            std::stringstream buffer;
+                            buffer << in.rdbuf();
+                            in.close();
+
+                            std::string content = buffer.str();
+                            std::string oldClassName = asset.path.stem().string(); // リネーム前の名前
+                            std::string newClassName = newPath.stem().string();
+
+                            // 簡易置換
+                            size_t pos = content.find("class " + oldClassName);
+                            if (pos != std::string::npos) {
+                                content.replace(pos + 6, oldClassName.size(), newClassName);
+
+                                std::ofstream out(newPath, std::ios::trunc);
+                                out << content;
+                                out.close();
+                            }
+                        }
+
                         asset.path = newPath;
                         asset.name = newPath.filename().string();
+                        asset.extension = newPath.extension().string();
                         asset.renaming = false;
                         refreshAssets();
                     }
@@ -233,6 +256,7 @@ namespace Engine::UI
                         Utils::log_warning("Rename failed");
                     }
                 }
+
 
                 // Escでキャンセルできるようにする（任意）
                 if (ImGui::IsItemDeactivatedAfterEdit() && !ImGui::IsItemActive())
@@ -314,17 +338,16 @@ namespace Engine::UI
 
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
                 {
-                    if (asset.type == AssetInfo::Type::Folder)
-                    {
-                        setProjectPath(asset.path.string());
+                    std::string clickedPath = asset.path.string();
+
+                    if (asset.type == AssetInfo::Type::Folder) {
+                        m_pendingPathChange = clickedPath;
                     }
-                    else if (asset.type == AssetInfo::Type::Script)
-                    {
-                        Engine::Scripting::LuaScriptUtility::openInVSCode(asset.path.string());
-                    }
-                    else if (m_assetDropCallback)
-                    {
-                        m_assetDropCallback(asset);
+                    else if (asset.type == AssetInfo::Type::Script && !asset.renaming) {
+                        if (asset.extension == ".lua")
+                            Engine::Scripting::LuaScriptUtility::openInVSCode(clickedPath);
+                        else if (asset.extension == ".cpp")
+                            Engine::Scripting::CppScriptUtility::openInVSCode(clickedPath);
                     }
                 }
 
@@ -406,22 +429,22 @@ namespace Engine::UI
 
     void ProjectWindow::drawContextMenu()
     {
-        if (ImGui::BeginPopupContextWindow("ProjectWindowContext", ImGuiPopupFlags_MouseButtonRight))
+        if (ImGui::BeginPopupContextWindow("ProjectWindowContext",
+            ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
         {
+
             if (ImGui::BeginMenu("Create"))
             {
                 if (ImGui::MenuItem("Lua Script"))
                 {
                     std::string newScriptPath = generateUniqueScriptPath();
+                    newScriptPath = Engine::Scripting::LuaScriptUtility::normalizePath(newScriptPath);
 
                     if (Engine::Scripting::LuaScriptUtility::createNewScript(newScriptPath))
                     {
                         Utils::log_info(std::format("Lua script created: {}", newScriptPath));
-
-                        //リスト更新
                         refreshAssets();
 
-                        //新しく作ったアセットを選択 & Renameモードにする
                         for (auto& asset : m_assets)
                         {
                             if (asset.path == newScriptPath)
@@ -434,6 +457,26 @@ namespace Engine::UI
                         }
                     }
                 }
+
+                if (ImGui::MenuItem("C++ Script")) {
+                    std::string path = "assets/scripts/NewCppScript";
+                    path = Engine::Scripting::CppScriptUtility::normalizePath(path);
+
+                    if (Engine::Scripting::CppScriptUtility::createNewScript(path)) {
+                        Utils::log_info(std::format("Created C++ script: {}", path));
+                        refreshAssets();
+
+                        for (auto& asset : m_assets) {
+                            if (asset.path == path) {
+                                m_selectedAsset = &asset;
+                                asset.renaming = true;
+                                strncpy_s(asset.renameBuffer, asset.name.c_str(), sizeof(asset.renameBuffer));
+                                break;
+                            }
+                        }
+                    }
+                }
+
 
                 ImGui::EndMenu();
             }
@@ -479,7 +522,7 @@ namespace Engine::UI
         {
             return AssetInfo::Type::Shader;
         }
-        else if (ext == ".lua") 
+        else if (ext == ".lua" || ext == ".cpp")
         {
             return AssetInfo::Type::Script;
         }
@@ -522,7 +565,7 @@ namespace Engine::UI
 
     void ProjectWindow::handleDragDrop(const AssetInfo& asset)
     {
-        if (ImGui::BeginDragDropSource())
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
         {
             AssetPayload payload{};
             auto s = asset.path.string();
@@ -547,23 +590,41 @@ namespace Engine::UI
         do
         {
             fileName = (counter == 0)
-                ? baseName + ".lua"
-                : baseName + " " + std::to_string(counter) + ".lua";
+                ? baseName
+                : baseName + " " + std::to_string(counter);
 
             scriptPath = std::filesystem::path(m_projectPath) / fileName;
             counter++;
-        } while (std::filesystem::exists(scriptPath));
+        } while (std::filesystem::exists(scriptPath.string() + ".lua"));
 
-        return scriptPath.string();
+        return scriptPath.string(); // 拡張子なしで返す
     }
 
-    void ProjectWindow::setTextureManager(Graphics::TextureManager* textureManager) 
+    void ProjectWindow::setTextureManager(Graphics::TextureManager* textureManager)
     {
-        m_textureManager = textureManager; 
+        m_textureManager = textureManager;
 
-        if (m_textureManager)
+        if (m_textureManager && m_imguiManager)
         {
-            m_folderIcon = m_textureManager->loadTexture("assets/images/ProjectWindowFolder.png");
+            m_folderIcon = m_textureManager->loadTexture("engine-assets/images/ProjectWindowFolder.png");
+            m_luaIcon = m_textureManager->loadTexture("engine-assets/images/LuaFileImage.png");
+
+            if (m_folderIcon) {
+                m_folderIconID = m_imguiManager->registerTexture(m_folderIcon.get());
+                Utils::log_info("FolderIcon registered, ID=" + std::to_string((uint64_t)m_folderIconID));
+            }
+            else {
+                Utils::log_warning("Failed to load folder icon!");
+            }
+
+            if (m_luaIcon) {
+                m_luaIconID = m_imguiManager->registerTexture(m_luaIcon.get());
+                Utils::log_info("LuaIcon registered, ID=" + std::to_string((uint64_t)m_luaIconID));
+            }
+            else {
+                Utils::log_warning("Failed to load lua icon!");
+            }
         }
     }
+
 }

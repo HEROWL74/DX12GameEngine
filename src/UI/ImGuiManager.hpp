@@ -78,7 +78,8 @@ namespace Engine::UI
 		void invalidateDeviceObjects();
 		void createDeviceObjects();
 
-
+        //色合い設定
+		void createGUIStyle();
 		ImTextureID registerTexture(Graphics::Texture* tex);
 
 	private:

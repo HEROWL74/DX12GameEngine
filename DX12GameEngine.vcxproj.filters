@@ -263,31 +263,31 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="assets\shaders\BasicPixel.hlsl">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="assets\shaders\BasicVertex.hlsl">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="assets\shaders\PBR_PS.hlsl">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="assets\shaders\PBR_VS.hlsl">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="assets\shaders\Common.hlsli">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </None>
-    <None Include="assets\shaders\Lighting.hlsli">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </None>
     <None Include="assets\scripts\test.lua">
       <Filter>ソース ファイル\assets\scripts</Filter>
     </None>
     <None Include="assets\scripts\move.lua">
       <Filter>ソース ファイル\assets\scripts</Filter>
     </None>
+    <None Include="engine-assets\shaders\Common.hlsli">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </None>
+    <None Include="engine-assets\shaders\Lighting.hlsli">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="engine-assets\shaders\BasicPixel.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="engine-assets\shaders\BasicVertex.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="engine-assets\shaders\PBR_PS.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="engine-assets\shaders\PBR_VS.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

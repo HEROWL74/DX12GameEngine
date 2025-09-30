@@ -12,5 +12,8 @@ namespace Engine::Scripting
 
 		//VSCodeで開く
 		static void openInVSCode(const std::string& path);
+
+		//ファイル名lua補正
+		static std::string normalizePath(const std::string& name);
 	};
 }
