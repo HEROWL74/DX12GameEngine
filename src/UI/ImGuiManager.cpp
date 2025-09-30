@@ -746,10 +746,10 @@ namespace Engine::UI
 				ImGui::Spacing();
 
 				// ==== Script ====
-				auto* scriptComponent = m_selectedObject->getComponent<Engine::Scripting::ScriptComponent>();
-				if (scriptComponent)
+				auto* luaScriptComponent = m_selectedObject->getComponent<Engine::Scripting::LuaScriptComponent>();
+				if (luaScriptComponent)
 				{
-					drawScriptComponent(scriptComponent);
+					drawScriptComponent(luaScriptComponent);
 				}
 				else
 				{
@@ -764,7 +764,7 @@ namespace Engine::UI
 							const AssetPayload* dropped = static_cast<const AssetPayload*>(payload->Data);
 							if (dropped->type == static_cast<int>(UI::AssetInfo::Type::Script))
 							{
-								m_selectedObject->addScriptComponent(dropped->path);
+								m_selectedObject->addLuaScriptComponent(dropped->path);
 								Utils::log_info(std::format("Lua script attached: {}", dropped->path));
 							}
 						}
@@ -1060,11 +1060,11 @@ namespace Engine::UI
 		}
 	}
 
-	void InspectorWindow::drawScriptComponent(Scripting::ScriptComponent* scriptComponent)
+	void InspectorWindow::drawScriptComponent(Scripting::LuaScriptComponent* luaScriptComponent)
 	{
 		if (ImGui::CollapsingHeader("Script", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			std::string fileName = scriptComponent->getScriptFileName();
+			std::string fileName = luaScriptComponent->getScriptFileName();
 
 			ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Attached Script:");
 			ImGui::SameLine();
@@ -1079,7 +1079,7 @@ namespace Engine::UI
 					const AssetPayload* dropped = static_cast<const AssetPayload*>(payload->Data);
 					if (dropped->type == static_cast<int>(UI::AssetInfo::Type::Script))
 					{
-						m_selectedObject->addScriptComponent(dropped->path);
+						m_selectedObject->addLuaScriptComponent(dropped->path);
 						Utils::log_info(std::format("Lua script re-attached: {}", dropped->path));
 					}
 				}

@@ -71,26 +71,21 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-
-  <VcpkgUseStatic>true</VcpkgUseStatic>
-  <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
-
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-  <VcpkgUseStatic>true</VcpkgUseStatic>
-  <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
-
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-  <VcpkgUseStatic>true</VcpkgUseStatic>
-  <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
-
-   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-  <VcpkgUseStatic>true</VcpkgUseStatic>
-  <VcpkgEnableManifest>true</VcpkgEnableManifest>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -101,6 +96,8 @@
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -119,6 +116,8 @@
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -135,6 +134,8 @@
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -157,6 +158,8 @@
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <BuildStlModules>false</BuildStlModules>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -193,10 +196,14 @@
     <ClInclude Include="src\Input\KeyCode.hpp" />
     <ClInclude Include="src\Input\MouseState.hpp" />
     <ClInclude Include="src\Math\Math.hpp" />
+    <ClInclude Include="src\Scripting\CppScriptComponent.hpp" />
+    <ClInclude Include="src\Scripting\CppScriptUtility.hpp" />
+    <ClInclude Include="src\Scripting\IScript.hpp" />
     <ClInclude Include="src\Scripting\LuaBindings.hpp" />
     <ClInclude Include="src\Scripting\LuaScriptUtility.hpp" />
-    <ClInclude Include="src\Scripting\ScriptComponent.hpp" />
+    <ClInclude Include="src\Scripting\LuaScriptComponent.hpp" />
     <ClInclude Include="src\Scripting\ScriptManager.hpp" />
+    <ClInclude Include="src\Scripting\Scripts.hpp" />
     <ClInclude Include="src\UI\backends\imgui_impl_dx12.h" />
     <ClInclude Include="src\UI\backends\imgui_impl_win32.h" />
     <ClInclude Include="src\UI\ContextMenu.hpp" />
@@ -227,8 +234,9 @@
     <ClCompile Include="src\Graphics\TriangleRenderer.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Scripting\CppScriptUtility.cpp" />
     <ClCompile Include="src\Scripting\LuaScriptUtility.cpp" />
-    <ClCompile Include="src\Scripting\ScriptComponent.cpp" />
+    <ClCompile Include="src\Scripting\LuaScriptComponent.cpp" />
     <ClCompile Include="src\Scripting\ScriptManager.cpp" />
     <ClCompile Include="src\UI\backends\imgui_impl_dx12.cpp" />
     <ClCompile Include="src\UI\backends\imgui_impl_win32.cpp" />
@@ -292,5 +300,5 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-    <Import Project="$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.targets" Condition="exists('$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.targets')" />
+  <Import Project="$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.targets" Condition="exists('$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.targets')" />
 </Project>

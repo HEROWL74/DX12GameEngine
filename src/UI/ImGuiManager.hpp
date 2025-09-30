@@ -15,7 +15,8 @@
 #include "../Graphics/Texture.hpp"
 #include "ContextMenu.hpp"
 #include "../Core/PlayModeController.hpp"
-#include "../Scripting/ScriptComponent.hpp"
+#include "../Scripting/IScript.hpp"
+#include "../Scripting/LuaScriptComponent.hpp"
 #include "../Scripting/LuaScriptUtility.hpp"
 
 //ImGui includes
@@ -213,7 +214,7 @@ namespace Engine::UI
 
 		void drawTransformComponent(Core::Transform* transform);
 		void drawRenderComponent(Graphics::RenderComponent* renderComponent);
-		void drawScriptComponent(Scripting::ScriptComponent* scriptComponent);;
+		void drawScriptComponent(Scripting::LuaScriptComponent* luaScriptComponent);
 
 		// マテリアル編集機能
 		void drawMaterialEditor(Graphics::RenderComponent* renderComponent);
