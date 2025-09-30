@@ -74,7 +74,6 @@ namespace Engine::UI
 
         void setImGuiManager(ImGuiManager* manager) { m_imguiManager = manager; }
 
-
     private:
         Graphics::TextureManager* m_textureManager = nullptr;
         Graphics::MaterialManager* m_materialManager = nullptr;
@@ -85,11 +84,16 @@ namespace Engine::UI
         std::vector<AssetInfo> m_assets;
         AssetInfo* m_selectedAsset = nullptr;
         std::shared_ptr<Graphics::Texture> m_folderIcon;
+        std::shared_ptr<Graphics::Texture> m_luaIcon;
+
+        ImTextureID m_folderIconID = 0;
+        ImTextureID m_luaIconID = 0;
 
         // UI状態
         float m_iconSize = 64.0f;
         bool m_showGrid = true;
         std::string m_searchFilter;
+        std::string m_pendingPathChange;
 
         // コールバック
         std::function<void(const AssetInfo&)> m_assetDropCallback;

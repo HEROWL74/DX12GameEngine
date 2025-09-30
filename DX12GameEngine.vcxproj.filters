@@ -145,12 +145,30 @@
     <ClInclude Include="src\Scripting\LuaBindings.hpp">
       <Filter>ソース ファイル\src\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scripting\ScriptComponent.hpp">
+    <ClInclude Include="src\Scripting\LuaScriptComponent.hpp">
       <Filter>ソース ファイル\src\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\EditorState.hpp" />
-    <ClInclude Include="src\Core\PlayModeController.hpp" />
-    <ClInclude Include="src\Scripting\LuaScriptUtility.hpp" />
+    <ClInclude Include="src\Scripting\LuaScriptUtility.hpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\EditorState.hpp">
+      <Filter>ソース ファイル\src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\PlayModeController.hpp">
+      <Filter>ソース ファイル\src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scripting\IScript.hpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scripting\CppScriptComponent.hpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scripting\CppScriptUtility.hpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scripting\Scripts.hpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\App.cpp">
@@ -231,40 +249,45 @@
     <ClCompile Include="src\Scripting\ScriptManager.cpp">
       <Filter>ソース ファイル\src\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scripting\ScriptComponent.cpp">
+    <ClCompile Include="src\Scripting\LuaScriptComponent.cpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scripting\LuaScriptUtility.cpp">
       <Filter>ソース ファイル\src\Scripting</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\PlayModeController.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\src\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scripting\LuaScriptUtility.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\Scripting\CppScriptUtility.cpp">
+      <Filter>ソース ファイル\src\Scripting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="assets\shaders\BasicPixel.hlsl">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="assets\shaders\BasicVertex.hlsl">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="assets\shaders\PBR_PS.hlsl">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="assets\shaders\PBR_VS.hlsl">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="assets\shaders\Common.hlsli">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </None>
-    <None Include="assets\shaders\Lighting.hlsli">
-      <Filter>ソース ファイル\assets\shaders</Filter>
-    </None>
     <None Include="assets\scripts\test.lua">
       <Filter>ソース ファイル\assets\scripts</Filter>
     </None>
-    <None Include="assets\scripts\move.lua" />
+    <None Include="assets\scripts\move.lua">
+      <Filter>ソース ファイル\assets\scripts</Filter>
+    </None>
+    <None Include="engine-assets\shaders\Common.hlsli">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </None>
+    <None Include="engine-assets\shaders\Lighting.hlsli">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="engine-assets\shaders\BasicPixel.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="engine-assets\shaders\BasicVertex.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="engine-assets\shaders\PBR_PS.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="engine-assets\shaders\PBR_VS.hlsl">
+      <Filter>ソース ファイル\assets\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

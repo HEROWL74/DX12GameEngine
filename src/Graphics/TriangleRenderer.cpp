@@ -115,28 +115,27 @@ namespace Engine::Graphics
 
     Utils::VoidResult TriangleRenderer::createRootSignature()
     {
-        // 3縺､縺ｮ螳壽焚繝舌ャ繝輔ぃ逕ｨ繝ｫ繝ｼ繝医す繧ｰ繝阪メ繝｣・・amera, Object, Material・・
         D3D12_ROOT_PARAMETER rootParameters[3];
 
-        // 繧ｫ繝｡繝ｩ螳壽焚繝舌ャ繝輔ぃ (b0)
+        // バッファー定義1(b0)
         rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[0].Descriptor.ShaderRegister = 0;
         rootParameters[0].Descriptor.RegisterSpace = 0;
         rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // 繧ｪ繝悶ず繧ｧ繧ｯ繝亥ｮ壽焚繝舌ャ繝輔ぃ (b1)
+        // バッファー定義2 (b1)
         rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[1].Descriptor.ShaderRegister = 1;
         rootParameters[1].Descriptor.RegisterSpace = 0;
         rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-        // 繝槭ユ繝ｪ繧｢繝ｫ螳壽焚繝舌ャ繝輔ぃ (b2)
+        // バッファー定義3 (b2)
         rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[2].Descriptor.ShaderRegister = 2;
         rootParameters[2].Descriptor.RegisterSpace = 0;
         rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-        // Static Sampler繧定ｿｽ蜉・医す繧ｧ繝ｼ繝繝ｼ縺ｮs0縺ｫ蟇ｾ蠢懶ｼ・
+        // Static Sampler
         D3D12_STATIC_SAMPLER_DESC samplerDesc{};
         samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
         samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -184,7 +183,7 @@ namespace Engine::Graphics
     {
         // ShaderCompileDesc 繧剃ｽｿ逕ｨ縺励※繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵Ο繝ｼ繝・
         ShaderCompileDesc vsDesc;
-        vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
+        vsDesc.filePath = "engine-assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
         vsDesc.type = ShaderType::Vertex;
         vsDesc.enableDebug = true;
@@ -196,7 +195,7 @@ namespace Engine::Graphics
         }
 
         ShaderCompileDesc psDesc;
-        psDesc.filePath = "assets/shaders/BasicPixel.hlsl";
+        psDesc.filePath = "engine-assets/shaders/BasicPixel.hlsl";
         psDesc.entryPoint = "main";
         psDesc.type = ShaderType::Pixel;
         psDesc.enableDebug = true;
@@ -214,7 +213,7 @@ namespace Engine::Graphics
     {
         // 縺ｾ縺壹す繧ｧ繝ｼ繝繝ｼ繧偵Ο繝ｼ繝会ｼ医く繝｣繝・す繝･縺ｫ蟄伜惠縺励↑縺・ｴ蜷医・縺溘ａ・・
         ShaderCompileDesc vsDesc;
-        vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
+        vsDesc.filePath = "engine-assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
         vsDesc.type = ShaderType::Vertex;
         vsDesc.enableDebug = true;
@@ -227,7 +226,7 @@ namespace Engine::Graphics
         }
 
         ShaderCompileDesc psDesc;
-        psDesc.filePath = "assets/shaders/BasicPixel.hlsl";
+        psDesc.filePath = "engine-assets/shaders/BasicPixel.hlsl";
         psDesc.entryPoint = "main";
         psDesc.type = ShaderType::Pixel;
         psDesc.enableDebug = true;

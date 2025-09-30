@@ -57,7 +57,7 @@ namespace Engine::UI
 			io.Fonts->AddFontDefault();
 
 			ImGui::StyleColorsDark();
-
+			createGUIStyle();
 
 			auto heapResult = createDescriptorHeap();
 			if (!heapResult)
@@ -505,13 +505,72 @@ namespace Engine::UI
 		m_device->getDevice()->CreateShaderResourceView(tex->getResource(), &srv, cpu);
 
 		// GPUハンドル値をImTextureIDとして返す
-		ImTextureID result = static_cast<ImTextureID>(gpu.ptr);
+		ImTextureID result = (ImTextureID)(intptr_t)gpu.ptr;
 
-		Utils::log_info(std::format("Registered texture '{}' to ImGui with ID: {}",
-			tex->getDesc().debugName, static_cast<uint64_t>(gpu.ptr)));
+		Utils::log_info(std::format(
+			"RegisterTexture: name={} format={} mipLevels={} cpu.ptr={} gpu.ptr={}",
+			tex->getDesc().debugName,
+			(int)resDesc.Format,
+			tex->getMipLevels(),
+			(uint64_t)cpu.ptr,
+			(uint64_t)gpu.ptr));
 
 		return result;
 	}
+
+	void ImGuiManager::createGUIStyle()
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		ImVec4* colors = style.Colors;
+
+		// === ベースカラー ===
+		colors[ImGuiCol_WindowBg] = ImVec4(0.11f, 0.11f, 0.11f, 1.0f); // #1C1C1C
+		colors[ImGuiCol_ChildBg] = ImVec4(0.11f, 0.11f, 0.11f, 1.0f);
+		colors[ImGuiCol_PopupBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.0f);
+
+		// === フレーム ===
+		colors[ImGuiCol_Border] = ImVec4(0.08f, 0.08f, 0.08f, 1.0f);
+		colors[ImGuiCol_BorderShadow] = ImVec4(0, 0, 0, 0);
+
+		// === ボタン ===
+		colors[ImGuiCol_Button] = ImVec4(0.20f, 0.20f, 0.20f, 1.0f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.25f, 0.40f, 0.65f, 1.0f); // ブルー寄り
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.45f, 0.70f, 1.0f);
+
+		// === ヘッダー（TreeNode, CollapsingHeader, Selectable）===
+		colors[ImGuiCol_Header] = ImVec4(0.20f, 0.20f, 0.20f, 1.0f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.25f, 0.40f, 0.65f, 1.0f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.20f, 0.45f, 0.70f, 1.0f);
+
+		// === タブ ===
+		colors[ImGuiCol_Tab] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+		colors[ImGuiCol_TabHovered] = ImVec4(0.25f, 0.40f, 0.65f, 1.0f);
+		colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.45f, 0.70f, 1.0f);
+		colors[ImGuiCol_TabUnfocused] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.20f, 0.45f, 0.70f, 1.0f);
+
+		// === スクロールバー ===
+		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.11f, 0.11f, 0.11f, 1.0f);
+		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.30f, 0.30f, 0.30f, 1.0f);
+		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
+
+		// === スライダー・チェックボックスなど ===
+		colors[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.0f);
+		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.25f, 0.40f, 0.65f, 1.0f);
+		colors[ImGuiCol_FrameBgActive] = ImVec4(0.20f, 0.45f, 0.70f, 1.0f);
+
+		// === テキスト ===
+		colors[ImGuiCol_Text] = ImVec4(0.85f, 0.85f, 0.85f, 1.0f); // 明るいグレー
+		colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.0f);
+
+		// === スタイルパラメータ ===
+		style.WindowRounding = 0.0f;
+		style.FrameRounding = 2.0f;
+		style.ScrollbarRounding = 3.0f;
+		style.GrabRounding = 2.0f;
+	}
+
 
 	//=====================================================================
 	//DebugWindow
@@ -526,19 +585,19 @@ namespace Engine::UI
 			ImGui::Text("Play Controls");
 			ImGui::Separator();
 
-			if (ImGui::Button("▶ Play")) {
+			if (ImGui::Button("Play")) {
 				if (m_playModeController) {
 					m_playModeController->play();
 				}
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("⏸ Pause")) {
+			if (ImGui::Button("Pause")) {
 				if (m_playModeController) {
 					m_playModeController->pause();
 				}
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("■ Stop")) {
+			if (ImGui::Button("Stop")) {
 				if (m_playModeController) {
 					m_playModeController->stop();
 				}
@@ -746,10 +805,10 @@ namespace Engine::UI
 				ImGui::Spacing();
 
 				// ==== Script ====
-				auto* scriptComponent = m_selectedObject->getComponent<Engine::Scripting::ScriptComponent>();
-				if (scriptComponent)
+				auto* luaScriptComponent = m_selectedObject->getComponent<Engine::Scripting::LuaScriptComponent>();
+				if (luaScriptComponent)
 				{
-					drawScriptComponent(scriptComponent);
+					drawScriptComponent(luaScriptComponent);
 				}
 				else
 				{
@@ -764,7 +823,7 @@ namespace Engine::UI
 							const AssetPayload* dropped = static_cast<const AssetPayload*>(payload->Data);
 							if (dropped->type == static_cast<int>(UI::AssetInfo::Type::Script))
 							{
-								m_selectedObject->addScriptComponent(dropped->path);
+								m_selectedObject->addLuaScriptComponent(dropped->path);
 								Utils::log_info(std::format("Lua script attached: {}", dropped->path));
 							}
 						}
@@ -1060,11 +1119,11 @@ namespace Engine::UI
 		}
 	}
 
-	void InspectorWindow::drawScriptComponent(Scripting::ScriptComponent* scriptComponent)
+	void InspectorWindow::drawScriptComponent(Scripting::LuaScriptComponent* luaScriptComponent)
 	{
 		if (ImGui::CollapsingHeader("Script", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			std::string fileName = scriptComponent->getScriptFileName();
+			std::string fileName = luaScriptComponent->getScriptFileName();
 
 			ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Attached Script:");
 			ImGui::SameLine();
@@ -1079,7 +1138,7 @@ namespace Engine::UI
 					const AssetPayload* dropped = static_cast<const AssetPayload*>(payload->Data);
 					if (dropped->type == static_cast<int>(UI::AssetInfo::Type::Script))
 					{
-						m_selectedObject->addScriptComponent(dropped->path);
+						m_selectedObject->addLuaScriptComponent(dropped->path);
 						Utils::log_info(std::format("Lua script re-attached: {}", dropped->path));
 					}
 				}

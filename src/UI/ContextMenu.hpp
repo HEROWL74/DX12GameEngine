@@ -7,6 +7,7 @@
 #include "../Core/GameObject.hpp"
 #include "../Graphics/RenderComponent.hpp"
 #include "../Scripting/LuaScriptUtility.hpp"
+#include "../Scripting/CppScriptUtility.hpp"
 
 namespace Engine::UI
 {

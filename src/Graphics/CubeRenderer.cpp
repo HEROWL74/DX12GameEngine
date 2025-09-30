@@ -265,7 +265,7 @@ namespace Engine::Graphics
     {
         // ShaderCompileDesc
         ShaderCompileDesc vsDesc;
-        vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
+        vsDesc.filePath = "engine-assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
         vsDesc.type = ShaderType::Vertex;
         vsDesc.enableDebug = true;
@@ -277,7 +277,7 @@ namespace Engine::Graphics
         }
 
         ShaderCompileDesc psDesc;
-        psDesc.filePath = "assets/shaders/BasicPixel.hlsl";
+        psDesc.filePath = "engine-assets/shaders/BasicPixel.hlsl";
         psDesc.entryPoint = "main";
         psDesc.type = ShaderType::Pixel;
         psDesc.enableDebug = true;
@@ -294,7 +294,7 @@ namespace Engine::Graphics
     Utils::VoidResult CubeRenderer::createPipelineState()
     {
         ShaderCompileDesc vsDesc;
-        vsDesc.filePath = "assets/shaders/BasicVertex.hlsl";
+        vsDesc.filePath = "engine-assets/shaders/BasicVertex.hlsl";
         vsDesc.entryPoint = "main";
         vsDesc.type = ShaderType::Vertex;
         vsDesc.enableDebug = true;
@@ -307,7 +307,7 @@ namespace Engine::Graphics
         }
 
         ShaderCompileDesc psDesc;
-        psDesc.filePath = "assets/shaders/BasicPixel.hlsl";
+        psDesc.filePath = "engine-assets/shaders/BasicPixel.hlsl";
         psDesc.entryPoint = "main";
         psDesc.type = ShaderType::Pixel;
         psDesc.enableDebug = true;

@@ -63,7 +63,7 @@ namespace Engine::UI
 
     void ContextMenu::drawModals()
     {
-        // Delete遒ｺ隱阪ム繧､繧｢繝ｭ繧ｰ
+        // Deleteボタン描画
         if (m_showDeleteConfirm && m_deleteTarget)
         {
             ImGui::OpenPopup("Delete Confirmation");
@@ -102,7 +102,7 @@ namespace Engine::UI
             }
         }
 
-        // Rename繝繧､繧｢繝ｭ繧ｰ
+        // Renameボタン描画
         if (m_showRenameDialog && m_renameTarget)
         {
             ImGui::OpenPopup("Rename Object");
@@ -158,17 +158,6 @@ namespace Engine::UI
         if (ImGui::BeginMenu("Create"))
         {
             draw3DObjectMenu();
-
-            if (ImGui::MenuItem("Lua Script"))
-            {
-                std::string newScriptPath = "assets/scripts/NewScript.lua";
-                if (Engine::Scripting::LuaScriptUtility::createNewScript(newScriptPath))
-                {
-                    Engine::Scripting::LuaScriptUtility::openInVSCode(newScriptPath);
-                    Utils::log_info(std::format("Created Lua script: {}", newScriptPath));
-                }
-            }
-
             
             if (ImGui::BeginMenu("Light"))
             {
@@ -262,7 +251,7 @@ namespace Engine::UI
             return "GameObject";
         }
 
-        // 繧ｷ繝ｳ繝励Ν縺ｪ繧ｫ繧ｦ繝ｳ繧ｿ繝吶・繧ｹ縺ｮ螳溯｣・
+        //名前生成カウンター
         static int globalCounter = 0;
         globalCounter++;
 
