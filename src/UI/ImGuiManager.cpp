@@ -228,14 +228,6 @@ namespace Engine::UI
 			return;
 		}
 
-		ImGuiContext* currentContext = ImGui::GetCurrentContext();
-		if (currentContext != m_context)
-		{
-			Utils::log_info("Setting ImGui context in newFrame");
-			ImGui::SetCurrentContext(m_context);
-		}
-
-
 		if (m_hwnd)
 		{
 			RECT rect;
@@ -258,6 +250,15 @@ namespace Engine::UI
 			ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
+
+			//DockSpaceを作成
+			ImGuiIO& io = ImGui::GetIO();
+			if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+			{
+				// Viewport全体をDock領域にする場合
+				ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f));
+			}
 		}
 		catch (const std::exception& e)
 		{
@@ -272,6 +273,7 @@ namespace Engine::UI
 			throw; 
 		}
 	}
+
 
 
 	void ImGuiManager::shutdown()
@@ -400,7 +402,8 @@ namespace Engine::UI
 		try
 		{
 			ImGuiIO& io = ImGui::GetIO();
-
+			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;   // ドッキングを有効化
+			io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // 複数ウィンドウ分離も可能
 
 			if (std::abs(io.DisplaySize.x - width) > 1.0f || std::abs(io.DisplaySize.y - height) > 1.0f)
 			{
@@ -639,6 +642,27 @@ namespace Engine::UI
 	{
 		if (!m_visible || !m_scene) return;
 
+		ImGuiViewport* vp = ImGui::GetMainViewport();
+		ImVec2 wp = vp->WorkPos;
+		ImVec2 ws = vp->WorkSize;
+
+		const float LEFT = 0.22f;
+		const float RIGHT = 0.26f;
+		const float BOTTOM = 0.28f;
+
+		static ImVec2 prevDisplay(0, 0);
+		ImGuiIO& io = ImGui::GetIO();
+		bool resized = fabsf(prevDisplay.x - io.DisplaySize.x) > 1.0f ||
+			fabsf(prevDisplay.y - io.DisplaySize.y) > 1.0f;
+		prevDisplay = io.DisplaySize;
+		ImGuiCond cond = resized ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
+
+		// 左上に配置（Hierarchy）
+		ImVec2 leftPos = ImVec2(wp.x, wp.y);
+		ImVec2 leftSize = ImVec2(ws.x * LEFT, ws.y * (1.0f - BOTTOM));
+		ImGui::SetNextWindowPos(leftPos, cond);
+		ImGui::SetNextWindowSize(leftSize, cond);
+
 		if (ImGui::Begin(m_title.c_str(), &m_visible))
 		{
 			if (m_selectedObject)
@@ -784,6 +808,28 @@ namespace Engine::UI
 	void InspectorWindow::draw()
 	{
 		if (!m_visible) return;
+
+		ImGuiViewport* vp = ImGui::GetMainViewport();
+		ImVec2 wp = vp->WorkPos;
+		ImVec2 ws = vp->WorkSize;
+
+		const float LEFT = 0.22f;
+		const float RIGHT = 0.26f;
+		const float BOTTOM = 0.28f;
+
+		static ImVec2 prevDisplay(0, 0);
+		ImGuiIO& io = ImGui::GetIO();
+		bool resized = fabsf(prevDisplay.x - io.DisplaySize.x) > 1.0f ||
+			fabsf(prevDisplay.y - io.DisplaySize.y) > 1.0f;
+		prevDisplay = io.DisplaySize;
+		ImGuiCond cond = resized ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
+
+		// 右上に配置（Inspector）
+		ImVec2 inspPos = ImVec2(wp.x + ws.x * (1.0f - RIGHT), wp.y);
+		ImVec2 inspSize = ImVec2(ws.x * RIGHT, ws.y * (1.0f - BOTTOM));
+		ImGui::SetNextWindowPos(inspPos, cond);
+		ImGui::SetNextWindowSize(inspSize, cond);
+
 
 		if (ImGui::Begin(m_title.c_str(), &m_visible))
 		{
